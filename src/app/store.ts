@@ -1,11 +1,12 @@
+import { localAssetPaths } from './local-assets';
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-export interface Variante {idVariante:number;sku:string;talla:string;color:string;precio:number;stock:number}
+export interface Variante {idVariante:number;sku:string;talla:string;color:string;colorHex?:string;precio:number;stock:number}
 export interface Producto {idProducto:number;nombre:string;categoria:string;precioBase:number;imagen?:string;descripcion?:string;marca?:string;destacado?:boolean;variantes?:Variante[]}
 export interface Item {idProducto:number;idVariante:number;nombre:string;sku:string;talla:string;color:string;precio:number;cantidad:number;imagen:string;stockDisponible:number}
 export const ASSETS='https://raw.githubusercontent.com/jpumaricradgjdgp-cyber/Monarca_herramientas_de_desarrollo/main/fronted/img/';
-export const asset=(path:string)=>ASSETS+path.split('/').map(encodeURIComponent).join('/');
+export const asset=(path:string)=>(localAssetPaths.has(path)?'/img/':ASSETS)+path.split('/').map(encodeURIComponent).join('/');
 @Injectable({providedIn:'root'})
 export class Api {
  private http=inject(HttpClient);
