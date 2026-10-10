@@ -1,0 +1,51 @@
+<main class="mx-auto max-w-7xl px-5 py-10 min-h-[68vh]">
+ <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10">
+  <div><p class="text-xs font-bold tracking-[.3em] uppercase text-zinc-500">Monarca · Backoffice</p><h1 class="heading mt-2 text-4xl">Panel de administración</h1></div>
+  <div class="flex gap-4 items-center text-sm"><a routerLink="/" class="underline">Volver a la tienda</a><button type="button" (click)="logout()" class="underline text-red-700">Cerrar sesión</button></div>
+ </div>
+ <div class="grid sm:grid-cols-3 gap-4 mb-10">
+  <div class="bg-crema p-6"><p class="text-zinc-500 text-xs uppercase">Productos registrados</p><b class="text-3xl block mt-2">{{products().length}}</b></div>
+  <div class="bg-crema p-6"><p class="text-zinc-500 text-xs uppercase">Unidades en stock</p><b class="text-3xl block mt-2">{{stock()}}</b></div>
+  <div class="bg-crema p-6"><p class="text-zinc-500 text-xs uppercase">Valor de pedidos registrados</p><b class="text-3xl block mt-2">S/ {{totalPedidos() | number:'1.2-2'}}</b><small class="text-zinc-500">Incluye pedidos pendientes; no representa ingresos cobrados.</small></div>
+ </div>
+ <div class="flex items-center justify-between flex-wrap gap-4 border-b mb-7">
+  <div class="flex gap-8"><button type="button" class="py-4 font-semibold" [class.border-b-2]="tab()==='productos'" (click)="tab.set('productos')">Inventario</button><button type="button" class="py-4 font-semibold" [class.border-b-2]="tab()==='pedidos'" (click)="tab.set('pedidos')">Pedidos</button></div>
+  <button class="text-sm underline" type="button" (click)="reload()" [disabled]="pending()">{{pending()?'Actualizando…':'Actualizar datos'}}</button>
+ </div>
+ <p *ngIf="message()" class="mb-5 text-green-800" role="status">{{message()}}</p>
+ <p *ngIf="error()" class="mb-5 text-red-700" role="alert">{{error()}}</p>
+ <section *ngIf="tab()==='productos'">
+  <div class="flex flex-col sm:flex-row gap-3 justify-between mb-6"><input class="field sm:max-w-md" aria-label="Buscar por nombre" placeholder="Buscar producto…" [ngModel]="search()" (ngModelChange)="search.set($event)"><button type="button" class="btn-dark" (click)="openNew()">+ Registrar producto</button></div>
+  <div class="overflow-x-auto border border-zinc-200 rounded-lg"><table class="w-full text-left min-w-[680px]">
+   <thead class="bg-zinc-100 uppercase text-xs tracking-wide"><tr><th class="p-4">Producto</th><th class="p-4">Categoría</th><th class="p-4">Precio base</th><th class="p-4">Stock</th><th class="p-4">Variantes</th><th class="p-4">Acciones</th></tr></thead>
+   <tbody><tr *ngFor="let p of filtered()" class="border-t border-zinc-200"><td class="p-3"><div class="flex gap-3 items-center"><img [src]="p.imagen||fallback" [alt]="p.nombre" class="size-14 rounded object-cover bg-zinc-100"><span class="font-semibold">{{p.nombre}}</span></div></td><td class="p-3">{{p.categoria}}</td><td class="p-3">S/ {{p.precioBase | number:'1.2-2'}}</td><td class="p-3">{{totalStock(p)}}</td><td class="p-3">{{p.variantes?.length||0}}</td><td class="p-3"><button type="button" class="text-sm underline mr-4" (click)="openEdit(p)">Editar</button><button type="button" class="text-red-700 text-sm underline" (click)="remove(p)">Eliminar</button></td></tr></tbody>
+  </table><p *ngIf="!filtered().length" class="p-8 text-center text-zinc-500">No hay productos para mostrar.</p></div>
+ </section>
+ <section *ngIf="tab()==='pedidos'" class="overflow-x-auto border border-zinc-200 rounded-lg">
+  <table class="w-full min-w-[650px] text-left"><thead class="bg-zinc-100 uppercase text-xs"><tr><th class="p-4">Pedido</th><th class="p-4">Fecha</th><th class="p-4">Cliente</th><th class="p-4">Estado</th><th class="p-4 text-right">Total</th></tr></thead>
+  <tbody><tr *ngFor="let p of orders()" class="border-t"><td class="p-4">{{p.codigoPedido||p.idPedido}}</td><td class="p-4">{{p.fechaPedido ? (p.fechaPedido | date:'dd/MM/yyyy HH:mm') : '—'}}</td><td class="p-4">{{p.cliente}}</td><td class="p-4">{{p.estado}}</td><td class="p-4 text-right">S/ {{p.total | number:'1.2-2'}}</td></tr></tbody></table>
+  <p *ngIf="!orders().length" class="p-8 text-center text-zinc-500">No hay pedidos registrados.</p>
+ </section>
+ <div *ngIf="editor()" class="fixed inset-0 z-50 bg-black/60 flex justify-center items-center p-4" role="dialog" aria-modal="true" aria-labelledby="editor-title">
+  <form (ngSubmit)="save()" class="max-h-[92vh] overflow-y-auto w-full max-w-2xl bg-white rounded-lg p-6 md:p-8">
+   <div class="flex items-center justify-between mb-6"><h2 class="heading text-2xl" id="editor-title">{{editingId()?'Editar producto':'Nuevo producto'}}</h2><button type="button" (click)="editor.set(false)" aria-label="Cerrar">✕</button></div>
+   <label *ngIf="editingId()" class="block mb-4 text-sm">Variante del producto<select name="idVariante" class="field mt-1" [(ngModel)]="form.idVariante" (ngModelChange)="editVariant()"><option *ngFor="let v of editVariants()" [ngValue]="v.idVariante"></option></select></label>
+   <div class="grid sm:grid-cols-2 gap-4">
+    <label class="block text-sm">Nombre *<input class="field mt-1" name="nombre" [(ngModel)]="form.nombre" maxlength="140" required></label>
+    <label class="block text-sm">Categoría *<select class="field mt-1" name="categoria" [(ngModel)]="form.categoria" required><option *ngFor="let c of categories" [value]="c">{{c}}</option></select></label>
+    <label class="block text-sm">Marca<input class="field mt-1" name="marca" [(ngModel)]="form.marca"></label>
+    <label class="block text-sm">Imagen (HTTPS)<input class="field mt-1" name="img" type="url" [(ngModel)]="form.img" placeholder="https://..."></label>
+    <label class="block text-sm">Precio base (S/) *<input class="field mt-1" name="precioBase" type="number" min="0" step=".01" [(ngModel)]="form.precioBase" required></label>
+    <label class="block text-sm">Precio variante (S/) *<input class="field mt-1" name="precio" type="number" min="0" step=".01" [(ngModel)]="form.precio" required></label>
+    <label class="block text-sm">Talla *<input class="field mt-1" name="talla" [(ngModel)]="form.talla" required></label>
+    <label class="block text-sm">Color *<input class="field mt-1" name="color" [(ngModel)]="form.color" required></label>
+    <label class="block text-sm">Stock *<input class="field mt-1" name="stock" type="number" min="0" step="1" [(ngModel)]="form.stock" required></label>
+    <label class="block text-sm">Stock mínimo<input class="field mt-1" name="stockMinimo" type="number" min="0" step="1" [(ngModel)]="form.stockMinimo"></label>
+    <label class="block text-sm">Color hexadecimal<input class="field mt-1" name="colorHex" [(ngModel)]="form.colorHex" placeholder="#FFFFFF"></label>
+    <label class="block text-sm sm:col-span-2">Descripción<textarea class="field mt-1" rows="3" name="descripcion" [(ngModel)]="form.descripcion"></textarea></label>
+   </div>
+   <p *ngIf="error()" class="text-red-700 my-4" role="alert">{{error()}}</p>
+   <div class="flex gap-3 justify-end mt-7"><button type="button" class="px-5 py-3 border" (click)="editor.set(false)">Cancelar</button><button type="submit" class="btn-dark" [disabled]="saving()">{{saving()?'Guardando…':'Guardar producto'}}</button></div>
+  </form>
+ </div>
+</main>

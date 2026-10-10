@@ -1,0 +1,29 @@
+<main class="min-h-[75vh] grid md:grid-cols-2">
+ <section class="hidden md:block relative"><img src="https://raw.githubusercontent.com/jpumaricradgjdgp-cyber/Monarca_herramientas_de_desarrollo/main/fronted/img/portada.png" alt="Moda Monarca" class="w-full h-full max-h-[880px] object-cover"><div class="absolute bottom-10 left-10 text-white drop-shadow"><p class="text-5xl heading">Tu estilo.<br>Tu esencia.</p></div></section>
+ <section class="px-5 py-12 sm:px-14 flex items-center justify-center">
+ <div class="w-full max-w-md">
+  <a routerLink="/" aria-label="Ir al inicio"><img [src]="logo" alt="Monarca" class="h-14 w-auto max-w-52 object-contain mb-10"></a>
+  <h1 class="heading text-4xl mb-3">{{mode()==='login'?'Iniciar sesión':mode()==='registro'?'Crear cuenta':mode()==='recuperar'?'Recuperar contraseña':'Nueva contraseña'}}</h1>
+  <p class="text-zinc-500 mb-8">{{mode()==='login'?'Ingresa a tu cuenta Monarca':mode()==='registro'?'Regístrate para comenzar a comprar':mode()==='recuperar'?'Te enviaremos un enlace si existe una cuenta':'Elige una nueva contraseña segura'}}</p>
+  <form (ngSubmit)="submit()" class="space-y-4">
+   <ng-container *ngIf="mode()==='registro'">
+    <label class="block text-sm font-semibold">Nombres<input class="field mt-2" name="nombre" [(ngModel)]="nombre" autocomplete="given-name" maxlength="100" required></label>
+    <label class="block text-sm font-semibold">Apellidos<input class="field mt-2" name="apellido" [(ngModel)]="apellido" autocomplete="family-name" maxlength="100" required></label>
+   </ng-container>
+   <label *ngIf="mode()!=='restablecer'" class="block text-sm font-semibold">Correo electrónico<input type="email" class="field mt-2" name="email" [(ngModel)]="email" autocomplete="email" maxlength="150" required></label>
+   <label *ngIf="mode()!=='recuperar'" class="block text-sm font-semibold">Contraseña
+    <div class="flex gap-2 mt-2"><input [type]="showPassword()?'text':'password'" class="field" name="password" [(ngModel)]="password" autocomplete="new-password" [attr.minlength]="mode()==='login'?null:8" required><button type="button" class="px-3 border" (click)="showPassword.set(!showPassword())">{{showPassword()?'Ocultar':'Ver'}}</button></div>
+   </label>
+   <label *ngIf="mode()==='registro'||mode()==='restablecer'" class="block text-sm font-semibold">Confirmar contraseña<input type="password" class="field mt-2" name="confirm" [(ngModel)]="confirmPassword" autocomplete="new-password" minlength="8" required></label>
+   <button type="submit" class="btn-dark w-full" [disabled]="busy()||(mode()==='restablecer'&&!resetTokenValid())">{{busy()?'Procesando…':mode()==='login'?'Iniciar sesión':mode()==='registro'?'Crear mi cuenta':mode()==='recuperar'?'Enviar enlace':'Guardar nueva contraseña'}}</button>
+  </form>
+  <p *ngIf="message()" class="mt-5 text-sm" role="status" [class.text-red-700]="isError()" [class.text-green-800]="!isError()">{{message()}}</p>
+  <div class="flex gap-5 flex-wrap mt-8 text-sm underline">
+   <button type="button" *ngIf="mode()!=='login'" (click)="setMode('login')">Iniciar sesión</button>
+   <button type="button" *ngIf="mode()!=='registro'" (click)="setMode('registro')">Crear cuenta</button>
+   <button type="button" *ngIf="mode()!=='recuperar'" (click)="setMode('recuperar')">Olvidé mi contraseña</button>
+  </div>
+  <a routerLink="/" class="block text-zinc-500 text-sm mt-10">← Volver a la tienda</a>
+ </div>
+ </section>
+</main>
