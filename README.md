@@ -13,10 +13,10 @@ Requisitos: Node.js compatible con Angular 20, Java 21 y el [backend Monarca](ht
 
 ```bash
 npm install
-npm start -- --proxy-config proxy.conf.json
+npm start
 ```
 
-Accede a `http://localhost:4200`. El proxy envía `/api` a `http://localhost:8080`. El backend requiere PostgreSQL y variables de entorno; no se crean datos de ejemplo.
+Accede a `http://localhost:4200`. El proxy de desarrollo se activa automáticamente con `npm start` (opción `serve.options.proxyConfig` en `angular.json`) y envía `/api` a `http://localhost:8080`. Para verificar la conexión, abre `http://localhost:4200/api/productos`: debe responder JSON. Si todavía no hay productos en MonarcaDB, devolverá `[]` sin error. El backend requiere PostgreSQL y variables de entorno; no se crean datos de ejemplo.
 
 ## Rutas
 - `/`: inicio, colecciones y productos recomendados
