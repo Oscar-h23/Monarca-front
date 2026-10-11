@@ -4,7 +4,10 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { Api, Producto, Variante, asset } from '../store';
+import { Api } from '../../core/services/api.service';
+import { Producto, Variante } from '../../core/models/shop.models';
+import { asset } from '../../core/utils/assets';
+import { SessionService } from '../../core/services/session.service';
 
 interface Pedido {
   idPedido: number;
@@ -42,6 +45,7 @@ export class AdminPage implements OnInit {
   private http=inject(HttpClient);
   api=inject(Api);
   router=inject(Router);
+  session=inject(SessionService);
   products=signal<Producto[]>([]);
   orders=signal<Pedido[]>([]);
   search=signal('');
@@ -59,7 +63,7 @@ export class AdminPage implements OnInit {
   stock=computed(()=>this.products().reduce((s,p)=>s+(p.variantes||[]).reduce((n,v)=>n+v.stock,0),0));
   totalPedidos=computed(()=>this.orders().reduce((s,p)=>s+Number(p.total||0),0));
   async ngOnInit() {
-    if(!this.api.token()||localStorage.getItem('rol_monarca')!=='ROLE_ADMIN') {
+    if(!this.session.isAdmin()) {
       await this.router.navigateByUrl('/login');return;
     }
     await this.reload();
@@ -139,8 +143,7 @@ export class AdminPage implements OnInit {
     }catch(e){this.error.set(this.err(e));}
   }
   logout(){
-    localStorage.removeItem('token_monarca');
-    localStorage.removeItem('rol_monarca');
+    this.session.clear();
     this.router.navigateByUrl('/');
   }
   totalStock(p:Producto){return (p.variantes||[]).reduce((s,v)=>s+v.stock,0);}

@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { asset } from '../store';
+import { asset } from '../../core/utils/assets';
 @Component({standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./contact.html'})
 export class ContactPage {
   banner=asset('contactanos_img/Portada1_contacto.png');

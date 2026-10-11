@@ -1,5 +1,7 @@
 # Monarca Front — Angular 20 / TypeScript / Tailwind CSS v4
 
+**Arquitectura modular**: rutas lazy-loaded, servicios de API/carrito/sesión compartidos, layout y páginas por funcionalidad. Ver [ARCHITECTURE.md](ARCHITECTURE.md).
+
 Migración del frontend HTML/CSS/JS del [repositorio Monarca original](https://github.com/jpumaricradgjdgp-cyber/Monarca_herramientas_de_desarrollo) al proyecto independiente de Angular.
 
 ## Stack

@@ -3,12 +3,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { Api, asset } from '../store';
+import { Api } from '../../core/services/api.service';
+import { asset } from '../../core/utils/assets';
+import { SessionService } from '../../core/services/session.service';
 
 type Modo='login'|'registro'|'recuperar'|'restablecer';
 @Component({standalone:true,selector:'app-auth',imports:[CommonModule,FormsModule,RouterLink],templateUrl:'./auth.html'})
 export class AuthPage implements OnInit{
-  api=inject(Api);router=inject(Router);
+  api=inject(Api);router=inject(Router);session=inject(SessionService);
   logo=asset('logo-desktop.png');
   mode=signal<Modo>('login');
   busy=signal(false);
@@ -58,13 +60,12 @@ export class AuthPage implements OnInit{
       const response=await this.api.auth(path,data);
       if(mode==='login'){
         if(!response.token)throw new Error('El servidor no envió el token de sesión.');
-        localStorage.setItem('token_monarca',response.token);
-        localStorage.setItem('rol_monarca',response.rol||'');
+        this.session.start(response.token,response.rol||'');
         await this.router.navigateByUrl(response.rol==='ROLE_ADMIN'?'/admin':'/');
       }else{
         if(mode==='registro'||mode==='restablecer'){
           if(mode==='restablecer'){
-            this.resetToken=null;localStorage.removeItem('token_monarca');localStorage.removeItem('rol_monarca');
+            this.resetToken=null;this.session.clear();
           }
           this.password='';this.confirmPassword='';this.setMode('login');
           this.message.set(response.mensaje||'Operación completada. Ya puedes iniciar sesión.');

@@ -1,24 +1,7 @@
-import { localAssetPaths } from './local-assets';
-import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
-export interface Variante {idVariante:number;sku:string;talla:string;color:string;colorHex?:string;precio:number;stock:number}
-export interface Producto {idProducto:number;nombre:string;categoria:string;precioBase:number;imagen?:string;descripcion?:string;marca?:string;destacado?:boolean;variantes?:Variante[]}
-export interface Item {idProducto:number;idVariante:number;nombre:string;sku:string;talla:string;color:string;precio:number;cantidad:number;imagen:string;stockDisponible:number}
-export const ASSETS='https://raw.githubusercontent.com/jpumaricradgjdgp-cyber/Monarca_herramientas_de_desarrollo/main/fronted/img/';
-export const asset=(path:string)=>(localAssetPaths.has(path)?'/img/':ASSETS)+path.split('/').map(encodeURIComponent).join('/');
-@Injectable({providedIn:'root'})
-export class Api {
- private http=inject(HttpClient);
- readonly base='/api';
- token(){return localStorage.getItem('token_monarca')||''}
- headers(){return new HttpHeaders({Authorization:'Bearer '+this.token()})}
- productos(){return firstValueFrom(this.http.get<Producto[]>(this.base+'/productos'))}
- producto(id:number){return firstValueFrom(this.http.get<Producto>(this.base+'/productos/'+id))}
- metodos(){return firstValueFrom(this.http.get<{idMetodoPago:number;nombre:string}[]>(this.base+'/metodos-pago',{headers:this.headers()}))}
- auth(path:string,body:unknown){return firstValueFrom(this.http.post<{token?:string;rol?:string;mensaje?:string}>(this.base+'/auth/'+path,body))}
- pedido(body:unknown){return firstValueFrom(this.http.post<{codigoPedido:string;total:number;estado:string}>(this.base+'/pedidos/procesar',body,{headers:this.headers()}))}
-}
+import { Injectable, signal, computed } from '@angular/core';
+import { Item, Producto, Variante } from '../models/shop.models';
+import { Api } from './api.service';
+
 @Injectable({providedIn:'root'})
 export class Cart {
  private load():Item[]{try{const v=JSON.parse(localStorage.getItem('monarca_carrito')||'[]');return Array.isArray(v)?v.filter((x:Item)=>Number.isSafeInteger(x.idVariante)&&x.cantidad>0&&x.stockDisponible>=x.cantidad&&Number.isFinite(x.precio)):[]}catch{return []}}

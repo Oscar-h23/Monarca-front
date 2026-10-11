@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { asset } from '../store';
+import { asset } from '../../core/utils/assets';
 @Component({standalone:true,imports:[CommonModule],templateUrl:'./about.html'})
 export class AboutPage{
   banner=asset('Nosotros_img/portada_nosotros.png');
