@@ -31,7 +31,7 @@ Accede a `http://localhost:4200`. El proxy envía `/api` a `http://localhost:808
 
 ## Seguridad y límites
 - Un rol leído desde localStorage solo sirve para controlar visibilidad; **el backend debe autenticar y autorizar cada solicitud**.
-- Se han copiado **56 imágenes** (logos y miniaturas de productos) a `public/img`; los banners e imágenes grandes continúan temporalmente desde GitHub del proyecto fuente.
+- Se han copiado **60 imágenes** (logos y miniaturas de productos) a `public/img`; los banners e imágenes grandes continúan temporalmente desde GitHub del proyecto fuente.
 - Contrato de backend conservado sin modificaciones de esquema; se requiere BD original.
 - Los datos de reportes son pedidos reales obtenidos de `GET /api/pedidos` (el total de pedidos no es facturación).
 - No hay pasarela de pago integrada: el backend registra un pedido con estado de pago pendiente.
