@@ -1,37 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
 import { Api } from '../../core/services/api.service';
 import { Producto, Variante } from '../../core/models/shop.models';
 import { asset } from '../../core/utils/assets';
 import { SessionService } from '../../core/services/session.service';
+import { AdminApi, Pedido, ProductForm } from './data-access/admin-api.service';
 
-interface Pedido {
-  idPedido: number;
-  codigoPedido?: string;
-  cliente: string;
-  fechaPedido?: string;
-  total: number;
-  estado: string;
-}
-interface ProductForm {
-  idVariante: number | null;
-  nombre: string;
-  categoria: string;
-  descripcion: string;
-  marca: string;
-  talla: string;
-  color: string;
-  colorHex: string;
-  precio: number;
-  precioBase: number;
-  stock: number;
-  stockMinimo: number;
-  img: string;
-}
 function blankForm(): ProductForm {
   return {idVariante:null,nombre:'',categoria:'Tops',descripcion:'',marca:'Monarca',talla:'ÚNICA',
     color:'N/A',colorHex:'',precio:0,precioBase:0,stock:0,stockMinimo:0,img:''};
@@ -42,7 +19,7 @@ function blankForm(): ProductForm {
   templateUrl:'./admin.html'
 })
 export class AdminPage implements OnInit {
-  private http=inject(HttpClient);
+  private adminApi=inject(AdminApi);
   api=inject(Api);
   router=inject(Router);
   session=inject(SessionService);
@@ -68,13 +45,12 @@ export class AdminPage implements OnInit {
     }
     await this.reload();
   }
-  private headers():{headers:HttpHeaders}{return {headers:this.api.headers()};}
   async reload(){
     this.pending.set(true);this.error.set('');
     try{
       const [products,orders]=await Promise.allSettled([
         this.api.productos(),
-        firstValueFrom(this.http.get<Pedido[]>('/api/pedidos',this.headers()))
+        this.adminApi.listOrders()
       ]);
       if(products.status==='fulfilled')this.products.set(products.value);
       else this.error.set('No se pudo cargar el inventario.');
@@ -125,9 +101,9 @@ export class AdminPage implements OnInit {
       const payload={...data,img:data.img.trim(),idVariante:this.editingId()?data.idVariante:null};
       const id=this.editingId();
       if(id){
-        await firstValueFrom(this.http.put('/api/productos/'+id,payload,{...this.headers(),responseType:'text'}));
+        await this.adminApi.updateProduct(id,payload);
       } else {
-        await firstValueFrom(this.http.post('/api/productos',payload,{...this.headers(),responseType:'text'}));
+        await this.adminApi.createProduct(payload);
       }
       this.editor.set(false);this.message.set(id?'Producto actualizado.':'Producto registrado.');
       await this.reload();
@@ -138,7 +114,7 @@ export class AdminPage implements OnInit {
     if(!confirm('¿Eliminar definitivamente '+p.nombre+'?'))return;
     this.error.set('');this.message.set('');
     try{
-      await firstValueFrom(this.http.delete('/api/productos/'+p.idProducto,this.headers()));
+      await this.adminApi.deleteProduct(p.idProducto);
       this.message.set('Producto eliminado.');await this.reload();
     }catch(e){this.error.set(this.err(e));}
   }

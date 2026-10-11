@@ -29,14 +29,14 @@ src/app/
     cart/cart.page.ts
     checkout/checkout.page.ts
     auth/{auth.page.ts,auth.html}
-    admin/{admin.page.ts,admin.html}
+    admin/{admin.page.ts,admin.html,data-access/admin-api.service.ts}
     contact/{contact.page.ts,contact.html}
     about/{about.page.ts,about.html}
 ```
 
 ## Límites de responsabilidades
 1. **Componentes:** presentación, formularios y estado de página. No deben conocer el host de Spring Boot.
-2. **Api:** único cliente HTTP de catálogo, login y pedidos. La administración aún llama directamente a `HttpClient` para operaciones avanzadas; se puede extraer a `AdminApi` en una segunda fase.
+2. **Api:** cliente HTTP compartido de catálogo, login y pedidos. **AdminApi** encapsula las operaciones HTTP de inventario y listado de pedidos sin exponerlas al componente.
 3. **SessionService:** centraliza las claves de `localStorage` existentes. Los guardias de rutas solo mejoran la navegación; **la seguridad real se aplica en Spring Security**.
 4. **Cart:** mantiene señales y persistencia de carrito previas sin cambiar el contrato de pedidos.
 5. **Assets:** primero rutas locales `public/img`; temporalmente algunos banners siguen vinculados al repositorio de origen.
@@ -55,4 +55,3 @@ npm run build
 - Tests funcionales de login, compra y CRUD de productos contra MonarcaDB.
 - Mover todos los banners del repositorio original y actualizar los datos de contacto oficiales.
 - Considerar almacenar JWT en una estrategia de sesión más resistente a XSS; nunca usar el rol del navegador para autorizar operaciones.
-- Extraer operaciones de inventario y pedidos del componente admin a servicios `core`.
