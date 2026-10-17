@@ -9,7 +9,7 @@ const categories = ['Tops', 'Bottoms', 'Calzado', 'Accesorios'];
 
 @Component({standalone:true,selector:'app-root',imports:[CommonModule,RouterOutlet,RouterLink],templateUrl:'./shell.component.html'})
 export class AppComponent{
- cart=inject(Cart);router=inject(Router);session=inject(SessionService);categories=categories;menu=signal(false);logo=asset('logo-desktop.png');
+ cart=inject(Cart);router=inject(Router);session=inject(SessionService);categories=categories;menu=signal(false);logo=asset('rayelis-logo.svg');
  loggedIn(){return this.session.isAuthenticated()}
  isAdmin(){return this.session.isAdmin()}
  logout(){this.session.clear();this.router.navigateByUrl('/')}
