@@ -29,7 +29,18 @@
  <div *ngIf="editor()" class="fixed inset-0 z-50 bg-black/60 flex justify-center items-center p-4" role="dialog" aria-modal="true" aria-labelledby="editor-title">
   <form (ngSubmit)="save()" class="max-h-[92vh] overflow-y-auto w-full max-w-2xl bg-white rounded-lg p-6 md:p-8">
    <div class="flex items-center justify-between mb-6"><h2 class="heading text-2xl" id="editor-title">{{editingId()?'Editar producto':'Nuevo producto'}}</h2><button type="button" (click)="editor.set(false)" aria-label="Cerrar">✕</button></div>
-   <label *ngIf="editingId()" class="block mb-4 text-sm">Variante del producto<select name="idVariante" class="field mt-1" [(ngModel)]="form.idVariante" (ngModelChange)="editVariant()"><option *ngFor="let v of editVariants()" [ngValue]="v.idVariante">{{v.talla}} · {{v.color}}</option></select></label>
+   <div *ngIf="editingId()" class="mb-5">
+    <p class="mb-2 font-semibold text-sm">Tallas registradas ({{editVariants().length}})</p>
+    <div class="flex flex-wrap gap-2" *ngIf="editVariants().length">
+      <span *ngFor="let v of editVariants()" class="text-xs rounded-full bg-zinc-100 border border-zinc-200 px-3 py-1.5">{{v.talla}} · {{v.color}} · {{v.stock}} un.</span>
+    </div>
+    <p *ngIf="!editVariants().length" class="text-zinc-500 text-sm">Este producto todavía no tiene variantes.</p>
+    <label class="block mt-4 text-sm">Variante que deseas modificar
+      <select name="idVariante" class="field mt-1" [(ngModel)]="form.idVariante" (ngModelChange)="editVariant()">
+        <option *ngFor="let v of editVariants()" [ngValue]="v.idVariante">{{v.talla}} · {{v.color}}</option>
+      </select>
+    </label>
+   </div>
    <div class="grid sm:grid-cols-2 gap-4">
     <label class="block text-sm">Nombre *<input class="field mt-1" name="nombre" [(ngModel)]="form.nombre" maxlength="140" required></label>
     <label class="block text-sm">Categoría *<select class="field mt-1" name="categoria" [(ngModel)]="form.categoria" required><option *ngFor="let c of categories" [value]="c">{{c}}</option></select></label>
@@ -46,9 +57,9 @@
     </ng-container>
     <label class="block text-sm sm:col-span-2">Descripción<textarea class="field mt-1" rows="3" name="descripcion" [(ngModel)]="form.descripcion"></textarea></label>
    </div>
-   <section *ngIf="!editingId()" class="mt-7 border-t border-zinc-200 pt-6" aria-label="Tallas y existencias">
+   <section class="mt-7 border-t border-zinc-200 pt-6" aria-label="Tallas y existencias">
     <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
-     <div><h3 class="font-semibold text-lg">Tallas y existencias</h3><p class="text-sm text-zinc-500">Agrega las tallas disponibles. Cada combinación de talla y color tendrá su propio stock y precio.</p></div>
+     <div><h3 class="font-semibold text-lg">{{editingId()?'Agregar nuevas tallas':'Tallas y existencias'}}</h3><p class="text-sm text-zinc-500">{{editingId()?'Agrega otras tallas sin reemplazar las existentes. Puedes editar la variante seleccionada arriba.':'Agrega las tallas disponibles. Cada combinación de talla y color tendrá su propio stock y precio.'}}</p></div>
      <button type="button" class="px-3 py-2 border border-zinc-300 text-sm rounded-md hover:bg-zinc-50" (click)="useBasePrice()">Aplicar precio base a todas</button>
     </div>
     <datalist id="monarca-tallas">
@@ -59,7 +70,7 @@
      <div *ngFor="let variant of newVariants; let i=index" class="rounded-lg border border-zinc-200 p-4 bg-zinc-50">
       <div class="flex justify-between items-center mb-3">
        <strong class="text-sm">Variante {{i+1}}</strong>
-       <button type="button" class="text-sm text-red-700 underline disabled:text-zinc-400 disabled:no-underline" [disabled]="newVariants.length===1" (click)="removeVariant(i)">Quitar</button>
+       <button type="button" class="text-sm text-red-700 underline disabled:text-zinc-400 disabled:no-underline" [disabled]="!editingId() && newVariants.length===1" (click)="removeVariant(i)">Quitar</button>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
        <label class="block text-sm">Talla *<input class="field mt-1" [name]="'variant-talla-'+i" [(ngModel)]="variant.talla" list="monarca-tallas" maxlength="20" placeholder="S, M, L, 38..." required></label>
@@ -72,8 +83,8 @@
      </div>
     </div>
     <div class="flex flex-wrap items-center justify-between gap-3 mt-4">
-     <button type="button" class="px-4 py-2 border border-zinc-800 text-sm font-semibold rounded-md hover:bg-zinc-100 disabled:opacity-40" (click)="addVariant()" [disabled]="newVariants.length>=maxVariants">+ Agregar otra talla</button>
-     <p class="text-sm text-zinc-600">{{newVariants.length}} variante(s) · {{newStockTotal()}} unidades en total</p>
+     <button type="button" class="px-4 py-2 border border-zinc-800 text-sm font-semibold rounded-md hover:bg-zinc-100 disabled:opacity-40" (click)="addVariant()" [disabled]="newVariants.length+(editingId()?editVariants().length:0)>=maxVariants">+ Agregar otra talla</button>
+     <p class="text-sm text-zinc-600">{{editingId()?newVariants.length+' nueva(s) talla(s) · '+newStockTotal()+' unidades nuevas':newVariants.length+' variante(s) · '+newStockTotal()+' unidades en total'}}</p>
     </div>
    </section>
    <p *ngIf="error()" class="text-red-700 my-4" role="alert">{{error()}}</p>

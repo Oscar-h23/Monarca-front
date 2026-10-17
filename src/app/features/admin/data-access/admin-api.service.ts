@@ -60,7 +60,7 @@ export class AdminApi {
     );
   }
 
-  updateProduct(id: number, payload: ProductForm): Promise<string> {
+  updateProduct(id: number, payload: NewProductForm): Promise<string> {
     return firstValueFrom(
       this.http.put(this.api.base + '/productos/' + id, payload, {
         headers: this.api.headers(), responseType: 'text'

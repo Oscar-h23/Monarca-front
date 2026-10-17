@@ -72,17 +72,18 @@ export class AdminPage implements OnInit {
     this.error.set('');
   }
   addVariant(){
-    if(this.newVariants.length>=this.maxVariants)return;
+    const total=this.newVariants.length+(this.editingId()?this.editVariants().length:0);
+    if(total>=this.maxVariants)return;
     const previous=this.newVariants.at(-1);
     this.newVariants.push(blankVariant(
-      previous?.precio || this.form.precioBase || 0,
-      previous?.color || '',
-      previous?.colorHex || '',
-      previous?.stockMinimo || 0
+      previous?.precio ?? (this.editingId()?this.form.precio:this.form.precioBase),
+      previous?.color ?? (this.editingId()?this.form.color:''),
+      previous?.colorHex ?? (this.editingId()?this.form.colorHex:''),
+      previous?.stockMinimo ?? (this.editingId()?this.form.stockMinimo:0)
     ));
   }
   removeVariant(index:number){
-    if(this.newVariants.length>1)this.newVariants.splice(index,1);
+    if(this.editingId() || this.newVariants.length>1)this.newVariants.splice(index,1);
   }
   useBasePrice(){
     if(Number.isFinite(this.form.precioBase)&&this.form.precioBase>=0){
@@ -92,8 +93,16 @@ export class AdminPage implements OnInit {
   newStockTotal():number {
     return this.newVariants.reduce((sum,v)=>sum+(Number.isFinite(v.stock)?v.stock:0),0);
   }
+  existingStockTotal():number {
+    const selected=this.form.idVariante;
+    return this.editVariants().reduce((sum,v)=>{
+      const current=v.idVariante===selected?this.form.stock:v.stock;
+      return sum+(Number.isFinite(current)?current:0);
+    },0);
+  }
   openEdit(p:Producto){
     this.editingId.set(p.idProducto);
+    this.newVariants=[];
     const v=p.variantes?.[0];
     this.form={idVariante:v?.idVariante||null,nombre:p.nombre,categoria:p.categoria,
       descripcion:p.descripcion||'',marca:p.marca||'Monarca',talla:v?.talla||'ÚNICA',
@@ -130,52 +139,64 @@ export class AdminPage implements OnInit {
     }
 
     const editing=!!this.editingId();
-    let variantes:ProductVariantForm[]=[];
+    if(editing && (!data.talla.trim()||!data.color.trim()
+      ||!Number.isFinite(data.precio)||data.precio<0
+      ||!Number.isInteger(data.stock)||data.stock<0
+      ||!Number.isInteger(data.stockMinimo)||data.stockMinimo<0)){
+      this.error.set('Revisa la talla, el color, el precio y el stock de la variante seleccionada.');return;
+    }
+
+    const existing=editing?this.editVariants():[];
+    if((!editing&&!this.newVariants.length)
+      ||this.newVariants.length+existing.length>this.maxVariants){
+      this.error.set('El producto debe tener entre 1 y 40 variantes.');return;
+    }
+
+    const variantes:ProductVariantForm[]=this.newVariants.map(v=>({
+      talla:v.talla.trim(),color:v.color.trim(),colorHex:v.colorHex.trim(),
+      precio:v.precio,stock:v.stock,stockMinimo:v.stockMinimo
+    }));
+    const combinaciones=new Set<string>();
     if(editing){
-      if(!data.talla.trim()||!data.color.trim()||!Number.isFinite(data.precio)
-          ||data.precio<0||!Number.isInteger(data.stock)||data.stock<0
-          ||!Number.isInteger(data.stockMinimo)||data.stockMinimo<0){
-        this.error.set('Revisa la talla, color, precio y stock de la variante.');return;
-      }
-    }else{
-      if(!this.newVariants.length||this.newVariants.length>this.maxVariants){
-        this.error.set('Registra entre 1 y 40 variantes.');return;
-      }
-      variantes=this.newVariants.map(v=>({
-        talla:v.talla.trim(),color:v.color.trim(),colorHex:v.colorHex.trim(),
-        precio:v.precio,stock:v.stock,stockMinimo:v.stockMinimo
-      }));
-      const unicas=new Set<string>();
-      for(const [i,v] of variantes.entries()){
-        if(!v.talla||!v.color||v.talla.length>20||v.color.length>50){
-          this.error.set('Completa la talla y el color de la variante '+(i+1)+'.');return;
-        }
-        if(!Number.isFinite(v.precio)||v.precio<0
-            ||!Number.isInteger(v.stock)||v.stock<0
-            ||!Number.isInteger(v.stockMinimo)||v.stockMinimo<0){
-          this.error.set('Revisa precio y stock de la variante '+(i+1)+'.');return;
-        }
-        if(v.colorHex&&!/^#[0-9a-fA-F]{6}$/.test(v.colorHex)){
-          this.error.set('El color hexadecimal de la variante '+(i+1)+' debe tener formato #FFFFFF.');return;
-        }
-        const key=v.talla.toLocaleLowerCase()+'|'+v.color.toLocaleLowerCase();
-        if(unicas.has(key)){
-          this.error.set('No puedes repetir la misma combinación de talla y color.');return;
-        }
-        unicas.add(key);
+      for(const variante of existing){
+        const selected=variante.idVariante===data.idVariante;
+        const talla=selected?data.talla.trim():variante.talla;
+        const color=selected?data.color.trim():variante.color;
+        combinaciones.add(talla.toLocaleLowerCase()+'|'+color.toLocaleLowerCase());
       }
     }
+    for(const [i,v] of variantes.entries()){
+      if(!v.talla||!v.color||v.talla.length>20||v.color.length>50){
+        this.error.set('Completa la talla y el color de la nueva variante '+(i+1)+'.');return;
+      }
+      if(!Number.isFinite(v.precio)||v.precio<0
+          ||!Number.isInteger(v.stock)||v.stock<0
+          ||!Number.isInteger(v.stockMinimo)||v.stockMinimo<0){
+        this.error.set('Revisa el precio y el stock de la nueva variante '+(i+1)+'.');return;
+      }
+      if(v.colorHex&&!/^#[0-9a-fA-F]{6}$/.test(v.colorHex)){
+        this.error.set('El color hexadecimal de la nueva variante '+(i+1)+' debe tener formato #FFFFFF.');return;
+      }
+      const key=v.talla.toLocaleLowerCase()+'|'+v.color.toLocaleLowerCase();
+      if(combinaciones.has(key)){
+        this.error.set('La combinación de talla y color '+v.talla+' / '+v.color+' ya existe.');return;
+      }
+      combinaciones.add(key);
+    }
+
     this.saving.set(true);this.error.set('');this.message.set('');
     try{
-      const payload={...data,img:data.img.trim(),idVariante:editing?data.idVariante:null};
+      const payload={...data,img:data.img.trim(),idVariante:editing?data.idVariante:null,variantes};
       const id=this.editingId();
       if(id){
         await this.adminApi.updateProduct(id,payload);
       }else{
-        await this.adminApi.createProduct({...payload,variantes});
+        await this.adminApi.createProduct(payload);
       }
       this.editor.set(false);
-      this.message.set(id?'Producto actualizado.':'Producto registrado con '+variantes.length+' variante(s).');
+      this.message.set(id
+        ? 'Producto actualizado'+(variantes.length?' y '+variantes.length+' nueva(s) talla(s) agregada(s).':'.')
+        : 'Producto registrado con '+variantes.length+' variante(s).');
       await this.reload();
     }catch(e){this.error.set(this.err(e));}
     finally{this.saving.set(false);}
