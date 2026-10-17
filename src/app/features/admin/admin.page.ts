@@ -14,7 +14,7 @@ function blankForm(): ProductForm {
     color:'N/A',colorHex:'',precio:0,precioBase:0,stock:0,stockMinimo:0,img:''};
 } 
 function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): ProductVariantForm {
-  return { talla: '', color, colorHex, precio, stock: 0, stockMinimo };
+  return { talla: '', color, colorHex, precio: price, stock: 0, stockMinimo };
 }
 
 @Component({

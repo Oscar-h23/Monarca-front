@@ -29,7 +29,7 @@
  <div *ngIf="editor()" class="fixed inset-0 z-50 bg-black/60 flex justify-center items-center p-4" role="dialog" aria-modal="true" aria-labelledby="editor-title">
   <form (ngSubmit)="save()" class="max-h-[92vh] overflow-y-auto w-full max-w-2xl bg-white rounded-lg p-6 md:p-8">
    <div class="flex items-center justify-between mb-6"><h2 class="heading text-2xl" id="editor-title">{{editingId()?'Editar producto':'Nuevo producto'}}</h2><button type="button" (click)="editor.set(false)" aria-label="Cerrar">✕</button></div>
-   <label *ngIf="editingId()" class="block mb-4 text-sm">Variante del producto<select name="idVariante" class="field mt-1" [(ngModel)]="form.idVariante" (ngModelChange)="editVariant()"><option *ngFor="let v of editVariants()" [ngValue]="v.idVariante"></option></select></label>
+   <label *ngIf="editingId()" class="block mb-4 text-sm">Variante del producto<select name="idVariante" class="field mt-1" [(ngModel)]="form.idVariante" (ngModelChange)="editVariant()"><option *ngFor="let v of editVariants()" [ngValue]="v.idVariante">{{v.talla}} · {{v.color}}</option></select></label>
    <div class="grid sm:grid-cols-2 gap-4">
     <label class="block text-sm">Nombre *<input class="field mt-1" name="nombre" [(ngModel)]="form.nombre" maxlength="140" required></label>
     <label class="block text-sm">Categoría *<select class="field mt-1" name="categoria" [(ngModel)]="form.categoria" required><option *ngFor="let c of categories" [value]="c">{{c}}</option></select></label>
