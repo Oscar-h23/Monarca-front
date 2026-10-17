@@ -30,6 +30,10 @@ export class PerfilApi {
   borrarFoto():Promise<void>{
     return firstValueFrom(this.http.delete<void>('/api/perfil/foto',{headers:this.api.headers()}));
   }
+  proveedorProbador():Promise<{proveedor:string}>{
+    return firstValueFrom(this.http.get<{proveedor:string}>('/api/probador/configuracion',
+      {headers:this.api.headers()}));
+  }
   async probar(id:number):Promise<Blob>{
     try {
       return await firstValueFrom(this.http.post('/api/probador/'+id,

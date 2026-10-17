@@ -13,13 +13,13 @@
   </section>
   <section class="border border-zinc-200 rounded-xl p-5">
    <h2 class="font-semibold text-lg">Tu prueba virtual</h2>
-   <p class="mt-2 text-sm text-zinc-600">Necesitas una fotografía en tu perfil. El sistema enviará una copia de tu foto y de la prenda a TryOn Labs únicamente cuando confirmes la prueba.</p>
+   <p class="mt-2 text-sm text-zinc-600">Necesitas una fotografía en tu perfil. El sistema enviará una copia de tu foto y de la prenda a {{proveedor()}} únicamente cuando confirmes la prueba.</p>
    <p *ngIf="!hasPhoto()" class="text-amber-800 mt-4">Aún no has registrado una foto. <a class="underline font-semibold" routerLink="/perfil">Subir foto en Mi perfil</a></p>
    <label class="flex items-start gap-3 mt-6 text-sm">
     <input type="checkbox" class="mt-1" [checked]="consent()" (change)="consent.set(!consent())">
-    <span>Autorizo enviar mi fotografía personal y la imagen de la prenda a TryOn Labs para generar esta prueba. Entiendo que es un servicio externo y que consume créditos de prueba.</span>
+    <span>Autorizo enviar mi fotografía personal y la imagen de la prenda a {{proveedor()}} para generar esta prueba. Entiendo que es un servicio externo y que consume créditos de prueba.</span>
    </label>
-   <button class="btn-dark w-full mt-5" type="button" (click)="probar()" [disabled]="busy()||!hasPhoto()||!consent()||!p.imagen">
+   <button class="btn-dark w-full mt-5" type="button" (click)="probar()" [disabled]="busy()||!hasPhoto()||!consent()||!p.imagen||!proveedor()">
     {{busy()?'Generando imagen… (puede tardar)':'Generar mi prueba virtual'}}
    </button>
    <p *ngIf="error()" role="alert" class="text-red-700 text-sm mt-4">{{error()}}</p>

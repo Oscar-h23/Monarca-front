@@ -9,7 +9,7 @@ import { Producto } from '../../core/models/shop.models';
 @Component({standalone:true,imports:[CommonModule,RouterLink],templateUrl:'./tryon.html'})
 export class TryonPage implements OnInit,OnDestroy{
  private api=inject(Api);private perfil=inject(PerfilApi);private route=inject(ActivatedRoute);
- product=signal<Producto|null>(null);hasPhoto=signal(false);
+ product=signal<Producto|null>(null);hasPhoto=signal(false);proveedor=signal('');
  busy=signal(false);loading=signal(true);error=signal('');
  consent=signal(false);result=signal('');
  ngOnDestroy(){this.clearResult();}
@@ -17,15 +17,15 @@ export class TryonPage implements OnInit,OnDestroy{
  async ngOnInit(){
   try{const id=Number(this.route.snapshot.paramMap.get('id'));
    if(!Number.isSafeInteger(id)||id<=0)throw new Error('Producto inválido.');
-   const [p,user]=await Promise.all([this.api.producto(id),this.perfil.obtener()]);
-   this.product.set(p);this.hasPhoto.set(user.tieneFoto);
+   const [p,user,config]=await Promise.all([this.api.producto(id),this.perfil.obtener(),this.perfil.proveedorProbador()]);
+   this.product.set(p);this.hasPhoto.set(user.tieneFoto);this.proveedor.set(config.proveedor);
   }catch(e){this.error.set(this.errorText(e));}
   finally{this.loading.set(false);}
  }
  private errorText(e:unknown){
    if(e instanceof HttpErrorResponse)return e.status===429
-     ?'El proveedor alcanzó su límite de créditos gratuitos.'
-     :e.status===503?'El probador necesita un token de API válido en el backend.'
+     ?'El proveedor alcanzó su límite de créditos o solicitudes.'
+     :e.status===503?'El proveedor del probador no está configurado o rechazó las credenciales.'
      :e.status===400?'Revisa tu foto y la imagen de la prenda.'
      :'El probador no está disponible temporalmente.';
    return e instanceof Error?e.message:'No fue posible realizar la prueba.';
