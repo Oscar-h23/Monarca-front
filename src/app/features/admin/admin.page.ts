@@ -98,14 +98,14 @@ export class AdminPage implements OnInit {
     this.form={idVariante:v?.idVariante||null,nombre:p.nombre,categoria:p.categoria,
       descripcion:p.descripcion||'',marca:p.marca||'Monarca',talla:v?.talla||'ÚNICA',
       color:v?.color||'N/A',colorHex:v?.colorHex||'',precio:Number(v?.precio??p.precioBase),
-      precioBase:Number(p.precioBase),stock:v?.stock??0,stockMinimo:0,img:p.imagen||''};
+      precioBase:Number(p.precioBase),stock:v?.stock??0,stockMinimo:v?.stockMinimo??0,img:p.imagen||''};
     this.editor.set(true);this.error.set('');
   }
   editVariant(){
     const p=this.products().find(x=>x.idProducto===this.editingId());
     const v=p?.variantes?.find(x=>x.idVariante===Number(this.form.idVariante));
     if(!v)return;
-    this.form={...this.form,talla:v.talla,color:v.color,colorHex:v.colorHex||'',precio:Number(v.precio),stock:v.stock};
+    this.form={...this.form,talla:v.talla,color:v.color,colorHex:v.colorHex||'',precio:Number(v.precio),stock:v.stock,stockMinimo:v.stockMinimo??0};
   }
   editVariants():Variante[]{return this.products().find(x=>x.idProducto===this.editingId())?.variantes||[];}
   private err(e:unknown){

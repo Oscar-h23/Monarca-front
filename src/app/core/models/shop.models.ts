@@ -7,6 +7,7 @@ export interface Variante {
   colorHex?: string;
   precio: number;
   stock: number;
+  stockMinimo?: number;
 }
 export interface Producto {
   idProducto: number;
