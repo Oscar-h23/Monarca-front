@@ -52,6 +52,17 @@ export class AdminApi {
     );
   }
 
+  uploadProductImage(file: File): Promise<{ url: string }> {
+    const body = new FormData();
+    body.append('archivo', file, file.name);
+    // Content-Type multipart lo asigna el navegador (boundary); nunca fijarlo manualmente.
+    return firstValueFrom(
+      this.http.post<{url: string}>(this.api.base + '/productos/imagenes', body, {
+        headers: this.api.headers()
+      })
+    );
+  }
+
   createProduct(payload: NewProductForm): Promise<string> {
     return firstValueFrom(
       this.http.post(this.api.base + '/productos', payload, {

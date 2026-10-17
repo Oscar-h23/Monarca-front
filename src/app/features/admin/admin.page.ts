@@ -38,6 +38,10 @@ export class AdminPage implements OnInit {
   editor=signal(false);
   editingId=signal<number|null>(null);
   form:ProductForm=blankForm();
+  selectedImage:File|null=null;
+  imagePreview=signal('');
+  imageName=signal('');
+  uploadStep=signal(false);
   newVariants:ProductVariantForm[]=[blankVariant()];
   readonly maxVariants=40;
   fallback=asset('mariposa.png');
@@ -64,7 +68,79 @@ export class AdminPage implements OnInit {
       else this.error.set(this.error()+' No se pudieron cargar los pedidos.');
     }finally{this.pending.set(false);}
   }
+  private clearImageSelection(){
+    if(this.imagePreview())URL.revokeObjectURL(this.imagePreview());
+    this.imagePreview.set('');
+    this.imageName.set('');
+    this.selectedImage=null;
+  }
+
+  closeEditor(){
+    if(this.saving()||this.uploadStep())return;
+    this.clearImageSelection();
+    this.editor.set(false);
+  }
+
+  /** PNG/JPG sin conversión; WebP convertido localmente a JPG por el navegador. */
+  async selectProductImage(event: Event){
+    const input=event.target as HTMLInputElement;
+    const file=input.files?.[0];
+    input.value='';
+    if(!file)return;
+    this.error.set('');
+    if(!['image/jpeg','image/png','image/webp'].includes(file.type)){
+      this.error.set('Selecciona una imagen JPG, PNG o WebP.');return;
+    }
+    if(file.size>5_000_000){
+      this.error.set('La imagen debe pesar máximo 5 MB.');return;
+    }
+    this.uploadStep.set(true);
+    try{
+      let compatible=file;
+      if(file.type==='image/webp')compatible=await this.convertWebpToJpg(file);
+      if(compatible.size>5_000_000)throw new Error('La imagen convertida supera 5 MB. Usa una de menor resolución.');
+      const url=URL.createObjectURL(compatible);
+      this.clearImageSelection();
+      this.selectedImage=compatible;
+      this.imagePreview.set(url);
+      this.imageName.set(compatible.name);
+    }catch(e){this.error.set(e instanceof Error?e.message:'No se pudo procesar la imagen seleccionada.');}
+    finally{this.uploadStep.set(false);}
+  }
+
+  private async convertWebpToJpg(file:File):Promise<File>{
+    // El navegador admite WebP y evita depender de un lector WebP de Java.
+    const bitmap=await createImageBitmap(file);
+    try{
+      const maxSide=2048;
+      const scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
+      const width=Math.max(1,Math.round(bitmap.width*scale));
+      const height=Math.max(1,Math.round(bitmap.height*scale));
+      if(bitmap.width*bitmap.height>20_000_000)throw new Error('La imagen supera 20 megapíxeles.');
+      const canvas=document.createElement('canvas');
+      canvas.width=width;canvas.height=height;
+      const ctx=canvas.getContext('2d');
+      if(!ctx)throw new Error('No fue posible convertir la imagen WebP.');
+      ctx.fillStyle='#ffffff';
+      ctx.fillRect(0,0,width,height);
+      ctx.drawImage(bitmap,0,0,width,height);
+      const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(
+        output=>output?resolve(output):reject(new Error('No se pudo crear la imagen JPG.')),
+        'image/jpeg',0.9
+      ));
+      return new File([blob],file.name.replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'});
+    }finally{bitmap.close();}
+  }
+
+  clearImageSelectionFromUi(){this.clearImageSelection();}
+
+  chooseUrl(){
+    // Si el administrador cambia la URL manualmente, deja de usarse el archivo local.
+    this.clearImageSelection();
+  }
+
   openNew(){
+    this.clearImageSelection();
     this.editingId.set(null);
     this.form=blankForm();
     this.newVariants=[blankVariant()];
@@ -101,6 +177,7 @@ export class AdminPage implements OnInit {
     },0);
   }
   openEdit(p:Producto){
+    this.clearImageSelection();
     this.editingId.set(p.idProducto);
     this.newVariants=[];
     const v=p.variantes?.[0];
@@ -186,6 +263,14 @@ export class AdminPage implements OnInit {
 
     this.saving.set(true);this.error.set('');this.message.set('');
     try{
+      // Subir solo al guardar: evita generar archivos huérfanos al cancelar el formulario.
+      if(this.selectedImage){
+        this.uploadStep.set(true);
+        const uploaded=await this.adminApi.uploadProductImage(this.selectedImage);
+        data.img=uploaded.url;
+        this.clearImageSelection();
+        this.uploadStep.set(false);
+      }
       const payload={...data,img:data.img.trim(),idVariante:editing?data.idVariante:null,variantes};
       const id=this.editingId();
       if(id){
@@ -193,13 +278,14 @@ export class AdminPage implements OnInit {
       }else{
         await this.adminApi.createProduct(payload);
       }
+      this.clearImageSelection();
       this.editor.set(false);
       this.message.set(id
         ? 'Producto actualizado'+(variantes.length?' y '+variantes.length+' nueva(s) talla(s) agregada(s).':'.')
         : 'Producto registrado con '+variantes.length+' variante(s).');
       await this.reload();
     }catch(e){this.error.set(this.err(e));}
-    finally{this.saving.set(false);}
+    finally{this.saving.set(false);this.uploadStep.set(false);}
   }
   async remove(p:Producto){
     if(!confirm('¿Eliminar definitivamente '+p.nombre+'?'))return;
