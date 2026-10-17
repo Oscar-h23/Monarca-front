@@ -1,0 +1,41 @@
+<main class="mx-auto max-w-5xl px-5 py-12 min-h-[65vh]">
+ <a routerLink="/" class="text-sm text-zinc-500">← Volver a la tienda</a>
+ <h1 class="heading text-4xl mt-6 mb-3">Mi perfil</h1>
+ <p class="text-zinc-600 mb-9">Guarda tus datos una vez para que se completen automáticamente cuando hagas un pedido.</p>
+ <p *ngIf="loading()" class="py-10">Cargando tu perfil…</p>
+ <div *ngIf="!loading()" class="grid gap-9 lg:grid-cols-[1.5fr_1fr]">
+ <form (ngSubmit)="guardar()" class="bg-white border border-zinc-200 rounded-xl p-5 sm:p-8">
+  <h2 class="font-semibold text-lg mb-5">Información y dirección</h2>
+  <div class="grid sm:grid-cols-2 gap-4">
+   <label class="text-sm">Nombres *<input name="nombres" class="field mt-1" [(ngModel)]="form.nombres" maxlength="100" required></label>
+   <label class="text-sm">Apellidos *<input name="apellidos" class="field mt-1" [(ngModel)]="form.apellidos" maxlength="100" required></label>
+   <label class="text-sm sm:col-span-2">Correo electrónico<input class="field mt-1 bg-zinc-100" [value]="email" disabled></label>
+   <label class="text-sm">Teléfono<input name="telefono" type="tel" class="field mt-1" [(ngModel)]="form.telefono" maxlength="20"></label>
+   <label class="text-sm">Tipo de documento<select name="tipoDocumento" class="field mt-1" [(ngModel)]="form.tipoDocumento"><option>DNI</option><option>CE</option><option>Pasaporte</option></select></label>
+   <label class="text-sm sm:col-span-2">Número de documento<input name="numeroDocumento" class="field mt-1" [(ngModel)]="form.numeroDocumento" maxlength="20"></label>
+   <label class="text-sm sm:col-span-2">Dirección de entrega<input name="direccion" class="field mt-1" [(ngModel)]="form.direccion" maxlength="200" placeholder="Avenida, calle, número y departamento"></label>
+   <label class="text-sm">Departamento<input name="departamento" class="field mt-1" [(ngModel)]="form.departamento" maxlength="100" placeholder="Lima"></label>
+   <label class="text-sm">Provincia<input name="provincia" class="field mt-1" [(ngModel)]="form.provincia" maxlength="100" placeholder="Lima"></label>
+   <label class="text-sm">Distrito<input name="distrito" class="field mt-1" [(ngModel)]="form.distrito" maxlength="100" placeholder="Surco"></label>
+   <label class="text-sm sm:col-span-2">Referencia<input name="referencia" class="field mt-1" [(ngModel)]="form.referencia" maxlength="200" placeholder="Al costado de..."></label>
+  </div>
+  <button type="submit" class="btn-dark mt-7" [disabled]="busy()">{{busy()?'Guardando…':'Guardar mis datos'}}</button>
+ </form>
+ <aside class="border border-zinc-200 rounded-xl p-5 sm:p-7 h-fit">
+   <h2 class="text-lg font-semibold">Foto para el probador virtual</h2>
+   <p class="text-sm text-zinc-600 my-3">Sube una foto tuya de cuerpo entero, con buena iluminación y de frente. La fotografía es opcional.</p>
+   <div class="aspect-[3/4] bg-zinc-100 rounded-lg overflow-hidden flex items-center justify-center">
+    <img *ngIf="fotoUrl()" [src]="fotoUrl()" class="w-full h-full object-contain" alt="Foto privada para el probador">
+    <span *ngIf="!fotoUrl()" class="text-zinc-400 text-sm">Aún no tienes una fotografía</span>
+   </div>
+   <label class="block mt-5 text-sm font-semibold">Cargar o cambiar foto
+    <input type="file" class="mt-2 block w-full text-sm" accept="image/jpeg,image/png,image/webp" (change)="subir($event)" [disabled]="busy()">
+   </label>
+   <p class="text-xs text-zinc-500 mt-2">JPG, PNG o WebP · hasta 4 MB. Tu foto no aparece en el catálogo.</p>
+   <button *ngIf="hasPhoto()" type="button" class="text-sm text-red-700 underline mt-4" (click)="borrar()" [disabled]="busy()">Eliminar mi fotografía</button>
+   <p class="text-sm text-zinc-500 mt-4">Solo se enviará una copia al proveedor externo cuando confirmes expresamente una prueba virtual.</p>
+ </aside>
+ </div>
+ <p *ngIf="message()" class="mt-6 text-green-700" role="status">{{message()}}</p>
+ <p *ngIf="error()" class="mt-6 text-red-700" role="alert">{{error()}}</p>
+</main>

@@ -1,0 +1,33 @@
+<main class="mx-auto max-w-5xl px-5 py-12 min-h-[68vh]">
+ <a routerLink="/" class="text-sm text-zinc-500">← Volver a la tienda</a>
+ <h1 class="heading text-4xl mt-6">Probador virtual</h1>
+ <p class="text-zinc-600 mt-2 mb-8">Visualiza cómo podría verse una prenda usando tu fotografía. Es una simulación y no garantiza el ajuste de talla.</p>
+ <p *ngIf="loading()" class="py-12">Preparando el probador…</p>
+ <div *ngIf="product() as p" class="grid lg:grid-cols-2 gap-8">
+  <section class="border border-zinc-200 rounded-xl p-5">
+   <h2 class="font-semibold text-lg mb-3">{{p.nombre}}</h2>
+   <img *ngIf="p.imagen" class="w-full aspect-[4/5] object-contain bg-zinc-100" [src]="p.imagen" [alt]="p.nombre">
+   <p *ngIf="!p.imagen" class="text-red-700 my-5">Esta prenda necesita una imagen para usar el probador.</p>
+   <p class="mt-4 text-sm text-zinc-600">{{p.categoria}} · S/ {{p.precioBase|number:'1.2-2'}}</p>
+   <a [routerLink]="['/producto',p.idProducto]" class="inline-block mt-4 underline text-sm">Volver al producto</a>
+  </section>
+  <section class="border border-zinc-200 rounded-xl p-5">
+   <h2 class="font-semibold text-lg">Tu prueba virtual</h2>
+   <p class="mt-2 text-sm text-zinc-600">Necesitas una fotografía en tu perfil. El sistema enviará una copia de tu foto y de la prenda a TryOn Labs únicamente cuando confirmes la prueba.</p>
+   <p *ngIf="!hasPhoto()" class="text-amber-800 mt-4">Aún no has registrado una foto. <a class="underline font-semibold" routerLink="/perfil">Subir foto en Mi perfil</a></p>
+   <label class="flex items-start gap-3 mt-6 text-sm">
+    <input type="checkbox" class="mt-1" [checked]="consent()" (change)="consent.set(!consent())">
+    <span>Autorizo enviar mi fotografía personal y la imagen de la prenda a TryOn Labs para generar esta prueba. Entiendo que es un servicio externo y que consume créditos de prueba.</span>
+   </label>
+   <button class="btn-dark w-full mt-5" type="button" (click)="probar()" [disabled]="busy()||!hasPhoto()||!consent()||!p.imagen">
+    {{busy()?'Generando imagen… (puede tardar)':'Generar mi prueba virtual'}}
+   </button>
+   <p *ngIf="error()" role="alert" class="text-red-700 text-sm mt-4">{{error()}}</p>
+   <div *ngIf="result()" class="mt-6">
+    <h3 class="font-semibold mb-3">Resultado generado</h3>
+    <img [src]="result()" class="w-full rounded-lg bg-zinc-100" alt="Resultado de la prueba virtual">
+    <p class="mt-2 text-sm text-zinc-500">La imagen se mantiene en esta sesión. No se guarda en tu perfil ni se publica en Monarca.</p>
+   </div>
+  </section>
+ </div>
+</main>
