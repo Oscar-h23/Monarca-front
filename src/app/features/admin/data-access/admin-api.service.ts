@@ -29,6 +29,17 @@ export interface ProductForm {
   img: string;
 }
 
+export interface ProductVariantForm {
+  talla: string;
+  color: string;
+  colorHex: string;
+  precio: number;
+  stock: number;
+  stockMinimo: number;
+}
+
+export type NewProductForm = ProductForm & { variantes: ProductVariantForm[] };
+
 /** Operaciones autenticadas de inventario y pedidos; el componente solo maneja formularios. */
 @Injectable({ providedIn: 'root' })
 export class AdminApi {
@@ -41,7 +52,7 @@ export class AdminApi {
     );
   }
 
-  createProduct(payload: ProductForm): Promise<string> {
+  createProduct(payload: NewProductForm): Promise<string> {
     return firstValueFrom(
       this.http.post(this.api.base + '/productos', payload, {
         headers: this.api.headers(), responseType: 'text'
