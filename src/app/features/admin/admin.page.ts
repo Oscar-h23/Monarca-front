@@ -203,7 +203,7 @@ export class AdminPage implements OnInit {
     return e instanceof Error?e.message:'No se pudo completar la operación.';
   }
   async save(){
-    if(this.saving())return;
+    if(this.saving()||this.uploadStep())return;
     const data=this.form;
     if(!data.nombre.trim()||!data.categoria){
       this.error.set('Completa el nombre y la categoría.');return;

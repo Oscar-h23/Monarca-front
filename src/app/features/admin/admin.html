@@ -107,7 +107,7 @@
     </div>
    </section>
    <p *ngIf="error()" class="text-red-700 my-4" role="alert">{{error()}}</p>
-   <div class="flex gap-3 justify-end mt-7"><button type="button" class="px-5 py-3 border" (click)="editor.set(false)">Cancelar</button><button type="submit" class="btn-dark" [disabled]="saving()">{{saving()?'Guardando…':'Guardar producto'}}</button></div>
+   <div class="flex gap-3 justify-end mt-7"><button type="button" class="px-5 py-3 border" (click)="closeEditor()" [disabled]="saving()||uploadStep()">Cancelar</button><button type="submit" class="btn-dark" [disabled]="saving()||uploadStep()">{{saving()?'Guardando…':'Guardar producto'}}</button></div>
   </form>
  </div>
 </main>
