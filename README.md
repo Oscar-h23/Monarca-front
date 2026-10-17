@@ -11,12 +11,23 @@ Migración del frontend HTML/CSS/JS del [repositorio Monarca original](https://g
 - Estado de carrito con signals; persistencia en `localStorage`
 
 ## Ejecutar en desarrollo
-Requisitos: Node.js compatible con Angular 20, Java 21 y el [backend Monarca](https://github.com/Oscar-h23/Monarca-back/tree/develop).
+Requisitos del frontend: Node.js 22.12 o superior dentro de la rama 22 (la misma que usa GitHub Actions) y npm. El archivo `.nvmrc` selecciona Node 22 si usas nvm:
+
+```bash
+nvm install
+nvm use
+```
+
+Angular 20 también admite Node `^20.19.0` y `^24.0.0`; Node 26 no está soportado. Ver la [tabla oficial de compatibilidad](https://angular.dev/reference/versions).
+
+Después instala las dependencias e inicia el servidor:
 
 ```bash
 npm install
 npm start
 ```
+
+Espera a que Angular muestre `Local: http://localhost:4200/` y deja la terminal abierta. El backend no es necesario para compilar o iniciar el frontend; sí se necesita para cargar productos, iniciar sesión y registrar pedidos. Para esas funciones, ejecuta el [backend Monarca](https://github.com/Oscar-h23/Monarca-back/tree/develop) con Java 21 en el puerto 8080.
 
 Accede a `http://localhost:4200`. El proxy de desarrollo se activa automáticamente con `npm start` (opción `serve.options.proxyConfig` en `angular.json`) y envía `/api` a `http://localhost:8080`. Para verificar la conexión, abre `http://localhost:4200/api/productos`: debe responder JSON. Si todavía no hay productos en MonarcaDB, devolverá `[]` sin error. El backend requiere PostgreSQL y variables de entorno; no se crean datos de ejemplo.
 
