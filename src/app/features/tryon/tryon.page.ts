@@ -35,6 +35,6 @@ export class TryonPage implements OnInit,OnDestroy{
   this.busy.set(true);this.error.set('');this.clearResult();
   try{const blob=await this.perfil.probar(p.idProducto);this.result.set(URL.createObjectURL(blob));}
   catch(e){this.error.set(this.errorText(e));}
-  finally{this.busy.set(false);}
+  finally{this.busy.set(false);this.consent.set(false);}
  }
 }
