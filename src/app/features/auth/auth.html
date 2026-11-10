@@ -5,6 +5,16 @@
   <a routerLink="/" aria-label="Ir al inicio"><img [src]="logo" alt="Rayeli’s moda" class="w-56 sm:w-64 h-auto object-contain mb-10"></a>
   <h1 class="heading text-4xl mb-3">{{mode()==='login'?'Iniciar sesión':mode()==='registro'?'Crear cuenta':mode()==='recuperar'?'Recuperar contraseña':'Nueva contraseña'}}</h1>
   <p class="text-zinc-500 mb-8">{{mode()==='login'?'Ingresa a tu cuenta Rayeli’s moda':mode()==='registro'?'Regístrate para comenzar a comprar':mode()==='recuperar'?'Te enviaremos un enlace si existe una cuenta':'Elige una nueva contraseña segura'}}</p>
+  <div *ngIf="mode()==='login'||mode()==='registro'" class="mb-8">
+    <p class="text-center text-sm font-medium text-zinc-700 mb-3">{{mode()==='login'?'Inicia sesión con Google':'Crea tu cuenta con Google'}}</p>
+    <app-google-button (credential)="googleSignIn($event)"></app-google-button>
+    <p class="text-xs text-center text-zinc-500 mt-3">Si ya tienes una cuenta con contraseña, inicia sesión primero y vincula Google desde Mi perfil.</p>
+    <div class="flex items-center gap-3 mt-6" aria-hidden="true">
+      <span class="h-px flex-1 bg-zinc-200"></span>
+      <span class="text-xs text-zinc-500 whitespace-nowrap">o utiliza tu correo electrónico</span>
+      <span class="h-px flex-1 bg-zinc-200"></span>
+    </div>
+  </div>
   <form (ngSubmit)="submit()" class="space-y-4">
    <ng-container *ngIf="mode()==='registro'">
     <label class="block text-sm font-semibold">Nombres<input class="field mt-2" name="nombre" [(ngModel)]="nombre" autocomplete="given-name" maxlength="100" required></label>
@@ -17,11 +27,6 @@
    <label *ngIf="mode()==='registro'||mode()==='restablecer'" class="block text-sm font-semibold">Confirmar contraseña<input type="password" class="field mt-2" name="confirm" [(ngModel)]="confirmPassword" autocomplete="new-password" minlength="8" required></label>
    <button type="submit" class="btn-dark w-full" [disabled]="busy()||(mode()==='restablecer'&&!resetTokenValid())">{{busy()?'Procesando…':mode()==='login'?'Iniciar sesión':mode()==='registro'?'Crear mi cuenta':mode()==='recuperar'?'Enviar enlace':'Guardar nueva contraseña'}}</button>
   </form>
-  <div *ngIf="mode()==='login'||mode()==='registro'" class="mt-7 border-t border-zinc-200 pt-5">
-    <p class="text-sm text-center text-zinc-500 mb-4">O continúa con tu cuenta de Google</p>
-    <app-google-button (credential)="googleSignIn($event)"></app-google-button>
-    <p class="text-xs text-center text-zinc-500 mt-3">Si ya tienes una cuenta con contraseña, inicia sesión primero y vincula Google desde Mi perfil.</p>
-  </div>
   <p *ngIf="message()" class="mt-5 text-sm" role="status" [class.text-red-700]="isError()" [class.text-green-800]="!isError()">{{message()}}</p>
   <div class="flex gap-5 flex-wrap mt-8 text-sm underline">
    <button type="button" *ngIf="mode()!=='login'" (click)="setMode('login')">Iniciar sesión</button>
