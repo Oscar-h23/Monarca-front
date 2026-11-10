@@ -27,7 +27,7 @@ export class GoogleIdentityService {
 
   private google(): Promise<GoogleIdentityApi> {
     if (this.loadPromise) return this.loadPromise;
-    this.loadPromise = new Promise((resolve, reject) => {
+    this.loadPromise = new Promise<GoogleIdentityApi>((resolve, reject) => {
       const current = (window as GoogleWindow).google?.accounts?.id;
       if (current) { resolve(current); return; }
       const script = document.createElement('script');
@@ -40,7 +40,7 @@ export class GoogleIdentityService {
       script.onerror = () => reject(new Error('No se pudo cargar el acceso de Google.'));
       document.head.appendChild(script);
     }).catch(error => { this.loadPromise = undefined; throw error; });
-    return this.loadPromise;
+    return this.loadPromise!;
   }
 
   async render(element: HTMLElement, receiver: (credential: string) => void): Promise<boolean> {
