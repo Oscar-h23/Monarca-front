@@ -108,8 +108,7 @@
        <label class="block text-sm">Stock *<input class="field mt-1" [name]="'variant-stock-'+i" type="number" min="0" step="1" [(ngModel)]="variant.stock" required></label>
        <label class="block text-sm">Stock mínimo<input class="field mt-1" [name]="'variant-minimo-'+i" type="number" min="0" step="1" [(ngModel)]="variant.stockMinimo"></label>
        <label class="block text-sm">Color HEX<input class="field mt-1" [name]="'variant-hex-'+i" [(ngModel)]="variant.colorHex" maxlength="7" placeholder="#FFFFFF"></label>
-      </div>
-      <div class="mt-4 pt-4 border-t border-zinc-200">
+       <div class="col-span-2 md:col-span-3 mt-2 pt-4 border-t border-zinc-200">
        <p class="text-sm font-semibold">Medidas de esta talla (cm)</p>
        <p class="text-xs text-zinc-500 mt-1 mb-3">Contorno completo, no medida en plano. Opcional.</p>
        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -119,7 +118,7 @@
         <label class="block text-sm">Largo<input class="field mt-1" [name]="'variant-largo-'+i" type="number" min="10" max="300" step=".1" [(ngModel)]="variant.largoCm"></label>
        </div>
       </div>
-      <div class="hidden">
+
       </div>
      </div>
     </div>
