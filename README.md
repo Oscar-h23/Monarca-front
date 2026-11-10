@@ -45,10 +45,21 @@ Accede a `http://localhost:4200`. El proxy de desarrollo se activa automáticame
 ## Seguridad y límites
 - Un rol leído desde localStorage solo sirve para controlar visibilidad; **el backend debe autenticar y autorizar cada solicitud**.
 - Se han copiado **60 imágenes** (logos y miniaturas de productos) a `public/img`; los banners e imágenes grandes continúan temporalmente desde GitHub del proyecto fuente.
-- Contrato de backend conservado sin modificaciones de esquema; se requiere BD original.
+- Google y el recomendador de tallas requieren la migración adicional del backend; no basta con desplegar el frontend.
 - Los datos de reportes son pedidos reales obtenidos de `GET /api/pedidos` (el total de pedidos no es facturación).
 - No hay pasarela de pago integrada: el backend registra un pedido con estado de pago pendiente.
 - Antes de producción se deben probar flujos completos, ajustar CORS y configurar URL del frontend para los enlaces de recuperación (`PASSWORD_RESET_URL=http://localhost:4200/login` en desarrollo).
 
 ## Integración continua
 GitHub Actions ejecuta `npm install` y `npm run build` en pushes a `develop` o `main`.
+
+
+## Acceso con Google y medidas de tallas
+
+La ruta `/login` incorpora el botón oficial Google Identity Services. El frontend obtiene su Client ID público desde `GET /api/auth/google/configuracion` y envía el ID token a Spring Boot para validación y emisión del JWT habitual. **No se almacena ni se verifica el token de Google como sesión del sitio.** El backend debe tener `GOOGLE_WEB_CLIENT_ID` configurado y Google Cloud debe permitir el origen del frontend, incluido `http://localhost:4200` en desarrollo.
+
+En `/perfil` el usuario puede vincular Google a su cuenta existente y guardar opcionalmente busto, cintura, cadera y estatura en centímetros.
+
+En `/admin` se registran medidas diferentes para cada variante/talla: pecho, cintura, cadera y largo de prenda. Son **contornos completos** (no ancho en plano). La ficha `/producto/:id` muestra esas medidas y, para Tops y Bottoms, recomienda una talla cuando encuentra una coincidencia con al menos 2 cm de holgura en cada dimensión comparable. Si faltan datos o no hay stock no se muestra una talla inventada.
+
+El cambio requiere ejecutar `db/migrations/20261110_google_login_medidas.sql` del backend **antes** de activar el backend actualizado y comprobar los flujos extremo a extremo.
