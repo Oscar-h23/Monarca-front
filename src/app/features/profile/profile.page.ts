@@ -4,22 +4,25 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Perfil, PerfilApi, PerfilEditable } from '../../core/services/perfil-api.service';
+import { GoogleButtonComponent } from '../../shared/google-button.component';
 
-@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink],templateUrl:'./profile.html'})
+@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink,GoogleButtonComponent],templateUrl:'./profile.html'})
 export class ProfilePage implements OnInit,OnDestroy {
   private api=inject(PerfilApi);
   loading=signal(true);busy=signal(false);error=signal('');message=signal('');
   fotoUrl=signal('');hasPhoto=signal(false);
   email='';
+  googleVinculado=signal(false);
   form:PerfilEditable={nombres:'',apellidos:'',telefono:'',tipoDocumento:'DNI',
-    numeroDocumento:'',direccion:'',distrito:'',provincia:'',departamento:'',referencia:''};
+    numeroDocumento:'',direccion:'',distrito:'',provincia:'',departamento:'',referencia:'',bustoCm:null,cinturaCm:null,caderaCm:null,alturaCm:null};
 
   async ngOnInit(){
-    try{const p=await this.api.obtener();this.email=p.correo;this.hasPhoto.set(p.tieneFoto);
+    try{const p=await this.api.obtener();this.email=p.correo;this.hasPhoto.set(p.tieneFoto);this.googleVinculado.set(p.googleVinculado);
       this.form={nombres:p.nombres,apellidos:p.apellidos,telefono:p.telefono||'',
         tipoDocumento:p.tipoDocumento||'DNI',numeroDocumento:p.numeroDocumento||'',
         direccion:p.direccion||'',distrito:p.distrito||'',provincia:p.provincia||'',
-        departamento:p.departamento||'',referencia:p.referencia||''};
+        departamento:p.departamento||'',referencia:p.referencia||'',
+        bustoCm:p.bustoCm,cinturaCm:p.cinturaCm,caderaCm:p.caderaCm,alturaCm:p.alturaCm};
       if(p.tieneFoto)await this.mostrarFoto();
     }catch(e){this.error.set(this.mensajeError(e));}
     finally{this.loading.set(false);}
@@ -34,6 +37,16 @@ export class ProfilePage implements OnInit,OnDestroy {
     if(this.busy())return;this.busy.set(true);this.error.set('');this.message.set('');
     try{await this.api.guardar(this.form);this.message.set('Perfil actualizado correctamente.');}
     catch(e){this.error.set(this.mensajeError(e));}
+    finally{this.busy.set(false);}
+  }
+  async vincularGoogle(credential:string){
+    if(this.busy())return;
+    this.busy.set(true);this.error.set('');this.message.set('');
+    try{
+      await this.api.vincularGoogle(credential);
+      this.googleVinculado.set(true);
+      this.message.set('Tu cuenta de Google quedó vinculada. Ya puedes iniciar sesión con Google.');
+    }catch(e){this.error.set(this.mensajeError(e));}
     finally{this.busy.set(false);}
   }
   async subir(event:Event){
