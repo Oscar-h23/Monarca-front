@@ -1,2 +1,75 @@
+<main class="max-w-6xl mx-auto px-5 py-14">
+  <a routerLink="/" class="text-zinc-500 text-sm">← Volver a la tienda</a>
+  <p *ngIf="error()" class="text-red-700 mt-10">{{error()}}</p>
+  <div *ngIf="product() as p" class="grid md:grid-cols-2 gap-12 mt-8">
+    <img [src]="p.imagen||fallback" [alt]="p.nombre" class="w-full bg-zinc-100 object-cover aspect-[4/5]">
+    <div class="pt-8">
+      <p class="uppercase tracking-widest text-xs text-zinc-500">{{p.categoria}}</p>
+      <h1 class="heading text-4xl mt-3">{{p.nombre}}</h1>
+      <p class="text-2xl mt-5">S/ {{(selected()?.precio??p.precioBase) | number:'1.2-2'}}</p>
+      <p class="mt-8 text-zinc-600 leading-7">{{p.descripcion}}</p>
 
-<main class="max-w-6xl mx-auto px-5 py-14"><a routerLink="/" class="text-zinc-500 text-sm">← Volver a la tienda</a><p *ngIf="error()" class="text-red-700 mt-10">{{error()}}</p><div *ngIf="product() as p" class="grid md:grid-cols-2 gap-12 mt-8"><img [src]="p.imagen||fallback" [alt]="p.nombre" class="w-full bg-zinc-100 object-cover aspect-[4/5]"><div class="pt-8"><p class="uppercase tracking-widest text-xs text-zinc-500">{{p.categoria}}</p><h1 class="heading text-4xl mt-3">{{p.nombre}}</h1><p class="text-2xl mt-5">S/ {{(selected()?.precio??p.precioBase) | number:'1.2-2'}}</p><p class="mt-8 text-zinc-600 leading-7">{{p.descripcion}}</p><p class="font-semibold mt-8 mb-3">Selecciona talla y color</p><div class="flex gap-2 flex-wrap"><button *ngFor="let v of available(p)" (click)="selected.set(v)" [class.bg-zinc-900]="selected()?.idVariante===v.idVariante" [class.text-white]="selected()?.idVariante===v.idVariante" class="border px-4 py-3">{{v.talla}} / {{v.color}}</button></div><p *ngIf="!available(p).length" class="text-red-700">Sin stock disponible</p><button class="btn-dark w-full mt-8" [disabled]="!selected()" (click)="add(p)">AGREGAR A LA BOLSA</button><a *ngIf="p.categoria==='Tops'||p.categoria==='Bottoms'" [routerLink]="['/probador',p.idProducto]" class="mt-3 w-full block border border-zinc-900 text-center px-5 py-3 font-semibold hover:bg-zinc-100">PROBARME ESTA PRENDA</a><p *ngIf="message()" class="mt-3 text-sm">{{message()}}</p></div></div></main>
+      <section *ngIf="p.categoria==='Tops'||p.categoria==='Bottoms'"
+               class="mt-8 bg-zinc-50 rounded-lg border border-zinc-200 p-5" aria-label="Recomendador de tallas">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-lg font-semibold">Encuentra tu talla</h2>
+          <span class="text-xs text-zinc-500">Basado en medidas reales (cm)</span>
+        </div>
+        <ng-container *ngIf="recomendacion() as rec">
+          <p class="mt-3 text-sm">Te sugerimos <strong class="text-lg">{{rec.variante.talla}}</strong>
+            en color {{rec.variante.color}}.</p>
+          <p class="mt-2 text-sm text-zinc-600">Comparación: {{rec.medidasComparadas.join(', ')}}.
+            Consideramos una holgura mínima de 2 cm en las medidas disponibles.</p>
+          <p class="mt-2 text-xs text-zinc-500">Orientativa: el corte, el tejido y tus preferencias de ajuste también influyen.</p>
+          <button type="button" class="mt-3 px-4 py-2 border border-zinc-900 text-sm font-semibold"
+                  (click)="seleccionarRecomendada()">Seleccionar talla {{rec.variante.talla}}</button>
+        </ng-container>
+        <div *ngIf="!recomendacion()" class="text-sm text-zinc-600 mt-3">
+          <ng-container *ngIf="!session.isAuthenticated()">
+            <p>Inicia sesión para comparar tus medidas guardadas con esta prenda.</p>
+            <a routerLink="/login" class="underline font-semibold inline-block mt-2">Iniciar sesión</a>
+          </ng-container>
+          <ng-container *ngIf="session.isAuthenticated()&&!hasBodyMeasurements()">
+            <p>Agrega tus medidas de busto, cintura y cadera para recibir una sugerencia.</p>
+            <a routerLink="/perfil" class="underline font-semibold inline-block mt-2">Completar mis medidas</a>
+          </ng-container>
+          <ng-container *ngIf="session.isAuthenticated()&&hasBodyMeasurements()&&!hasGarmentMeasurements(p)">
+            <p>Este producto aún no tiene una tabla de medidas. Puedes elegir la talla manualmente.</p>
+          </ng-container>
+          <ng-container *ngIf="session.isAuthenticated()&&hasBodyMeasurements()&&hasGarmentMeasurements(p)">
+            <p>No encontramos una variante disponible que cumpla la holgura mínima con las medidas comparables.</p>
+            <a routerLink="/perfil" class="underline inline-block mt-2">Revisar mis medidas</a>
+          </ng-container>
+        </div>
+      </section>
+
+      <p class="font-semibold mt-8 mb-3">Selecciona talla y color</p>
+      <div class="flex gap-2 flex-wrap">
+        <button *ngFor="let v of available(p)" type="button" (click)="selected.set(v)"
+                [class.bg-zinc-900]="selected()?.idVariante===v.idVariante"
+                [class.text-white]="selected()?.idVariante===v.idVariante"
+                class="border px-4 py-3">{{v.talla}} / {{v.color}}</button>
+      </div>
+      <p *ngIf="!available(p).length" class="text-red-700">Sin stock disponible</p>
+
+      <div *ngIf="selected() as v" class="mt-5 p-4 rounded-lg border border-zinc-200">
+        <h3 class="text-sm font-semibold">Medidas de la prenda seleccionada</h3>
+        <div class="grid grid-cols-2 gap-2 text-sm text-zinc-600 mt-2">
+          <span *ngIf="v.pechoCm!=null">Pecho: {{v.pechoCm}} cm</span>
+          <span *ngIf="v.cinturaCm!=null">Cintura: {{v.cinturaCm}} cm</span>
+          <span *ngIf="v.caderaCm!=null">Cadera: {{v.caderaCm}} cm</span>
+          <span *ngIf="v.largoCm!=null">Largo: {{v.largoCm}} cm</span>
+        </div>
+        <p *ngIf="v.pechoCm==null&&v.cinturaCm==null&&v.caderaCm==null&&v.largoCm==null"
+           class="text-xs text-zinc-500 mt-2">El vendedor todavía no registró las medidas de esta variante.</p>
+      </div>
+
+      <button class="btn-dark w-full mt-8" [disabled]="!selected()" (click)="add(p)">AGREGAR A LA BOLSA</button>
+      <a *ngIf="p.categoria==='Tops'||p.categoria==='Bottoms'" [routerLink]="['/probador',p.idProducto]"
+         class="mt-3 w-full block border border-zinc-900 text-center px-5 py-3 font-semibold hover:bg-zinc-100">
+         PROBARME ESTA PRENDA
+      </a>
+      <p *ngIf="message()" class="mt-3 text-sm" role="status">{{message()}}</p>
+    </div>
+  </div>
+</main>

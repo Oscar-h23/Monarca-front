@@ -6,9 +6,10 @@ import { Router, RouterLink } from '@angular/router';
 import { Api } from '../../core/services/api.service';
 import { asset } from '../../core/utils/assets';
 import { SessionService } from '../../core/services/session.service';
+import { GoogleButtonComponent } from '../../shared/google-button.component';
 
 type Modo='login'|'registro'|'recuperar'|'restablecer';
-@Component({standalone:true,selector:'app-auth',imports:[CommonModule,FormsModule,RouterLink],templateUrl:'./auth.html'})
+@Component({standalone:true,selector:'app-auth',imports:[CommonModule,FormsModule,RouterLink,GoogleButtonComponent],templateUrl:'./auth.html'})
 export class AuthPage implements OnInit{
   api=inject(Api);router=inject(Router);session=inject(SessionService);
   logo=asset('rayelis-logo.svg');
@@ -71,6 +72,17 @@ export class AuthPage implements OnInit{
           this.message.set(response.mensaje||'Operación completada. Ya puedes iniciar sesión.');
         }else this.message.set(response.mensaje||'Si el correo existe, recibirás un enlace.');
       }
+    }catch(e){this.fail(this.errorMessage(e));}
+    finally{this.busy.set(false);}
+  }
+  async googleSignIn(credential:string){
+    if(this.busy())return;
+    this.busy.set(true);this.message.set('');this.isError.set(false);
+    try{
+      const response=await this.api.auth('google',{credential});
+      if(!response.token)throw new Error('El servidor no envió el token de sesión.');
+      this.session.start(response.token,response.rol||'');
+      await this.router.navigateByUrl(response.rol==='ROLE_ADMIN'?'/admin':'/');
     }catch(e){this.fail(this.errorMessage(e));}
     finally{this.busy.set(false);}
   }
