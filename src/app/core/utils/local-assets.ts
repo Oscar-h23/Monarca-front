@@ -41,6 +41,8 @@ export const localAssetPaths = new Set<string>([
   "jean_wide_leg_janis.jpg",
   "librodereclamacion.png",
   "logo-desktop.png",
+  "rayelis-logo.svg",
+  "rayelis-icon.svg",
   "logo-mobile.png",
   "mariposa.png",
   "menu.png",

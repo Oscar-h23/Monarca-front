@@ -9,6 +9,8 @@ export const routes: Routes = [
   { path: 'carrito', title: 'Mi bolsa | Monarca', loadComponent: () => import('./features/cart/cart.page').then(m => m.CartComponent) },
   { path: 'checkout', title: 'Finalizar compra | Monarca', canActivate: [authGuard], loadComponent: () => import('./features/checkout/checkout.page').then(m => m.CheckoutComponent) },
   { path: 'login', title: 'Mi cuenta | Monarca', loadComponent: () => import('./features/auth/auth.page').then(m => m.AuthPage) },
+  { path: 'perfil', title: 'Mi perfil | Monarca', canActivate: [authGuard], loadComponent: () => import('./features/profile/profile.page').then(m => m.ProfilePage) },
+  { path: 'probador/:id', title: 'Probador virtual | Monarca', canActivate: [authGuard], loadComponent: () => import('./features/tryon/tryon.page').then(m => m.TryonPage) },
   { path: 'admin', title: 'Administración | Monarca', canActivate: [adminGuard], loadComponent: () => import('./features/admin/admin.page').then(m => m.AdminPage) },
   { path: 'contacto', title: 'Contacto | Monarca', loadComponent: () => import('./features/contact/contact.page').then(m => m.ContactPage) },
   { path: 'nosotros', title: 'Nosotros | Monarca', loadComponent: () => import('./features/about/about.page').then(m => m.AboutPage) },

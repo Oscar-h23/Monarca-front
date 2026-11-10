@@ -11,7 +11,7 @@ type Modo='login'|'registro'|'recuperar'|'restablecer';
 @Component({standalone:true,selector:'app-auth',imports:[CommonModule,FormsModule,RouterLink],templateUrl:'./auth.html'})
 export class AuthPage implements OnInit{
   api=inject(Api);router=inject(Router);session=inject(SessionService);
-  logo=asset('logo-desktop.png');
+  logo=asset('rayelis-logo.svg');
   mode=signal<Modo>('login');
   busy=signal(false);
   message=signal('');isError=signal(false);

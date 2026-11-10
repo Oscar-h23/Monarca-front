@@ -1,6 +1,6 @@
 <main class="mx-auto max-w-7xl px-5 py-10 min-h-[68vh]">
  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10">
-  <div><p class="text-xs font-bold tracking-[.3em] uppercase text-zinc-500">Monarca · Backoffice</p><h1 class="heading mt-2 text-4xl">Panel de administración</h1></div>
+  <div><p class="text-xs font-bold tracking-[.3em] uppercase text-zinc-500">Rayeli’s moda · Backoffice</p><h1 class="heading mt-2 text-4xl">Panel de administración</h1></div>
   <div class="flex gap-4 items-center text-sm"><a routerLink="/" class="underline">Volver a la tienda</a><button type="button" (click)="logout()" class="underline text-red-700">Cerrar sesión</button></div>
  </div>
  <div class="grid sm:grid-cols-3 gap-4 mb-10">
@@ -28,24 +28,86 @@
  </section>
  <div *ngIf="editor()" class="fixed inset-0 z-50 bg-black/60 flex justify-center items-center p-4" role="dialog" aria-modal="true" aria-labelledby="editor-title">
   <form (ngSubmit)="save()" class="max-h-[92vh] overflow-y-auto w-full max-w-2xl bg-white rounded-lg p-6 md:p-8">
-   <div class="flex items-center justify-between mb-6"><h2 class="heading text-2xl" id="editor-title">{{editingId()?'Editar producto':'Nuevo producto'}}</h2><button type="button" (click)="editor.set(false)" aria-label="Cerrar">✕</button></div>
-   <label *ngIf="editingId()" class="block mb-4 text-sm">Variante del producto<select name="idVariante" class="field mt-1" [(ngModel)]="form.idVariante" (ngModelChange)="editVariant()"><option *ngFor="let v of editVariants()" [ngValue]="v.idVariante"></option></select></label>
+   <div class="flex items-center justify-between mb-6"><h2 class="heading text-2xl" id="editor-title">{{editingId()?'Editar producto':'Nuevo producto'}}</h2><button type="button" (click)="closeEditor()" [disabled]="saving()||uploadStep()" aria-label="Cerrar">✕</button></div>
+   <div *ngIf="editingId()" class="mb-5">
+    <p class="mb-2 font-semibold text-sm">Tallas registradas ({{editVariants().length}})</p>
+    <div class="flex flex-wrap gap-2" *ngIf="editVariants().length">
+      <span *ngFor="let v of editVariants()" class="text-xs rounded-full bg-zinc-100 border border-zinc-200 px-3 py-1.5">{{v.talla}} · {{v.color}} · {{v.stock}} un.</span>
+    </div>
+    <p *ngIf="!editVariants().length" class="text-zinc-500 text-sm">Este producto todavía no tiene variantes.</p>
+    <label class="block mt-4 text-sm">Variante que deseas modificar
+      <select name="idVariante" class="field mt-1" [(ngModel)]="form.idVariante" (ngModelChange)="editVariant()">
+        <option *ngFor="let v of editVariants()" [ngValue]="v.idVariante">{{v.talla}} · {{v.color}}</option>
+      </select>
+    </label>
+   </div>
    <div class="grid sm:grid-cols-2 gap-4">
     <label class="block text-sm">Nombre *<input class="field mt-1" name="nombre" [(ngModel)]="form.nombre" maxlength="140" required></label>
     <label class="block text-sm">Categoría *<select class="field mt-1" name="categoria" [(ngModel)]="form.categoria" required><option *ngFor="let c of categories" [value]="c">{{c}}</option></select></label>
     <label class="block text-sm">Marca<input class="field mt-1" name="marca" [(ngModel)]="form.marca"></label>
-    <label class="block text-sm">Imagen (HTTPS)<input class="field mt-1" name="img" type="url" [(ngModel)]="form.img" placeholder="https://..."></label>
+    <div class="sm:col-span-2 space-y-3">
+      <div class="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-4 sm:p-5">
+        <label class="block text-sm font-semibold text-zinc-800" for="product-image-file">Imagen del producto</label>
+        <p class="text-xs text-zinc-500 mt-1 mb-3">Selecciona una foto de tu equipo. Admite JPG, PNG o WebP hasta 5 MB. Las imágenes WebP se convierten automáticamente a JPG para el probador virtual.</p>
+        <input id="product-image-file" class="block w-full text-sm text-zinc-700 file:mr-3 file:rounded-md file:border-0 file:bg-zinc-900 file:px-4 file:py-2.5 file:text-white hover:file:bg-zinc-700" type="file" accept="image/jpeg,image/png,image/webp" (change)="selectProductImage($event)" [disabled]="uploadStep()||saving()">
+        <p *ngIf="imageName()" class="mt-2 text-sm text-zinc-700">Archivo seleccionado: <strong>{{imageName()}}</strong></p>
+        <p *ngIf="uploadStep()" class="mt-2 text-sm text-zinc-600" role="status">Procesando o subiendo imagen…</p>
+        <div *ngIf="imagePreview()||form.img" class="mt-4 flex flex-wrap items-start gap-4">
+          <img class="h-36 w-28 rounded-lg border border-zinc-200 bg-white object-contain" [src]="imagePreview()||form.img" alt="Vista previa de la imagen del producto">
+          <div class="text-xs text-zinc-500 max-w-xs">
+            <p>Vista previa de {{imagePreview()?'tu archivo':'la imagen actual'}}.</p>
+            <p class="mt-1">El archivo se guardará en Supabase Storage al pulsar «Guardar».</p>
+            <button *ngIf="imagePreview()" type="button" class="mt-3 text-red-700 underline" (click)="clearImageSelectionFromUi()">Descartar archivo seleccionado</button>
+          </div>
+        </div>
+      </div>
+      <label class="block text-sm text-zinc-600">O utilizar una URL HTTPS (opcional)
+        <input class="field mt-1" name="img" type="url" [(ngModel)]="form.img" (ngModelChange)="chooseUrl()" placeholder="https://...">
+      </label>
+    </div>
     <label class="block text-sm">Precio base (S/) *<input class="field mt-1" name="precioBase" type="number" min="0" step=".01" [(ngModel)]="form.precioBase" required></label>
+    <ng-container *ngIf="editingId()">
     <label class="block text-sm">Precio variante (S/) *<input class="field mt-1" name="precio" type="number" min="0" step=".01" [(ngModel)]="form.precio" required></label>
     <label class="block text-sm">Talla *<input class="field mt-1" name="talla" [(ngModel)]="form.talla" required></label>
     <label class="block text-sm">Color *<input class="field mt-1" name="color" [(ngModel)]="form.color" required></label>
     <label class="block text-sm">Stock *<input class="field mt-1" name="stock" type="number" min="0" step="1" [(ngModel)]="form.stock" required></label>
     <label class="block text-sm">Stock mínimo<input class="field mt-1" name="stockMinimo" type="number" min="0" step="1" [(ngModel)]="form.stockMinimo"></label>
     <label class="block text-sm">Color hexadecimal<input class="field mt-1" name="colorHex" [(ngModel)]="form.colorHex" placeholder="#FFFFFF"></label>
+    </ng-container>
     <label class="block text-sm sm:col-span-2">Descripción<textarea class="field mt-1" rows="3" name="descripcion" [(ngModel)]="form.descripcion"></textarea></label>
    </div>
+   <section class="mt-7 border-t border-zinc-200 pt-6" aria-label="Tallas y existencias">
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+     <div><h3 class="font-semibold text-lg">{{editingId()?'Agregar nuevas tallas':'Tallas y existencias'}}</h3><p class="text-sm text-zinc-500">{{editingId()?'Agrega otras tallas sin reemplazar las existentes. Puedes editar la variante seleccionada arriba.':'Agrega las tallas disponibles. Cada combinación de talla y color tendrá su propio stock y precio.'}}</p></div>
+     <button type="button" class="px-3 py-2 border border-zinc-300 text-sm rounded-md hover:bg-zinc-50" (click)="useBasePrice()">Aplicar precio base a todas</button>
+    </div>
+    <datalist id="monarca-tallas">
+     <option value="XS"></option><option value="S"></option><option value="M"></option><option value="L"></option><option value="XL"></option><option value="XXL"></option><option value="ÚNICA"></option>
+     <option value="35"></option><option value="36"></option><option value="37"></option><option value="38"></option><option value="39"></option><option value="40"></option>
+    </datalist>
+    <div class="space-y-3">
+     <div *ngFor="let variant of newVariants; let i=index" class="rounded-lg border border-zinc-200 p-4 bg-zinc-50">
+      <div class="flex justify-between items-center mb-3">
+       <strong class="text-sm">Variante {{i+1}}</strong>
+       <button type="button" class="text-sm text-red-700 underline disabled:text-zinc-400 disabled:no-underline" [disabled]="!editingId() && newVariants.length===1" (click)="removeVariant(i)">Quitar</button>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+       <label class="block text-sm">Talla *<input class="field mt-1" [name]="'variant-talla-'+i" [(ngModel)]="variant.talla" list="monarca-tallas" maxlength="20" placeholder="S, M, L, 38..." required></label>
+       <label class="block text-sm">Color *<input class="field mt-1" [name]="'variant-color-'+i" [(ngModel)]="variant.color" maxlength="50" placeholder="Negro" required></label>
+       <label class="block text-sm">Precio (S/) *<input class="field mt-1" [name]="'variant-precio-'+i" type="number" min="0" step=".01" [(ngModel)]="variant.precio" required></label>
+       <label class="block text-sm">Stock *<input class="field mt-1" [name]="'variant-stock-'+i" type="number" min="0" step="1" [(ngModel)]="variant.stock" required></label>
+       <label class="block text-sm">Stock mínimo<input class="field mt-1" [name]="'variant-minimo-'+i" type="number" min="0" step="1" [(ngModel)]="variant.stockMinimo"></label>
+       <label class="block text-sm">Color HEX<input class="field mt-1" [name]="'variant-hex-'+i" [(ngModel)]="variant.colorHex" maxlength="7" placeholder="#FFFFFF"></label>
+      </div>
+     </div>
+    </div>
+    <div class="flex flex-wrap items-center justify-between gap-3 mt-4">
+     <button type="button" class="px-4 py-2 border border-zinc-800 text-sm font-semibold rounded-md hover:bg-zinc-100 disabled:opacity-40" (click)="addVariant()" [disabled]="newVariants.length+(editingId()?editVariants().length:0)>=maxVariants">+ Agregar otra talla</button>
+     <p class="text-sm text-zinc-600">{{editingId()?newVariants.length+' nueva(s) talla(s) · '+newStockTotal()+' unidades nuevas':newVariants.length+' variante(s) · '+newStockTotal()+' unidades en total'}}</p>
+    </div>
+   </section>
    <p *ngIf="error()" class="text-red-700 my-4" role="alert">{{error()}}</p>
-   <div class="flex gap-3 justify-end mt-7"><button type="button" class="px-5 py-3 border" (click)="editor.set(false)">Cancelar</button><button type="submit" class="btn-dark" [disabled]="saving()">{{saving()?'Guardando…':'Guardar producto'}}</button></div>
+   <div class="flex gap-3 justify-end mt-7"><button type="button" class="px-5 py-3 border" (click)="closeEditor()" [disabled]="saving()||uploadStep()">Cancelar</button><button type="submit" class="btn-dark" [disabled]="saving()||uploadStep()">{{saving()?'Guardando…':'Guardar producto'}}</button></div>
   </form>
  </div>
 </main>

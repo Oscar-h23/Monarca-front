@@ -29,6 +29,17 @@ export interface ProductForm {
   img: string;
 }
 
+export interface ProductVariantForm {
+  talla: string;
+  color: string;
+  colorHex: string;
+  precio: number;
+  stock: number;
+  stockMinimo: number;
+}
+
+export type NewProductForm = ProductForm & { variantes: ProductVariantForm[] };
+
 /** Operaciones autenticadas de inventario y pedidos; el componente solo maneja formularios. */
 @Injectable({ providedIn: 'root' })
 export class AdminApi {
@@ -41,7 +52,18 @@ export class AdminApi {
     );
   }
 
-  createProduct(payload: ProductForm): Promise<string> {
+  uploadProductImage(file: File): Promise<{ url: string }> {
+    const body = new FormData();
+    body.append('archivo', file, file.name);
+    // Content-Type multipart lo asigna el navegador (boundary); nunca fijarlo manualmente.
+    return firstValueFrom(
+      this.http.post<{url: string}>(this.api.base + '/productos/imagenes', body, {
+        headers: this.api.headers()
+      })
+    );
+  }
+
+  createProduct(payload: NewProductForm): Promise<string> {
     return firstValueFrom(
       this.http.post(this.api.base + '/productos', payload, {
         headers: this.api.headers(), responseType: 'text'
@@ -49,7 +71,7 @@ export class AdminApi {
     );
   }
 
-  updateProduct(id: number, payload: ProductForm): Promise<string> {
+  updateProduct(id: number, payload: NewProductForm): Promise<string> {
     return firstValueFrom(
       this.http.put(this.api.base + '/productos/' + id, payload, {
         headers: this.api.headers(), responseType: 'text'

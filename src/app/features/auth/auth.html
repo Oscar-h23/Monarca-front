@@ -1,10 +1,10 @@
 <main class="min-h-[75vh] grid md:grid-cols-2">
- <section class="hidden md:block relative"><img src="https://raw.githubusercontent.com/jpumaricradgjdgp-cyber/Monarca_herramientas_de_desarrollo/main/fronted/img/portada.png" alt="Moda Monarca" class="w-full h-full max-h-[880px] object-cover"><div class="absolute bottom-10 left-10 text-white drop-shadow"><p class="text-5xl heading">Tu estilo.<br>Tu esencia.</p></div></section>
+ <section class="hidden md:block relative"><img src="https://raw.githubusercontent.com/jpumaricradgjdgp-cyber/Monarca_herramientas_de_desarrollo/main/fronted/img/portada.png" alt="Moda Rayeli’s moda" class="w-full h-full max-h-[880px] object-cover"><div class="absolute bottom-10 left-10 text-white drop-shadow"><p class="text-5xl heading">Tu estilo.<br>Tu esencia.</p></div></section>
  <section class="px-5 py-12 sm:px-14 flex items-center justify-center">
  <div class="w-full max-w-md">
-  <a routerLink="/" aria-label="Ir al inicio"><img [src]="logo" alt="Monarca" class="h-14 w-auto max-w-52 object-contain mb-10"></a>
+  <a routerLink="/" aria-label="Ir al inicio"><img [src]="logo" alt="Rayeli’s moda" class="w-56 sm:w-64 h-auto object-contain mb-10"></a>
   <h1 class="heading text-4xl mb-3">{{mode()==='login'?'Iniciar sesión':mode()==='registro'?'Crear cuenta':mode()==='recuperar'?'Recuperar contraseña':'Nueva contraseña'}}</h1>
-  <p class="text-zinc-500 mb-8">{{mode()==='login'?'Ingresa a tu cuenta Monarca':mode()==='registro'?'Regístrate para comenzar a comprar':mode()==='recuperar'?'Te enviaremos un enlace si existe una cuenta':'Elige una nueva contraseña segura'}}</p>
+  <p class="text-zinc-500 mb-8">{{mode()==='login'?'Ingresa a tu cuenta Rayeli’s moda':mode()==='registro'?'Regístrate para comenzar a comprar':mode()==='recuperar'?'Te enviaremos un enlace si existe una cuenta':'Elige una nueva contraseña segura'}}</p>
   <form (ngSubmit)="submit()" class="space-y-4">
    <ng-container *ngIf="mode()==='registro'">
     <label class="block text-sm font-semibold">Nombres<input class="field mt-2" name="nombre" [(ngModel)]="nombre" autocomplete="given-name" maxlength="100" required></label>
