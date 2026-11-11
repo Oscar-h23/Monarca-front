@@ -8,7 +8,7 @@
   <div *ngIf="mode()==='login'||mode()==='registro'" class="mb-8">
     <p class="text-center text-sm font-medium text-zinc-700 mb-3">{{mode()==='login'?'Inicia sesión con Google':'Crea tu cuenta con Google'}}</p>
     <app-google-button (credential)="googleSignIn($event)"></app-google-button>
-    <p class="text-xs text-center text-zinc-500 mt-3">Si ya tienes una cuenta con contraseña, inicia sesión primero y vincula Google desde Mi perfil.</p>
+    <p class="text-xs text-center text-zinc-500 mt-3">¿Ya tienes una cuenta? Accede con tu correo y contraseña, y después activa Google en Mi perfil.</p>
     <div class="flex items-center gap-3 mt-6" aria-hidden="true">
       <span class="h-px flex-1 bg-zinc-200"></span>
       <span class="text-xs text-zinc-500 whitespace-nowrap">o utiliza tu correo electrónico</span>
