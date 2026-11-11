@@ -10,7 +10,7 @@ import { SessionService } from '../../core/services/session.service';
 import { AdminApi, Pedido, ProductForm, ProductVariantForm } from './data-access/admin-api.service';
 
 function blankForm(): ProductForm {
-  return {idVariante:null,nombre:'',categoria:'Tops',descripcion:'',marca:'Monarca',talla:'ÚNICA',
+  return {idVariante:null,nombre:'',categoria:'Tops',descripcion:'',marca:'Nayeli’s moda',talla:'ÚNICA',
     color:'N/A',colorHex:'',precio:0,precioBase:0,stock:0,stockMinimo:0,
     pechoCm:null,cinturaCm:null,caderaCm:null,largoCm:null,img:''};
 } 
@@ -184,7 +184,7 @@ export class AdminPage implements OnInit {
     this.newVariants=[];
     const v=p.variantes?.[0];
     this.form={idVariante:v?.idVariante||null,nombre:p.nombre,categoria:p.categoria,
-      descripcion:p.descripcion||'',marca:p.marca||'Monarca',talla:v?.talla||'ÚNICA',
+      descripcion:p.descripcion||'',marca:(p.marca?.trim().toLowerCase()==='monarca'?'Nayeli’s moda':(p.marca||'Nayeli’s moda')),talla:v?.talla||'ÚNICA',
       color:v?.color||'N/A',colorHex:v?.colorHex||'',precio:Number(v?.precio??p.precioBase),
       precioBase:Number(p.precioBase),stock:v?.stock??0,stockMinimo:v?.stockMinimo??0,
       pechoCm:v?.pechoCm??null,cinturaCm:v?.cinturaCm??null,caderaCm:v?.caderaCm??null,
