@@ -47,7 +47,7 @@ export class AdminPage implements OnInit {
   newVariants:ProductVariantForm[]=[blankVariant()];
   readonly maxVariants=40;
   fallback=asset('mariposa.png');
-  categories=['Tops','Bottoms','Calzado','Accesorios'];
+  categories=['Tops','Bottoms','Vestidos','Calzado','Accesorios'];
   filtered=computed(()=>this.products().filter(p=>p.nombre.toLowerCase().includes(this.search().toLowerCase())));
   stock=computed(()=>this.products().reduce((s,p)=>s+(p.variantes||[]).reduce((n,v)=>n+v.stock,0),0));
   totalPedidos=computed(()=>this.orders().reduce((s,p)=>s+Number(p.total||0),0));
