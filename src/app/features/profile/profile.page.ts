@@ -13,6 +13,7 @@ export class ProfilePage implements OnInit,OnDestroy {
   fotoUrl=signal('');hasPhoto=signal(false);
   email='';
   googleVinculado=signal(false);
+  googleMessage=signal('');googleError=signal('');
   form:PerfilEditable={nombres:'',apellidos:'',telefono:'',tipoDocumento:'DNI',
     numeroDocumento:'',direccion:'',distrito:'',provincia:'',departamento:'',referencia:'',bustoCm:null,cinturaCm:null,caderaCm:null,alturaCm:null};
 
@@ -41,12 +42,12 @@ export class ProfilePage implements OnInit,OnDestroy {
   }
   async vincularGoogle(credential:string){
     if(this.busy())return;
-    this.busy.set(true);this.error.set('');this.message.set('');
+    this.busy.set(true);this.googleError.set('');this.googleMessage.set('');
     try{
       await this.api.vincularGoogle(credential);
       this.googleVinculado.set(true);
-      this.message.set('Tu cuenta de Google quedó vinculada. Ya puedes iniciar sesión con Google.');
-    }catch(e){this.error.set(this.mensajeError(e));}
+      this.googleMessage.set('Google vinculado correctamente. Ya puedes iniciar sesión con Google sin crear otra cuenta.');
+    }catch(e){this.googleError.set(this.mensajeError(e));}
     finally{this.busy.set(false);}
   }
   async subir(event:Event){
