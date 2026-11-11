@@ -33,10 +33,15 @@ export class AuthPage implements OnInit{
     this.mode.set(m);this.message.set('');this.isError.set(false);
     window.history.replaceState(null,'',window.location.pathname+(m==='login'?'':'#'+m));
   }
-  private errorMessage(e:unknown){
+  private errorMessage(e:unknown, metodo:'password'|'google'='password'){
     if(e instanceof HttpErrorResponse){
       if(e.status===0)return 'No se pudo conectar con el backend.';
-      if(e.status===401)return 'Correo o contraseña incorrectos.';
+      if(e.status===401){
+        if(metodo==='google') return typeof e.error?.error==='string'
+          ? e.error.error
+          : 'Google no pudo verificar tu identidad. Vuelve a intentarlo.';
+        return 'Correo o contraseña incorrectos.';
+      }
       return e.error?.error||e.error?.mensaje||(typeof e.error==='string'?e.error:'No se pudo completar la solicitud.');
     }
     return e instanceof Error?e.message:'Ocurrió un error.';
@@ -83,7 +88,7 @@ export class AuthPage implements OnInit{
       if(!response.token)throw new Error('El servidor no envió el token de sesión.');
       this.session.start(response.token,response.rol||'');
       await this.router.navigateByUrl(response.rol==='ROLE_ADMIN'?'/admin':'/');
-    }catch(e){this.fail(this.errorMessage(e));}
+    }catch(e){this.fail(this.errorMessage(e,'google'));}
     finally{this.busy.set(false);}
   }
   private fail(m:string){this.isError.set(true);this.message.set(m);}
