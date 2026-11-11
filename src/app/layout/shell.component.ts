@@ -5,7 +5,7 @@ import { Cart } from '../core/services/cart.service';
 import { SessionService } from '../core/services/session.service';
 import { asset } from '../core/utils/assets';
 
-const categories = ['Tops', 'Bottoms', 'Calzado', 'Accesorios'];
+const categories = ['Tops', 'Bottoms', 'Vestidos', 'Calzado', 'Accesorios'];
 
 @Component({standalone:true,selector:'app-root',imports:[CommonModule,RouterOutlet,RouterLink],templateUrl:'./shell.component.html'})
 export class AppComponent{
