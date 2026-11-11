@@ -1,6 +1,6 @@
 <main class="mx-auto max-w-7xl px-5 py-10 min-h-[68vh]">
  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10">
-  <div><p class="text-xs font-bold tracking-[.3em] uppercase text-zinc-500">Rayeli’s moda · Backoffice</p><h1 class="heading mt-2 text-4xl">Panel de administración</h1></div>
+  <div><p class="text-xs font-bold tracking-[.3em] uppercase text-zinc-500">Nayeli’s moda · Backoffice</p><h1 class="heading mt-2 text-4xl">Panel de administración</h1></div>
   <div class="flex gap-4 items-center text-sm"><a routerLink="/" class="underline">Volver a la tienda</a><button type="button" (click)="logout()" class="underline text-red-700">Cerrar sesión</button></div>
  </div>
  <div class="grid sm:grid-cols-3 gap-4 mb-10">
@@ -91,7 +91,7 @@
      <div><h3 class="font-semibold text-lg">{{editingId()?'Agregar nuevas tallas':'Tallas y existencias'}}</h3><p class="text-sm text-zinc-500">{{editingId()?'Agrega otras tallas sin reemplazar las existentes. Puedes editar la variante seleccionada arriba.':'Agrega las tallas disponibles. Cada combinación de talla y color tendrá su propio stock y precio.'}}</p></div>
      <button type="button" class="px-3 py-2 border border-zinc-300 text-sm rounded-md hover:bg-zinc-50" (click)="useBasePrice()">Aplicar precio base a todas</button>
     </div>
-    <datalist id="monarca-tallas">
+    <datalist id="nayelis-tallas">
      <option value="XS"></option><option value="S"></option><option value="M"></option><option value="L"></option><option value="XL"></option><option value="XXL"></option><option value="ÚNICA"></option>
      <option value="35"></option><option value="36"></option><option value="37"></option><option value="38"></option><option value="39"></option><option value="40"></option>
     </datalist>
@@ -102,7 +102,7 @@
        <button type="button" class="text-sm text-red-700 underline disabled:text-zinc-400 disabled:no-underline" [disabled]="!editingId() && newVariants.length===1" (click)="removeVariant(i)">Quitar</button>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-       <label class="block text-sm">Talla *<input class="field mt-1" [name]="'variant-talla-'+i" [(ngModel)]="variant.talla" list="monarca-tallas" maxlength="20" placeholder="S, M, L, 38..." required></label>
+       <label class="block text-sm">Talla *<input class="field mt-1" [name]="'variant-talla-'+i" [(ngModel)]="variant.talla" list="nayelis-tallas" maxlength="20" placeholder="S, M, L, 38..." required></label>
        <label class="block text-sm">Color *<input class="field mt-1" [name]="'variant-color-'+i" [(ngModel)]="variant.color" maxlength="50" placeholder="Negro" required></label>
        <label class="block text-sm">Precio (S/) *<input class="field mt-1" [name]="'variant-precio-'+i" type="number" min="0" step=".01" [(ngModel)]="variant.precio" required></label>
        <label class="block text-sm">Stock *<input class="field mt-1" [name]="'variant-stock-'+i" type="number" min="0" step="1" [(ngModel)]="variant.stock" required></label>

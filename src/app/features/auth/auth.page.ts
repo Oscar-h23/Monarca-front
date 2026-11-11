@@ -12,7 +12,7 @@ type Modo='login'|'registro'|'recuperar'|'restablecer';
 @Component({standalone:true,selector:'app-auth',imports:[CommonModule,FormsModule,RouterLink,GoogleButtonComponent],templateUrl:'./auth.html'})
 export class AuthPage implements OnInit{
   api=inject(Api);router=inject(Router);session=inject(SessionService);
-  logo=asset('rayelis-logo.svg');
+  logo=asset('nayelis-logo.svg');
   mode=signal<Modo>('login');
   busy=signal(false);
   message=signal('');isError=signal(false);
@@ -91,5 +91,5 @@ export class AuthPage implements OnInit{
     }catch(e){this.fail(this.errorMessage(e,'google'));}
     finally{this.busy.set(false);}
   }
-  private fail(m:string){this.isError.set(true);this.message.set(m);}
+  private fail(m:string){this.isError.set(true);this.message.set(m.replace(/\bMonarca\b/gi, 'Nayeli’s moda'));}
 }
