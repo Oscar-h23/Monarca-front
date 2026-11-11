@@ -7,9 +7,10 @@ export interface Perfil {
   nombres:string;apellidos:string;correo:string;telefono:string|null;
   tipoDocumento:string|null;numeroDocumento:string|null;direccion:string|null;
   distrito:string|null;provincia:string|null;departamento:string|null;
-  referencia:string|null;tieneFoto:boolean;
+  referencia:string|null;tieneFoto:boolean;googleVinculado:boolean;
+  bustoCm:number|null;cinturaCm:number|null;caderaCm:number|null;alturaCm:number|null;
 }
-export type PerfilEditable=Omit<Perfil,'correo'|'tieneFoto'>;
+export type PerfilEditable=Omit<Perfil,'correo'|'tieneFoto'|'googleVinculado'>;
 @Injectable({providedIn:'root'})
 export class PerfilApi {
   private http=inject(HttpClient);
@@ -29,6 +30,10 @@ export class PerfilApi {
   }
   borrarFoto():Promise<void>{
     return firstValueFrom(this.http.delete<void>('/api/perfil/foto',{headers:this.api.headers()}));
+  }
+  vincularGoogle(credential:string):Promise<void>{
+    return firstValueFrom(this.http.post<void>('/api/auth/google/vincular',
+      {credential},{headers:this.api.headers()}));
   }
   proveedorProbador():Promise<{proveedor:string}>{
     return firstValueFrom(this.http.get<{proveedor:string}>('/api/probador/configuracion',

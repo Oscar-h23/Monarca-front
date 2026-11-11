@@ -6,9 +6,10 @@ import { Router, RouterLink } from '@angular/router';
 import { Api } from '../../core/services/api.service';
 import { asset } from '../../core/utils/assets';
 import { SessionService } from '../../core/services/session.service';
+import { GoogleButtonComponent } from '../../shared/google-button.component';
 
 type Modo='login'|'registro'|'recuperar'|'restablecer';
-@Component({standalone:true,selector:'app-auth',imports:[CommonModule,FormsModule,RouterLink],templateUrl:'./auth.html'})
+@Component({standalone:true,selector:'app-auth',imports:[CommonModule,FormsModule,RouterLink,GoogleButtonComponent],templateUrl:'./auth.html'})
 export class AuthPage implements OnInit{
   api=inject(Api);router=inject(Router);session=inject(SessionService);
   logo=asset('rayelis-logo.svg');
@@ -32,10 +33,15 @@ export class AuthPage implements OnInit{
     this.mode.set(m);this.message.set('');this.isError.set(false);
     window.history.replaceState(null,'',window.location.pathname+(m==='login'?'':'#'+m));
   }
-  private errorMessage(e:unknown){
+  private errorMessage(e:unknown, metodo:'password'|'google'='password'){
     if(e instanceof HttpErrorResponse){
       if(e.status===0)return 'No se pudo conectar con el backend.';
-      if(e.status===401)return 'Correo o contraseña incorrectos.';
+      if(e.status===401){
+        if(metodo==='google') return typeof e.error?.error==='string'
+          ? e.error.error
+          : 'Google no pudo verificar tu identidad. Vuelve a intentarlo.';
+        return 'Correo o contraseña incorrectos.';
+      }
       return e.error?.error||e.error?.mensaje||(typeof e.error==='string'?e.error:'No se pudo completar la solicitud.');
     }
     return e instanceof Error?e.message:'Ocurrió un error.';
@@ -72,6 +78,17 @@ export class AuthPage implements OnInit{
         }else this.message.set(response.mensaje||'Si el correo existe, recibirás un enlace.');
       }
     }catch(e){this.fail(this.errorMessage(e));}
+    finally{this.busy.set(false);}
+  }
+  async googleSignIn(credential:string){
+    if(this.busy())return;
+    this.busy.set(true);this.message.set('');this.isError.set(false);
+    try{
+      const response=await this.api.auth('google',{credential});
+      if(!response.token)throw new Error('El servidor no envió el token de sesión.');
+      this.session.start(response.token,response.rol||'');
+      await this.router.navigateByUrl(response.rol==='ROLE_ADMIN'?'/admin':'/');
+    }catch(e){this.fail(this.errorMessage(e,'google'));}
     finally{this.busy.set(false);}
   }
   private fail(m:string){this.isError.set(true);this.message.set(m);}

@@ -26,6 +26,10 @@ export interface ProductForm {
   precioBase: number;
   stock: number;
   stockMinimo: number;
+  pechoCm: number|null;
+  cinturaCm: number|null;
+  caderaCm: number|null;
+  largoCm: number|null;
   img: string;
 }
 
@@ -36,6 +40,10 @@ export interface ProductVariantForm {
   precio: number;
   stock: number;
   stockMinimo: number;
+  pechoCm: number|null;
+  cinturaCm: number|null;
+  caderaCm: number|null;
+  largoCm: number|null;
 }
 
 export type NewProductForm = ProductForm & { variantes: ProductVariantForm[] };

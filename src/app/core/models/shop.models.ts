@@ -8,6 +8,10 @@ export interface Variante {
   precio: number;
   stock: number;
   stockMinimo?: number;
+  pechoCm?: number|null;
+  cinturaCm?: number|null;
+  caderaCm?: number|null;
+  largoCm?: number|null;
 }
 export interface Producto {
   idProducto: number;

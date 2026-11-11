@@ -11,10 +11,12 @@ import { AdminApi, Pedido, ProductForm, ProductVariantForm } from './data-access
 
 function blankForm(): ProductForm {
   return {idVariante:null,nombre:'',categoria:'Tops',descripcion:'',marca:'Monarca',talla:'ÚNICA',
-    color:'N/A',colorHex:'',precio:0,precioBase:0,stock:0,stockMinimo:0,img:''};
+    color:'N/A',colorHex:'',precio:0,precioBase:0,stock:0,stockMinimo:0,
+    pechoCm:null,cinturaCm:null,caderaCm:null,largoCm:null,img:''};
 } 
 function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): ProductVariantForm {
-  return { talla: '', color, colorHex, precio: price, stock: 0, stockMinimo };
+  return { talla: '', color, colorHex, precio: price, stock: 0, stockMinimo,
+    pechoCm:null,cinturaCm:null,caderaCm:null,largoCm:null };
 }
 
 @Component({
@@ -184,14 +186,17 @@ export class AdminPage implements OnInit {
     this.form={idVariante:v?.idVariante||null,nombre:p.nombre,categoria:p.categoria,
       descripcion:p.descripcion||'',marca:p.marca||'Monarca',talla:v?.talla||'ÚNICA',
       color:v?.color||'N/A',colorHex:v?.colorHex||'',precio:Number(v?.precio??p.precioBase),
-      precioBase:Number(p.precioBase),stock:v?.stock??0,stockMinimo:v?.stockMinimo??0,img:p.imagen||''};
+      precioBase:Number(p.precioBase),stock:v?.stock??0,stockMinimo:v?.stockMinimo??0,
+      pechoCm:v?.pechoCm??null,cinturaCm:v?.cinturaCm??null,caderaCm:v?.caderaCm??null,
+      largoCm:v?.largoCm??null,img:p.imagen||''};
     this.editor.set(true);this.error.set('');
   }
   editVariant(){
     const p=this.products().find(x=>x.idProducto===this.editingId());
     const v=p?.variantes?.find(x=>x.idVariante===Number(this.form.idVariante));
     if(!v)return;
-    this.form={...this.form,talla:v.talla,color:v.color,colorHex:v.colorHex||'',precio:Number(v.precio),stock:v.stock,stockMinimo:v.stockMinimo??0};
+    this.form={...this.form,talla:v.talla,color:v.color,colorHex:v.colorHex||'',precio:Number(v.precio),stock:v.stock,stockMinimo:v.stockMinimo??0,
+      pechoCm:v.pechoCm??null,cinturaCm:v.cinturaCm??null,caderaCm:v.caderaCm??null,largoCm:v.largoCm??null};
   }
   editVariants():Variante[]{return this.products().find(x=>x.idProducto===this.editingId())?.variantes||[];}
   private err(e:unknown){
@@ -201,6 +206,13 @@ export class AdminPage implements OnInit {
       return e.error?.error||e.error?.mensaje||('Error del servidor ('+e.status+').');
     }
     return e instanceof Error?e.message:'No se pudo completar la operación.';
+  }
+  private medidasValidas(x:{pechoCm:number|null;cinturaCm:number|null;caderaCm:number|null;largoCm:number|null}):boolean{
+    return (['pechoCm','cinturaCm','caderaCm','largoCm'] as const).every(k=>{
+      const valor=x[k];const min=k==='largoCm'?10:20;
+      return valor===null||(Number.isFinite(valor)&&valor>=min&&valor<=300&&
+        Math.round(valor*10)===valor*10);
+    });
   }
   async save(){
     if(this.saving()||this.uploadStep())return;
@@ -223,6 +235,9 @@ export class AdminPage implements OnInit {
       this.error.set('Revisa la talla, el color, el precio y el stock de la variante seleccionada.');return;
     }
 
+    if(editing&&!this.medidasValidas(data)){
+      this.error.set('Las medidas deben estar en centímetros, entre 20 y 300 (largo desde 10), con máximo un decimal.');return;
+    }
     const existing=editing?this.editVariants():[];
     if((!editing&&!this.newVariants.length)
       ||this.newVariants.length+existing.length>this.maxVariants){
@@ -231,7 +246,8 @@ export class AdminPage implements OnInit {
 
     const variantes:ProductVariantForm[]=this.newVariants.map(v=>({
       talla:v.talla.trim(),color:v.color.trim(),colorHex:v.colorHex.trim(),
-      precio:v.precio,stock:v.stock,stockMinimo:v.stockMinimo
+      precio:v.precio,stock:v.stock,stockMinimo:v.stockMinimo,
+      pechoCm:v.pechoCm,cinturaCm:v.cinturaCm,caderaCm:v.caderaCm,largoCm:v.largoCm
     }));
     const combinaciones=new Set<string>();
     if(editing){
@@ -250,6 +266,9 @@ export class AdminPage implements OnInit {
           ||!Number.isInteger(v.stock)||v.stock<0
           ||!Number.isInteger(v.stockMinimo)||v.stockMinimo<0){
         this.error.set('Revisa el precio y el stock de la nueva variante '+(i+1)+'.');return;
+      }
+      if(!this.medidasValidas(v)){
+        this.error.set('Revisa las medidas en centímetros de la variante '+(i+1)+'.');return;
       }
       if(v.colorHex&&!/^#[0-9a-fA-F]{6}$/.test(v.colorHex)){
         this.error.set('El color hexadecimal de la nueva variante '+(i+1)+' debe tener formato #FFFFFF.');return;

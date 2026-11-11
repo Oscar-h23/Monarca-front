@@ -73,6 +73,16 @@
     <label class="block text-sm">Stock *<input class="field mt-1" name="stock" type="number" min="0" step="1" [(ngModel)]="form.stock" required></label>
     <label class="block text-sm">Stock mínimo<input class="field mt-1" name="stockMinimo" type="number" min="0" step="1" [(ngModel)]="form.stockMinimo"></label>
     <label class="block text-sm">Color hexadecimal<input class="field mt-1" name="colorHex" [(ngModel)]="form.colorHex" placeholder="#FFFFFF"></label>
+    <div class="sm:col-span-2 mt-3 rounded-lg bg-zinc-50 border border-zinc-200 p-4">
+      <h4 class="font-semibold text-sm">Medidas reales de la talla seleccionada (cm)</h4>
+      <p class="text-xs text-zinc-500 mt-1 mb-3">Registra contornos completos de la prenda, no el ancho medido en plano. Opcional si esta prenda no aplica.</p>
+      <div class="grid grid-cols-2 gap-3">
+       <label class="text-sm">Pecho<input class="field mt-1" name="pechoCm" type="number" min="20" max="300" step=".1" [(ngModel)]="form.pechoCm"></label>
+       <label class="text-sm">Cintura<input class="field mt-1" name="cinturaCm" type="number" min="20" max="300" step=".1" [(ngModel)]="form.cinturaCm"></label>
+       <label class="text-sm">Cadera<input class="field mt-1" name="caderaCm" type="number" min="20" max="300" step=".1" [(ngModel)]="form.caderaCm"></label>
+       <label class="text-sm">Largo<input class="field mt-1" name="largoCm" type="number" min="10" max="300" step=".1" [(ngModel)]="form.largoCm"></label>
+      </div>
+    </div>
     </ng-container>
     <label class="block text-sm sm:col-span-2">Descripción<textarea class="field mt-1" rows="3" name="descripcion" [(ngModel)]="form.descripcion"></textarea></label>
    </div>
@@ -98,6 +108,17 @@
        <label class="block text-sm">Stock *<input class="field mt-1" [name]="'variant-stock-'+i" type="number" min="0" step="1" [(ngModel)]="variant.stock" required></label>
        <label class="block text-sm">Stock mínimo<input class="field mt-1" [name]="'variant-minimo-'+i" type="number" min="0" step="1" [(ngModel)]="variant.stockMinimo"></label>
        <label class="block text-sm">Color HEX<input class="field mt-1" [name]="'variant-hex-'+i" [(ngModel)]="variant.colorHex" maxlength="7" placeholder="#FFFFFF"></label>
+       <div class="col-span-2 md:col-span-3 mt-2 pt-4 border-t border-zinc-200">
+       <p class="text-sm font-semibold">Medidas de esta talla (cm)</p>
+       <p class="text-xs text-zinc-500 mt-1 mb-3">Contorno completo, no medida en plano. Opcional.</p>
+       <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <label class="block text-sm">Pecho<input class="field mt-1" [name]="'variant-pecho-'+i" type="number" min="20" max="300" step=".1" [(ngModel)]="variant.pechoCm"></label>
+        <label class="block text-sm">Cintura<input class="field mt-1" [name]="'variant-cintura-'+i" type="number" min="20" max="300" step=".1" [(ngModel)]="variant.cinturaCm"></label>
+        <label class="block text-sm">Cadera<input class="field mt-1" [name]="'variant-cadera-'+i" type="number" min="20" max="300" step=".1" [(ngModel)]="variant.caderaCm"></label>
+        <label class="block text-sm">Largo<input class="field mt-1" [name]="'variant-largo-'+i" type="number" min="10" max="300" step=".1" [(ngModel)]="variant.largoCm"></label>
+       </div>
+      </div>
+
       </div>
      </div>
     </div>
