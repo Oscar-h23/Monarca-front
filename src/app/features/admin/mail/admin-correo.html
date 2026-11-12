@@ -1,0 +1,61 @@
+<section class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6" aria-label="Estado del correo transaccional">
+ <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+  <div>
+   <h2 class="text-base font-bold text-zinc-900">Notificaciones por correo</h2>
+   <p class="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-600">
+    Cuando hay un pedido nuevo o un pago por verificar, se notifica al administrador.
+    El cliente recibe actualizaciones de compra. Comprueba aquí la conexión del backend con Resend.
+   </p>
+  </div>
+  <button type="button" (click)="actualizar()" [disabled]="cargando || probando"
+    class="shrink-0 rounded-lg border border-zinc-300 px-3 py-2 text-xs font-semibold text-zinc-800 hover:bg-zinc-50">
+    {{cargando?'Comprobando…':'Revisar configuración'}}
+  </button>
+ </div>
+
+ <div *ngIf="estado as e" class="mt-4">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+   <span class="inline-flex rounded-full px-3 py-1.5 text-xs font-semibold"
+     [class.bg-emerald-50]="e.configurado" [class.text-emerald-800]="e.configurado"
+     [class.bg-amber-50]="!e.configurado" [class.text-amber-900]="!e.configurado">
+      {{e.configurado?'Configuración SMTP local completa':'Envíos desactivados: falta configuración SMTP'}}
+   </span>
+   <button type="button" (click)="enviarPrueba()" [disabled]="!e.configurado || probando"
+     class="rounded-lg bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40">
+     {{probando?'Probando con Resend…':'Enviar correo de prueba a mi cuenta'}}
+   </button>
+  </div>
+  <p class="mt-3 text-xs text-zinc-600">{{e.mensaje}}</p>
+  <div class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3">
+   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Servidor SMTP: <strong>{{e.servidorSmtp?'OK':'Falta'}}</strong></p>
+   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Usuario Resend: <strong>{{e.usuarioResend?'OK':'Revisar'}}</strong></p>
+   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">API Key: <strong>{{e.claveSmtp?'Configurada':'Falta'}}</strong></p>
+   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Remitente: <strong>{{e.remitenteValido?'Formato válido':'Falta'}}</strong></p>
+   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Spring Mail: <strong>{{e.servicioCorreo?'Disponible':'No disponible'}}</strong></p>
+  </div>
+  <div class="mt-5 border-t border-zinc-100 pt-4">
+   <h3 class="text-xs font-bold text-zinc-800">Seguimiento del envío de pedidos</h3>
+   <p class="mt-1 text-xs text-zinc-500">Contadores desde el último reinicio de Spring Boot. Crea un pedido de prueba y pulsa «Revisar configuración».</p>
+   <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Eventos creados</p><strong class="mt-1 block text-lg">{{e.eventosPublicados}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Transacciones confirmadas</p><strong class="mt-1 block text-lg">{{e.eventosConfirmados}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Mensajes aceptados por SMTP</p><strong class="mt-1 block text-lg text-emerald-800">{{e.mensajesAceptadosSmtp}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Envíos fallidos</p><strong class="mt-1 block text-lg text-red-700">{{e.mensajesFallidosSmtp}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Eventos omitidos</p><strong class="mt-1 block text-lg text-amber-800">{{e.eventosOmitidos}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Sin transacción</p><strong class="mt-1 block text-lg text-amber-800">{{e.eventosSinTransaccion}}</strong></div>
+   </div>
+   <p class="mt-3 text-xs leading-relaxed text-zinc-500">
+     Si no aumenta «Eventos creados», no se está notificando desde la operación.
+     Si aumenta «Transacciones confirmadas» pero aparecen errores u omisiones, revisa SMTP y los logs.
+     Si SMTP acepta el mensaje pero no llega, consulta el historial de envíos de Resend.
+   </p>
+  </div>
+  <p class="mt-3 text-xs text-zinc-500">
+    La prueba se envía únicamente a la dirección de tu sesión de administrador. Ninguna clave se muestra aquí.
+    «Configuración completa» no garantiza la entrega: verifica el correo de prueba y el historial de Resend.
+  </p>
+ </div>
+ <p *ngIf="cargando" role="status" class="mt-4 text-xs text-zinc-600">Consultando el estado de Spring Boot…</p>
+ <p *ngIf="error" role="alert" class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-800">{{error}}</p>
+ <p *ngIf="mensaje" role="status" class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">{{mensaje}}</p>
+</section>

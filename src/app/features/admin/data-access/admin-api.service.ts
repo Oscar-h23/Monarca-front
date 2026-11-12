@@ -19,6 +19,22 @@ export interface Pedido {
   boletaDisponible: boolean;
 }
 
+export interface EstadoCorreoAdmin {
+  configurado: boolean;
+  servidorSmtp: boolean;
+  usuarioResend: boolean;
+  claveSmtp: boolean;
+  remitenteValido: boolean;
+  servicioCorreo: boolean;
+  mensaje: string;
+  eventosPublicados: number;
+  eventosConfirmados: number;
+  mensajesAceptadosSmtp: number;
+  mensajesFallidosSmtp: number;
+  eventosOmitidos: number;
+  eventosSinTransaccion: number;
+}
+
 export interface PeriodoVentas {
   desde: string;
   hasta: string;
@@ -88,6 +104,16 @@ export type NewProductForm = ProductForm & { variantes: ProductVariantForm[] };
 export class AdminApi {
   private readonly http = inject(HttpClient);
   private readonly api = inject(Api);
+
+  estadoCorreo(): Promise<EstadoCorreoAdmin> {
+    return firstValueFrom(this.http.get<EstadoCorreoAdmin>(
+      this.api.base + '/admin/correo/estado', {headers:this.api.headers()}));
+  }
+
+  probarCorreo(): Promise<{mensaje:string}> {
+    return firstValueFrom(this.http.post<{mensaje:string}>(
+      this.api.base + '/admin/correo/prueba', {}, {headers:this.api.headers()}));
+  }
 
   reportesVentas(desde:string, hasta:string):Promise<PeriodoVentas> {
     const params = new URLSearchParams({desde, hasta});
