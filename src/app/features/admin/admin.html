@@ -59,6 +59,7 @@
         <h3 class="font-semibold">Verificación de pago</h3>
         <p class="mt-2 text-sm">Estado: <strong>{{etiquetaEstado(pedido.estadoPago||'PENDIENTE')}}</strong></p>
         <p class="mt-2 text-sm text-zinc-600" *ngIf="!pedido.evidenciaDisponible">El cliente todavía no ha enviado comprobante.</p>
+        <p class="mt-2 text-sm">Método: <strong>{{pedido.metodoPago}}</strong></p>
         <p class="mt-2 text-xs text-zinc-500" *ngIf="pedido.evidenciaDisponible">Evidencia privada: solo administradores.</p>
         <p class="mt-2 text-sm" *ngIf="imagenCargando()">Cargando evidencia…</p>
         <img *ngIf="imagenEvidencia()" [src]="imagenEvidencia()" alt="Evidencia de pago enviada por el cliente" class="mt-4 max-h-80 w-full rounded-lg border border-zinc-200 bg-zinc-50 object-contain">
