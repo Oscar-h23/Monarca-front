@@ -1,7 +1,8 @@
 <main class="mx-auto max-w-5xl px-5 py-12 min-h-[65vh]">
  <a routerLink="/" class="text-sm text-zinc-500">← Volver a la tienda</a>
  <h1 class="heading text-4xl mt-6 mb-3">Mi perfil</h1>
- <p class="text-zinc-600 mb-9">Guarda tus datos una vez para que se completen automáticamente cuando hagas un pedido.</p>
+ <p class="text-zinc-600 mb-5">Guarda tus datos una vez para que se completen automáticamente cuando hagas un pedido.</p>
+ <a routerLink="/mis-pedidos" class="mb-8 inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-5 py-3 text-sm font-semibold hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-900">Ver mis pedidos pendientes y anteriores <span aria-hidden="true">→</span></a>
  <p *ngIf="loading()" class="py-10">Cargando tu perfil…</p>
  <div *ngIf="!loading()" class="grid gap-9 lg:grid-cols-[1.5fr_1fr]">
  <form (ngSubmit)="guardar()" class="bg-white border border-zinc-200 rounded-xl p-5 sm:p-8">
