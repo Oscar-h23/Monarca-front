@@ -1,44 +1,145 @@
-<main class="mx-auto max-w-7xl px-5 py-10 min-h-[68vh]">
- <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10">
-  <div><p class="text-xs font-bold tracking-[.3em] uppercase text-zinc-500">Nayeli’s moda · Backoffice</p><h1 class="heading mt-2 text-4xl">Panel de administración</h1></div>
-  <div class="flex gap-4 items-center text-sm"><a routerLink="/" class="underline">Volver a la tienda</a><button type="button" (click)="logout()" class="underline text-red-700">Cerrar sesión</button></div>
+<main class="mx-auto max-w-[1500px] min-h-[76vh] px-4 py-8 sm:px-7 lg:px-9 lg:py-10">
+ <header class="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+  <div>
+   <p class="text-[11px] font-bold uppercase tracking-[.25em] text-zinc-500">Nayeli’s Moda · Backoffice</p>
+   <h1 class="heading mt-2 text-3xl font-semibold tracking-tight text-zinc-900 sm:text-4xl">Panel de administración</h1>
+   <p class="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-500">Gestiona ventas, pedidos, existencias y los medios de cobro desde un solo lugar.</p>
+  </div>
+  <div class="flex flex-wrap items-center gap-3">
+   <a routerLink="/" class="rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-xs font-semibold hover:bg-zinc-50">Ver tienda</a>
+   <button type="button" (click)="reload()" [disabled]="pending()" class="rounded-xl bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-50">
+    {{pending()?'Actualizando…':'Actualizar datos'}}
+   </button>
+  </div>
+ </header>
+
+ <div class="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
+  <aside class="lg:self-start lg:sticky lg:top-36" aria-label="Secciones del panel">
+   <nav class="flex gap-2 overflow-x-auto rounded-2xl border border-zinc-200 bg-white p-2 lg:flex-col">
+    <button type="button" (click)="tab.set('resumen')" [class.bg-zinc-900]="tab()==='resumen'" [class.text-white]="tab()==='resumen'"
+      class="shrink-0 rounded-xl px-4 py-3 text-left text-sm font-semibold text-zinc-700 hover:bg-zinc-100 lg:w-full">Resumen de ventas</button>
+    <button type="button" (click)="tab.set('pedidos')" [class.bg-zinc-900]="tab()==='pedidos'" [class.text-white]="tab()==='pedidos'"
+      class="shrink-0 rounded-xl px-4 py-3 text-left text-sm font-semibold text-zinc-700 hover:bg-zinc-100 lg:w-full">Pedidos <span class="ml-1 text-xs opacity-70">({{orders().length}})</span></button>
+    <button type="button" (click)="tab.set('productos')" [class.bg-zinc-900]="tab()==='productos'" [class.text-white]="tab()==='productos'"
+      class="shrink-0 rounded-xl px-4 py-3 text-left text-sm font-semibold text-zinc-700 hover:bg-zinc-100 lg:w-full">Inventario <span class="ml-1 text-xs opacity-70">({{products().length}})</span></button>
+    <button type="button" (click)="tab.set('pagos')" [class.bg-zinc-900]="tab()==='pagos'" [class.text-white]="tab()==='pagos'"
+      class="shrink-0 rounded-xl px-4 py-3 text-left text-sm font-semibold text-zinc-700 hover:bg-zinc-100 lg:w-full">Métodos de pago</button>
+   </nav>
+   <div class="mt-5 hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-5 lg:block">
+    <p class="text-xs font-bold text-zinc-700">Existencias totales</p>
+    <p class="mt-2 text-2xl font-bold">{{stock() | number:'1.0-0'}} <span class="text-sm font-normal text-zinc-500">unidades</span></p>
+    <p class="mt-2 text-xs leading-relaxed text-zinc-500">Gestiona los mínimos de cada talla desde Inventario.</p>
+   </div>
+  </aside>
+
+  <div class="min-w-0">
+   <p *ngIf="message()" class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">{{message()}}</p>
+   <p *ngIf="error()" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{error()}}</p>
+   <app-admin-dashboard *ngIf="tab()==='resumen'" [products]="products()"></app-admin-dashboard>
+   <app-admin-payments *ngIf="tab()==='pagos'"></app-admin-payments>
+
+   <section *ngIf="tab()==='productos'" class="space-y-5" aria-label="Inventario">
+    <div class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
+     <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div><h2 class="text-lg font-bold">Inventario de productos</h2><p class="mt-1 text-sm text-zinc-500">Busca, filtra, edita y controla las existencias por variante.</p></div>
+      <button type="button" class="btn-dark shrink-0 rounded-xl" (click)="openNew()">+ Registrar producto</button>
+     </div>
+     <div class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px]">
+      <label class="sr-only" for="admin-search-productos">Buscar producto</label>
+      <input id="admin-search-productos" class="field" placeholder="Buscar por nombre…" [ngModel]="search()" (ngModelChange)="setProductSearch($event)">
+      <label class="sr-only" for="admin-filter-categoria">Categoría</label>
+      <select id="admin-filter-categoria" class="field" [ngModel]="categoryFilter()" (ngModelChange)="setProductCategory($event)">
+       <option value="TODAS">Todas las categorías</option><option *ngFor="let c of categories" [value]="c">{{c}}</option>
+      </select>
+     </div>
+     <p class="mt-4 text-xs text-zinc-500">{{filtered().length}} producto(s) encontrados · Página {{productPage()}} de {{productTotalPages()}}</p>
+    </div>
+    <div class="overflow-x-auto rounded-2xl border border-zinc-200 bg-white">
+     <table class="w-full min-w-[740px] text-left">
+      <thead class="bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-500"><tr>
+       <th class="px-5 py-4">Producto</th><th class="px-4 py-4">Categoría</th><th class="px-4 py-4">Precio base</th>
+       <th class="px-4 py-4">Stock</th><th class="px-4 py-4">Tallas</th><th class="px-4 py-4">Acciones</th>
+      </tr></thead>
+      <tbody>
+       <tr *ngFor="let p of visibleProducts()" class="border-t border-zinc-100 hover:bg-zinc-50/50">
+        <td class="px-5 py-3"><div class="flex items-center gap-3">
+         <img [src]="p.imagen||fallback" [alt]="p.nombre" class="size-14 shrink-0 rounded-lg border border-zinc-100 bg-zinc-50 object-cover">
+         <span class="max-w-[280px] font-semibold text-zinc-900">{{p.nombre}}</span></div></td>
+        <td class="px-4 py-3 text-sm text-zinc-600">{{p.categoria}}</td>
+        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">S/ {{p.precioBase | number:'1.2-2'}}</td>
+        <td class="px-4 py-3"><span class="rounded-full px-3 py-1 text-xs font-semibold" [class.bg-red-50]="totalStock(p)===0" [class.text-red-700]="totalStock(p)===0" [class.bg-green-50]="totalStock(p)>0" [class.text-green-800]="totalStock(p)>0">{{totalStock(p)}}</span></td>
+        <td class="px-4 py-3 text-sm text-zinc-600">{{p.variantes?.length||0}}</td>
+        <td class="px-4 py-3 whitespace-nowrap"><button type="button" class="mr-3 text-sm font-semibold underline underline-offset-4" (click)="openEdit(p)">Editar</button><button type="button" class="text-sm text-red-700 underline underline-offset-4" (click)="remove(p)">Eliminar</button></td>
+       </tr>
+      </tbody>
+     </table>
+     <p *ngIf="!filtered().length" class="p-10 text-center text-sm text-zinc-500">No se encontraron productos con esos filtros.</p>
+    </div>
+    <nav class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-4" aria-label="Paginación de inventario">
+     <span class="text-xs text-zinc-600">Mostrando hasta {{pageSize}} productos por página</span>
+     <div class="flex items-center gap-3">
+      <button type="button" (click)="changeProductPage(-1)" [disabled]="productPage()<=1" class="rounded-lg border border-zinc-300 px-4 py-2 text-xs font-semibold disabled:opacity-40">Anterior</button>
+      <span class="text-xs font-semibold">{{productPage()}} / {{productTotalPages()}}</span>
+      <button type="button" (click)="changeProductPage(1)" [disabled]="productPage()>=productTotalPages()" class="rounded-lg border border-zinc-300 px-4 py-2 text-xs font-semibold disabled:opacity-40">Siguiente</button>
+     </div>
+    </nav>
+   </section>
+
+   <section *ngIf="tab()==='pedidos'" class="space-y-5" aria-label="Gestión de pedidos">
+    <div class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
+     <h2 class="text-lg font-bold">Gestión de pedidos</h2>
+     <p class="mt-1 text-sm text-zinc-500">Consulta, verifica comprobantes de pago y actualiza la entrega.</p>
+     <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_190px_180px]">
+      <label class="sr-only" for="admin-search-pedidos">Buscar pedido</label>
+      <input id="admin-search-pedidos" class="field" placeholder="Buscar código o cliente…" [ngModel]="orderSearch()" (ngModelChange)="setOrderSearch($event)">
+      <label class="sr-only" for="admin-filter-entrega">Estado de entrega</label>
+      <select id="admin-filter-entrega" class="field" [ngModel]="orderState()" (ngModelChange)="setOrderState($event)">
+       <option value="TODOS">Todos los estados</option><option value="PENDIENTE_PAGO">Pendiente</option>
+       <option value="PENDIENTE_CONFIRMACION">Pago por verificar</option><option value="CONFIRMADO">Confirmado</option>
+       <option value="EN_PREPARACION">En preparación</option><option value="EN_CAMINO">En camino</option>
+       <option value="FINALIZADO">Finalizado</option><option value="CANCELADO">Cancelado</option>
+      </select>
+      <label class="sr-only" for="admin-filter-pago">Estado de pago</label>
+      <select id="admin-filter-pago" class="field" [ngModel]="orderPayment()" (ngModelChange)="setOrderPayment($event)">
+       <option value="TODOS">Todos los pagos</option><option value="PENDIENTE">Pendiente</option>
+       <option value="EN_REVISION">En revisión</option><option value="PAGADO">Pagado</option>
+       <option value="RECHAZADO">Rechazado</option><option value="CANCELADO">Cancelado</option>
+      </select>
+     </div>
+     <p class="mt-4 text-xs text-zinc-500">{{filteredOrders().length}} pedido(s) · Página {{orderPage()}} de {{orderTotalPages()}}</p>
+    </div>
+    <div class="overflow-x-auto rounded-2xl border border-zinc-200 bg-white">
+     <table class="w-full min-w-[800px] text-left">
+      <thead class="bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-500"><tr>
+       <th class="px-5 py-4">Pedido</th><th class="px-4 py-4">Fecha</th><th class="px-4 py-4">Cliente</th>
+       <th class="px-4 py-4">Entrega</th><th class="px-4 py-4">Pago</th><th class="px-4 py-4 text-right">Total</th><th class="px-4 py-4">Gestión</th>
+      </tr></thead>
+      <tbody><tr *ngFor="let p of visibleOrders()" class="border-t border-zinc-100 hover:bg-zinc-50/50">
+       <td class="px-5 py-4 text-xs font-bold">{{p.codigoPedido||p.idPedido}}</td>
+       <td class="px-4 py-4 whitespace-nowrap text-xs text-zinc-600">{{p.fechaPedido ? (p.fechaPedido | date:'dd/MM/yyyy HH:mm'):'—'}}</td>
+       <td class="max-w-[190px] truncate px-4 py-4 text-xs text-zinc-700" [title]="p.cliente">{{p.cliente}}</td>
+       <td class="px-4 py-4 whitespace-nowrap text-xs">{{etiquetaEstado(p.estado)}}</td>
+       <td class="px-4 py-4"><span class="whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold"
+        [class.bg-amber-50]="p.estadoPago==='EN_REVISION'" [class.text-amber-800]="p.estadoPago==='EN_REVISION'"
+        [class.bg-green-50]="p.estadoPago==='PAGADO'" [class.text-green-800]="p.estadoPago==='PAGADO'"
+        [class.bg-zinc-100]="p.estadoPago!=='PAGADO'&&p.estadoPago!=='EN_REVISION'">{{etiquetaEstado(p.estadoPago||'PENDIENTE')}}</span></td>
+       <td class="px-4 py-4 whitespace-nowrap text-right text-xs font-bold">S/ {{p.total | number:'1.2-2'}}</td>
+       <td class="px-4 py-4"><button type="button" (click)="abrirGestionPedido(p)" class="rounded-lg border border-zinc-300 px-4 py-2 text-xs font-semibold hover:bg-zinc-50">Gestionar</button></td>
+      </tr></tbody>
+     </table>
+     <p *ngIf="!filteredOrders().length" class="p-10 text-center text-sm text-zinc-500">No se encontraron pedidos con esos filtros.</p>
+    </div>
+    <nav class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white p-4" aria-label="Paginación de pedidos">
+     <span class="text-xs text-zinc-600">Mostrando hasta {{pageSize}} pedidos por página</span>
+     <div class="flex items-center gap-3">
+      <button type="button" (click)="changeOrderPage(-1)" [disabled]="orderPage()<=1" class="rounded-lg border border-zinc-300 px-4 py-2 text-xs font-semibold disabled:opacity-40">Anterior</button>
+      <span class="text-xs font-semibold">{{orderPage()}} / {{orderTotalPages()}}</span>
+      <button type="button" (click)="changeOrderPage(1)" [disabled]="orderPage()>=orderTotalPages()" class="rounded-lg border border-zinc-300 px-4 py-2 text-xs font-semibold disabled:opacity-40">Siguiente</button>
+     </div>
+    </nav>
+   </section>
+  </div>
  </div>
- <div class="grid sm:grid-cols-3 gap-4 mb-10">
-  <div class="bg-crema p-6"><p class="text-zinc-500 text-xs uppercase">Productos registrados</p><b class="text-3xl block mt-2">{{products().length}}</b></div>
-  <div class="bg-crema p-6"><p class="text-zinc-500 text-xs uppercase">Unidades en stock</p><b class="text-3xl block mt-2">{{stock()}}</b></div>
-  <div class="bg-crema p-6"><p class="text-zinc-500 text-xs uppercase">Valor de pedidos registrados</p><b class="text-3xl block mt-2">S/ {{totalPedidos() | number:'1.2-2'}}</b><small class="text-zinc-500">Incluye pedidos pendientes; no representa ingresos cobrados.</small></div>
- </div>
- <div class="flex items-center justify-between flex-wrap gap-4 border-b mb-7">
-  <div class="flex gap-8"><button type="button" class="py-4 font-semibold" [class.border-b-2]="tab()==='productos'" (click)="tab.set('productos')">Inventario</button><button type="button" class="py-4 font-semibold" [class.border-b-2]="tab()==='pedidos'" (click)="tab.set('pedidos')">Pedidos</button></div>
-  <button class="text-sm underline" type="button" (click)="reload()" [disabled]="pending()">{{pending()?'Actualizando…':'Actualizar datos'}}</button>
- </div>
- <p *ngIf="message()" class="mb-5 text-green-800" role="status">{{message()}}</p>
- <p *ngIf="error()" class="mb-5 text-red-700" role="alert">{{error()}}</p>
- <section *ngIf="tab()==='productos'">
-  <div class="flex flex-col sm:flex-row gap-3 justify-between mb-6"><input class="field sm:max-w-md" aria-label="Buscar por nombre" placeholder="Buscar producto…" [ngModel]="search()" (ngModelChange)="search.set($event)"><button type="button" class="btn-dark" (click)="openNew()">+ Registrar producto</button></div>
-  <div class="overflow-x-auto border border-zinc-200 rounded-lg"><table class="w-full text-left min-w-[680px]">
-   <thead class="bg-zinc-100 uppercase text-xs tracking-wide"><tr><th class="p-4">Producto</th><th class="p-4">Categoría</th><th class="p-4">Precio base</th><th class="p-4">Stock</th><th class="p-4">Variantes</th><th class="p-4">Acciones</th></tr></thead>
-   <tbody><tr *ngFor="let p of filtered()" class="border-t border-zinc-200"><td class="p-3"><div class="flex gap-3 items-center"><img [src]="p.imagen||fallback" [alt]="p.nombre" class="size-14 rounded object-cover bg-zinc-100"><span class="font-semibold">{{p.nombre}}</span></div></td><td class="p-3">{{p.categoria}}</td><td class="p-3">S/ {{p.precioBase | number:'1.2-2'}}</td><td class="p-3">{{totalStock(p)}}</td><td class="p-3">{{p.variantes?.length||0}}</td><td class="p-3"><button type="button" class="text-sm underline mr-4" (click)="openEdit(p)">Editar</button><button type="button" class="text-red-700 text-sm underline" (click)="remove(p)">Eliminar</button></td></tr></tbody>
-  </table><p *ngIf="!filtered().length" class="p-8 text-center text-zinc-500">No hay productos para mostrar.</p></div>
- </section>
- <section *ngIf="tab()==='pedidos'" class="overflow-x-auto border border-zinc-200 rounded-lg">
-  <table class="w-full min-w-[760px] text-left">
-    <thead class="bg-zinc-100 uppercase text-xs"><tr>
-      <th class="p-4">Pedido</th><th class="p-4">Fecha</th><th class="p-4">Cliente</th>
-      <th class="p-4">Entrega</th><th class="p-4">Pago</th><th class="p-4 text-right">Total</th><th class="p-4">Acción</th>
-    </tr></thead>
-    <tbody><tr *ngFor="let p of orders()" class="border-t">
-      <td class="p-4 text-sm font-semibold">{{p.codigoPedido||p.idPedido}}</td>
-      <td class="p-4 text-sm">{{p.fechaPedido ? (p.fechaPedido | date:'dd/MM/yyyy HH:mm') : '—'}}</td>
-      <td class="p-4 text-sm">{{p.cliente}}</td>
-      <td class="p-4 text-sm">{{etiquetaEstado(p.estado)}}</td>
-      <td class="p-4 text-sm"><span [class.text-amber-800]="p.estadoPago==='EN_REVISION'" [class.text-green-800]="p.estadoPago==='PAGADO'" [class.text-red-700]="p.estadoPago==='RECHAZADO'">{{etiquetaEstado(p.estadoPago||'PENDIENTE')}}</span></td>
-      <td class="p-4 text-right text-sm font-semibold">S/ {{p.total | number:'1.2-2'}}</td>
-      <td class="p-4"><button type="button" (click)="abrirGestionPedido(p)" class="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-semibold hover:bg-zinc-50">Gestionar</button></td>
-    </tr></tbody>
-  </table>
-  <p *ngIf="!orders().length" class="p-8 text-center text-zinc-500">No hay pedidos registrados.</p>
- </section>
 
  <div *ngIf="gestionPedido() as pedido" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="gestion-pedido-title">
   <section class="max-h-[93vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-6 sm:p-8">
