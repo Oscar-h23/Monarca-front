@@ -33,6 +33,23 @@
    <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Remitente: <strong>{{e.remitenteValido?'Formato válido':'Falta'}}</strong></p>
    <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Spring Mail: <strong>{{e.servicioCorreo?'Disponible':'No disponible'}}</strong></p>
   </div>
+  <div class="mt-5 border-t border-zinc-100 pt-4">
+   <h3 class="text-xs font-bold text-zinc-800">Seguimiento del envío de pedidos</h3>
+   <p class="mt-1 text-xs text-zinc-500">Contadores desde el último reinicio de Spring Boot. Crea un pedido de prueba y pulsa «Revisar configuración».</p>
+   <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Eventos creados</p><strong class="mt-1 block text-lg">{{e.eventosPublicados}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Transacciones confirmadas</p><strong class="mt-1 block text-lg">{{e.eventosConfirmados}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Mensajes aceptados por SMTP</p><strong class="mt-1 block text-lg text-emerald-800">{{e.mensajesAceptadosSmtp}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Envíos fallidos</p><strong class="mt-1 block text-lg text-red-700">{{e.mensajesFallidosSmtp}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Eventos omitidos</p><strong class="mt-1 block text-lg text-amber-800">{{e.eventosOmitidos}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Sin transacción</p><strong class="mt-1 block text-lg text-amber-800">{{e.eventosSinTransaccion}}</strong></div>
+   </div>
+   <p class="mt-3 text-xs leading-relaxed text-zinc-500">
+     Si no aumenta «Eventos creados», no se está notificando desde la operación.
+     Si aumenta «Transacciones confirmadas» pero aparecen errores u omisiones, revisa SMTP y los logs.
+     Si SMTP acepta el mensaje pero no llega, consulta el historial de envíos de Resend.
+   </p>
+  </div>
   <p class="mt-3 text-xs text-zinc-500">
     La prueba se envía únicamente a la dirección de tu sesión de administrador. Ninguna clave se muestra aquí.
     «Configuración completa» no garantiza la entrega: verifica el correo de prueba y el historial de Resend.
