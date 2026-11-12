@@ -22,11 +22,87 @@
   </table><p *ngIf="!filtered().length" class="p-8 text-center text-zinc-500">No hay productos para mostrar.</p></div>
  </section>
  <section *ngIf="tab()==='pedidos'" class="overflow-x-auto border border-zinc-200 rounded-lg">
-  <table class="w-full min-w-[650px] text-left"><thead class="bg-zinc-100 uppercase text-xs"><tr><th class="p-4">Pedido</th><th class="p-4">Fecha</th><th class="p-4">Cliente</th><th class="p-4">Estado</th><th class="p-4 text-right">Total</th></tr></thead>
-  <tbody><tr *ngFor="let p of orders()" class="border-t"><td class="p-4">{{p.codigoPedido||p.idPedido}}</td><td class="p-4">{{p.fechaPedido ? (p.fechaPedido | date:'dd/MM/yyyy HH:mm') : '—'}}</td><td class="p-4">{{p.cliente}}</td><td class="p-4">{{p.estado}}</td><td class="p-4 text-right">S/ {{p.total | number:'1.2-2'}}</td></tr></tbody></table>
+  <table class="w-full min-w-[760px] text-left">
+    <thead class="bg-zinc-100 uppercase text-xs"><tr>
+      <th class="p-4">Pedido</th><th class="p-4">Fecha</th><th class="p-4">Cliente</th>
+      <th class="p-4">Entrega</th><th class="p-4">Pago</th><th class="p-4 text-right">Total</th><th class="p-4">Acción</th>
+    </tr></thead>
+    <tbody><tr *ngFor="let p of orders()" class="border-t">
+      <td class="p-4 text-sm font-semibold">{{p.codigoPedido||p.idPedido}}</td>
+      <td class="p-4 text-sm">{{p.fechaPedido ? (p.fechaPedido | date:'dd/MM/yyyy HH:mm') : '—'}}</td>
+      <td class="p-4 text-sm">{{p.cliente}}</td>
+      <td class="p-4 text-sm">{{etiquetaEstado(p.estado)}}</td>
+      <td class="p-4 text-sm"><span [class.text-amber-800]="p.estadoPago==='EN_REVISION'" [class.text-green-800]="p.estadoPago==='PAGADO'" [class.text-red-700]="p.estadoPago==='RECHAZADO'">{{etiquetaEstado(p.estadoPago||'PENDIENTE')}}</span></td>
+      <td class="p-4 text-right text-sm font-semibold">S/ {{p.total | number:'1.2-2'}}</td>
+      <td class="p-4"><button type="button" (click)="abrirGestionPedido(p)" class="rounded-lg border border-zinc-300 px-3 py-2 text-sm font-semibold hover:bg-zinc-50">Gestionar</button></td>
+    </tr></tbody>
+  </table>
   <p *ngIf="!orders().length" class="p-8 text-center text-zinc-500">No hay pedidos registrados.</p>
  </section>
- <div *ngIf="editor()" class="fixed inset-0 z-50 bg-black/60 flex justify-center items-center p-4" role="dialog" aria-modal="true" aria-labelledby="editor-title">
+
+ <div *ngIf="gestionPedido() as pedido" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" role="dialog" aria-modal="true" aria-labelledby="gestion-pedido-title">
+  <section class="max-h-[93vh] w-full max-w-3xl overflow-y-auto rounded-xl bg-white p-6 sm:p-8">
+    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-zinc-200 pb-4">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">Nayeli’s moda · Gestión manual</p>
+        <h2 id="gestion-pedido-title" class="mt-2 break-all text-2xl font-bold">Pedido {{pedido.codigoPedido||pedido.idPedido}}</h2>
+        <p class="mt-1 text-sm text-zinc-600">{{pedido.cliente}} · S/ {{pedido.total | number:'1.2-2'}}</p>
+      </div>
+      <button type="button" aria-label="Cerrar gestión" [disabled]="gestionBusy()" (click)="cerrarGestion()" class="rounded-lg border border-zinc-200 px-3 py-2 text-sm font-semibold">Cerrar ✕</button>
+    </div>
+
+    <div *ngIf="gestionError()" role="alert" class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{gestionError()}}</div>
+    <div *ngIf="gestionMensaje()" role="status" class="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{{gestionMensaje()}}</div>
+
+    <div class="mt-5 grid gap-5 sm:grid-cols-2">
+      <section class="rounded-xl border border-zinc-200 p-5">
+        <h3 class="font-semibold">Verificación de pago</h3>
+        <p class="mt-2 text-sm">Estado: <strong>{{etiquetaEstado(pedido.estadoPago||'PENDIENTE')}}</strong></p>
+        <p class="mt-2 text-sm text-zinc-600" *ngIf="!pedido.evidenciaDisponible">El cliente todavía no ha enviado comprobante.</p>
+        <p class="mt-2 text-sm">Método: <strong>{{pedido.metodoPago}}</strong></p>
+        <p class="mt-2 text-xs text-zinc-500" *ngIf="pedido.evidenciaDisponible">Evidencia privada: solo administradores.</p>
+        <p class="mt-2 text-sm" *ngIf="imagenCargando()">Cargando evidencia…</p>
+        <img *ngIf="imagenEvidencia()" [src]="imagenEvidencia()" alt="Evidencia de pago enviada por el cliente" class="mt-4 max-h-80 w-full rounded-lg border border-zinc-200 bg-zinc-50 object-contain">
+        <div *ngIf="pedido.estadoPago==='RECHAZADO' && pedido.motivoRechazo" class="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">
+          Motivo anterior: {{pedido.motivoRechazo}}
+        </div>
+
+        <div *ngIf="puedeRevisar(pedido)" class="mt-5 space-y-4">
+          <p class="text-xs font-medium text-amber-800">Verifica el abono en tu propia cuenta antes de confirmarlo. La captura por sí sola no demuestra un pago.</p>
+          <button type="button" [disabled]="gestionBusy()||imagenCargando()||!imagenEvidencia()"
+            (click)="decidirPago('APROBAR')" class="w-full rounded-lg bg-green-800 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">Confirmar pago verificado</button>
+          <label class="block text-sm font-semibold">Motivo del rechazo
+            <textarea class="field mt-2" [(ngModel)]="rechazoMotivo" maxlength="300" rows="3" placeholder="Ej.: el monto recibido no coincide"></textarea>
+          </label>
+          <button type="button" [disabled]="gestionBusy()||!rechazoMotivo.trim()"
+            (click)="decidirPago('RECHAZAR')" class="w-full rounded-lg border border-red-400 px-4 py-3 text-sm font-semibold text-red-800 disabled:opacity-50">Rechazar evidencia</button>
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-zinc-200 p-5">
+        <h3 class="font-semibold">Estado de entrega</h3>
+        <p class="mt-2 text-sm">Actual: <strong>{{etiquetaEstado(pedido.estado)}}</strong></p>
+        <p class="mt-2 text-xs text-zinc-600">El pedido se confirma al aprobar el pago. La preparación y el envío se actualizan manualmente.</p>
+        <button type="button" *ngIf="proximoEstado(pedido) as proximo" [disabled]="gestionBusy()"
+          (click)="cambiarEstadoPedido(proximo)" class="mt-5 w-full rounded-lg bg-zinc-900 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50">
+          Cambiar a {{etiquetaEstado(proximo)}}
+        </button>
+        <p *ngIf="pedido.estado==='FINALIZADO'" class="mt-4 text-sm text-green-800">Pedido finalizado.</p>
+        <button type="button" *ngIf="puedeCancelar(pedido)" (click)="cambiarEstadoPedido('CANCELADO')" [disabled]="gestionBusy()"
+          class="mt-5 w-full rounded-lg border border-red-300 px-4 py-3 text-sm font-semibold text-red-800 disabled:opacity-50">
+          Cancelar pedido y devolver stock
+        </button>
+        <p *ngIf="pedido.estadoPago==='PAGADO'" class="mt-4 text-xs text-zinc-500">Una cancelación posterior al pago requiere un flujo de devolución, todavía no implementado.</p>
+        <button *ngIf="pedido.boletaDisponible" type="button" [disabled]="gestionBusy()" (click)="descargarBoletaPedido(pedido)"
+          class="mt-5 w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm font-semibold hover:bg-zinc-50 disabled:opacity-50">
+          Descargar boleta PDF de prueba
+        </button>
+        <p class="mt-2 text-xs text-amber-800" *ngIf="pedido.boletaDisponible">Documento de simulación, sin validez tributaria y sin integración SUNAT.</p>
+      </section>
+    </div>
+  </section>
+ </div>
+  <div *ngIf="editor()" class="fixed inset-0 z-50 bg-black/60 flex justify-center items-center p-4" role="dialog" aria-modal="true" aria-labelledby="editor-title">
   <form (ngSubmit)="save()" class="max-h-[92vh] overflow-y-auto w-full max-w-2xl bg-white rounded-lg p-6 md:p-8">
    <div class="flex items-center justify-between mb-6"><h2 class="heading text-2xl" id="editor-title">{{editingId()?'Editar producto':'Nuevo producto'}}</h2><button type="button" (click)="closeEditor()" [disabled]="saving()||uploadStep()" aria-label="Cerrar">✕</button></div>
    <div *ngIf="editingId()" class="mb-5">

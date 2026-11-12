@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Api } from '../../core/services/api.service';
@@ -24,13 +24,23 @@ function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): Pr
   imports:[CommonModule,FormsModule,RouterLink],
   templateUrl:'./admin.html'
 })
-export class AdminPage implements OnInit {
+export class AdminPage implements OnInit, OnDestroy {
   private adminApi=inject(AdminApi);
   api=inject(Api);
   router=inject(Router);
   session=inject(SessionService);
   products=signal<Producto[]>([]);
   orders=signal<Pedido[]>([]);
+  gestionPedido=signal<Pedido|null>(null);
+  imagenEvidencia=signal('');
+  imagenCargando=signal(false);
+  gestionBusy=signal(false);
+  gestionError=signal('');
+  gestionMensaje=signal('');
+  rechazoMotivo='';
+  private readonly siguientes: Record<string,string> = {
+    CONFIRMADO:'EN_PREPARACION', EN_PREPARACION:'EN_CAMINO', EN_CAMINO:'FINALIZADO'
+  };
   search=signal('');
   tab=signal<'productos'|'pedidos'>('productos');
   pending=signal(false);
@@ -70,6 +80,122 @@ export class AdminPage implements OnInit {
       else this.error.set(this.error()+' No se pudieron cargar los pedidos.');
     }finally{this.pending.set(false);}
   }
+  ngOnDestroy(){ this.limpiarEvidencia(); }
+
+  private limpiarEvidencia(){
+    if(this.imagenEvidencia()) URL.revokeObjectURL(this.imagenEvidencia());
+    this.imagenEvidencia.set('');
+  }
+
+  async abrirGestionPedido(pedido:Pedido){
+    this.limpiarEvidencia();
+    this.gestionPedido.set(pedido);
+    this.rechazoMotivo='';
+    this.gestionError.set('');
+    this.gestionMensaje.set('');
+    if(pedido.evidenciaDisponible){
+      this.imagenCargando.set(true);
+      try{
+        const blob=await this.adminApi.evidenciaPago(pedido.idPedido);
+        if(this.gestionPedido()?.idPedido===pedido.idPedido){
+          this.imagenEvidencia.set(URL.createObjectURL(blob));
+        }
+      }catch(e){if(this.gestionPedido()?.idPedido===pedido.idPedido)this.gestionError.set(this.err(e));}
+      finally{this.imagenCargando.set(false);}
+    }
+  }
+
+  cerrarGestion(){
+    if(this.gestionBusy())return;
+    this.gestionPedido.set(null);
+    this.limpiarEvidencia();
+    this.rechazoMotivo='';
+    this.gestionMensaje.set('');
+    this.gestionError.set('');
+  }
+
+  puedeRevisar(p:Pedido):boolean{
+    return !!p.evidenciaDisponible && p.estadoPago==='EN_REVISION' && p.estado!=='CANCELADO';
+  }
+
+  proximoEstado(p:Pedido):string|null{
+    if(p.estadoPago!=='PAGADO')return null;
+    return this.siguientes[p.estado]||null;
+  }
+
+  puedeCancelar(p:Pedido):boolean{
+    return p.estadoPago!=='PAGADO' && !['FINALIZADO','CANCELADO'].includes(p.estado);
+  }
+
+  etiquetaEstado(estado:string):string{
+    return ({
+      PENDIENTE_PAGO:'Pendiente de pago',PENDIENTE_CONFIRMACION:'Pago en revisión',
+      CONFIRMADO:'Confirmado',EN_PREPARACION:'En preparación',EN_CAMINO:'En camino',
+      FINALIZADO:'Finalizado',CANCELADO:'Cancelado',
+      PENDIENTE:'Pendiente',EN_REVISION:'En revisión',PAGADO:'Pagado',RECHAZADO:'Rechazado'
+    } as Record<string,string>)[estado]||estado;
+  }
+
+  private async actualizarGestion(){
+    const id=this.gestionPedido()?.idPedido;
+    await this.reload();
+    if(id!==undefined && id!==null){
+      const actualizado=this.orders().find(p=>p.idPedido===id);
+      if(actualizado)this.gestionPedido.set(actualizado);
+    }
+  }
+
+  async decidirPago(accion:'APROBAR'|'RECHAZAR'){
+    const pedido=this.gestionPedido();
+    if(!pedido || !this.puedeRevisar(pedido) || this.gestionBusy())return;
+    if(accion==='RECHAZAR' && (!this.rechazoMotivo.trim()||this.rechazoMotivo.trim().length>300)){
+      this.gestionError.set('Indica el motivo del rechazo (máximo 300 caracteres).');return;
+    }
+    if(accion==='APROBAR' &&
+       !window.confirm('¿Ya verificaste que el abono fue recibido realmente? La aprobación habilita la boleta PDF de prueba.'))return;
+    this.gestionBusy.set(true);this.gestionError.set('');this.gestionMensaje.set('');
+    try{
+      await this.adminApi.revisarPago(pedido.idPedido,accion,
+        accion==='RECHAZAR'?this.rechazoMotivo.trim():null);
+      await this.actualizarGestion();
+      this.gestionMensaje.set(accion==='APROBAR'
+        ? 'Pago confirmado manualmente. El cliente ya puede descargar su boleta de prueba.'
+        : 'Evidencia rechazada. El cliente verá el motivo y podrá reenviarla.');
+      if(accion==='RECHAZAR')this.rechazoMotivo='';
+    }catch(e){this.gestionError.set(this.err(e));}
+    finally{this.gestionBusy.set(false);}
+  }
+
+  async cambiarEstadoPedido(estado:string){
+    const pedido=this.gestionPedido();
+    if(!pedido || this.gestionBusy())return;
+    if(estado==='CANCELADO'){
+      if(!this.puedeCancelar(pedido))return;
+      if(!window.confirm('Cancelar el pedido devolverá al inventario sus unidades. Esta acción no podrá deshacerse. ¿Continuar?'))return;
+    } else if(this.proximoEstado(pedido)!==estado)return;
+    this.gestionBusy.set(true);this.gestionError.set('');this.gestionMensaje.set('');
+    try{
+      await this.adminApi.cambiarEstado(pedido.idPedido,estado);
+      await this.actualizarGestion();
+      this.gestionMensaje.set('Estado del pedido actualizado a '+this.etiquetaEstado(estado)+'.');
+    }catch(e){this.gestionError.set(this.err(e));}
+    finally{this.gestionBusy.set(false);}
+  }
+
+  async descargarBoletaPedido(pedido:Pedido){
+    if(!pedido.boletaDisponible || this.gestionBusy())return;
+    this.gestionBusy.set(true);this.gestionError.set('');
+    try{
+      const blob=await this.adminApi.boletaPrueba(pedido.idPedido);
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download='boleta-prueba-'+(pedido.codigoPedido||pedido.idPedido)+'.pdf';
+      document.body.appendChild(a);a.click();a.remove();
+      window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }catch(e){this.gestionError.set(this.err(e));}
+    finally{this.gestionBusy.set(false);}
+  }
+
   private clearImageSelection(){
     if(this.imagePreview())URL.revokeObjectURL(this.imagePreview());
     this.imagePreview.set('');

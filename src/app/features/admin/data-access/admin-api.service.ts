@@ -11,6 +11,11 @@ export interface Pedido {
   fechaPedido?: string;
   total: number;
   estado: string;
+  estadoPago: string;
+  metodoPago: string;
+  evidenciaDisponible: boolean;
+  motivoRechazo: string|null;
+  boletaDisponible: boolean;
 }
 
 export interface ProductForm {
@@ -58,6 +63,34 @@ export class AdminApi {
     return firstValueFrom(
       this.http.get<Pedido[]>(this.api.base + '/pedidos', { headers: this.api.headers() })
     );
+  }
+
+  evidenciaPago(idPedido: number): Promise<Blob> {
+    return firstValueFrom(this.http.get(
+      this.api.base + '/admin/pedidos/' + idPedido + '/evidencia',
+      { headers: this.api.headers(), responseType: 'blob' }
+    ));
+  }
+
+  revisarPago(idPedido: number, accion: 'APROBAR'|'RECHAZAR', motivo: string|null): Promise<{mensaje:string}> {
+    return firstValueFrom(this.http.put<{mensaje:string}>(
+      this.api.base + '/admin/pedidos/' + idPedido + '/pago',
+      {accion,motivo}, { headers: this.api.headers() }
+    ));
+  }
+
+  cambiarEstado(idPedido: number, estado: string): Promise<{mensaje:string}> {
+    return firstValueFrom(this.http.put<{mensaje:string}>(
+      this.api.base + '/admin/pedidos/' + idPedido + '/estado',
+      {estado}, { headers: this.api.headers() }
+    ));
+  }
+
+  boletaPrueba(idPedido: number): Promise<Blob> {
+    return firstValueFrom(this.http.get(
+      this.api.base + '/pedidos/' + idPedido + '/boleta-prueba',
+      { headers: this.api.headers(), responseType: 'blob' }
+    ));
   }
 
   uploadProductImage(file: File): Promise<{ url: string }> {
