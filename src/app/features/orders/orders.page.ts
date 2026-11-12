@@ -43,6 +43,7 @@ export class OrdersPage implements OnInit {
   cargando = signal(true);
   error = signal('');
   accionError = signal('');
+  accionErrorPedidoId = signal<number|null>(null);
   accionMensaje = signal('');
   enviandoId = signal<number|null>(null);
   descargandoId = signal<number|null>(null);
@@ -74,16 +75,44 @@ export class OrdersPage implements OnInit {
   seleccionarArchivo(event: Event, id: number): void {
     const input = event.target as HTMLInputElement;
     const archivo = input.files?.[0];
+    // Permite volver a seleccionar el mismo archivo tras quitarlo o corregir un error.
+    input.value = '';
     if (!archivo) return;
+
     this.accionError.set('');
+    this.accionErrorPedidoId.set(null);
     this.accionMensaje.set('');
-    if (!['image/jpeg','image/png','image/webp'].includes(archivo.type) || archivo.size > 5_000_000) {
-      this.accionError.set('Selecciona una foto JPG, PNG o WebP de máximo 5 MB.');
-      input.value = '';
+
+    if (!['image/jpeg','image/png','image/webp'].includes(archivo.type)
+        || archivo.size === 0 || archivo.size > 5_000_000) {
+      this.quitarArchivo(id);
+      this.accionErrorPedidoId.set(id);
+      this.accionError.set('Selecciona una imagen JPG, PNG o WebP de hasta 5 MB.');
       return;
     }
     this.archivos.set(id, archivo);
-    this.nombresArchivo.update(a => ({...a,[id]:archivo.name}));
+    this.nombresArchivo.update(prev => ({...prev, [id]: archivo.name}));
+  }
+
+  tamanoArchivo(id: number): string {
+    const archivo = this.archivos.get(id);
+    if (!archivo) return '';
+    return archivo.size < 1_000_000
+      ? (archivo.size / 1_000).toFixed(0) + ' KB'
+      : (archivo.size / 1_000_000).toFixed(2) + ' MB';
+  }
+
+  quitarArchivo(id: number): void {
+    this.archivos.delete(id);
+    this.nombresArchivo.update(prev => {
+      const siguiente = {...prev};
+      delete siguiente[id];
+      return siguiente;
+    });
+    if (this.accionErrorPedidoId() === id) {
+      this.accionError.set('');
+      this.accionErrorPedidoId.set(null);
+    }
   }
 
   async enviarEvidencia(pedido: MiPedido): Promise<void> {
@@ -91,16 +120,15 @@ export class OrdersPage implements OnInit {
     if (!archivo || this.enviandoId() !== null || !this.puedeEnviarEvidencia(pedido)) return;
     this.enviandoId.set(pedido.idPedido);
     this.accionError.set('');
+    this.accionErrorPedidoId.set(null);
     this.accionMensaje.set('');
     try {
       await this.api.subirEvidencia(pedido.idPedido, archivo);
-      this.archivos.delete(pedido.idPedido);
-      this.nombresArchivo.update(a => {
-        const copia = {...a}; delete copia[pedido.idPedido]; return copia;
-      });
+      this.quitarArchivo(pedido.idPedido);
       await this.cargar();
       this.accionMensaje.set('Evidencia enviada. El administrador revisará el abono antes de confirmarlo.');
     } catch (e) {
+      this.accionErrorPedidoId.set(pedido.idPedido);
       this.accionError.set(this.mensajeError(e));
     } finally { this.enviandoId.set(null); }
   }
@@ -109,6 +137,7 @@ export class OrdersPage implements OnInit {
     if (!pedido.boletaDisponible || this.descargandoId() !== null) return;
     this.descargandoId.set(pedido.idPedido);
     this.accionError.set('');
+    this.accionErrorPedidoId.set(null);
     try {
       const blob = await this.api.descargarBoletaPrueba(pedido.idPedido);
       const url = URL.createObjectURL(blob);
@@ -126,10 +155,21 @@ export class OrdersPage implements OnInit {
 
   private mensajeError(e: unknown): string {
     if (e instanceof HttpErrorResponse) {
-      if (e.status === 409) return 'Esta operación no es válida para el estado actual del pedido. Actualiza los estados.';
+      if (e.status === 503) {
+        // El backend devuelve 503 si falta o se rechaza su credencial privada de Storage.
+        // Evitar mostrar nombres de variables o detalles internos a los clientes.
+        return 'No se pudo enviar el comprobante: el almacenamiento de pagos no está disponible o autorizado en el servidor. Inténtalo más tarde o contacta con la tienda.';
+      }
+      if (e.status === 413) return 'El archivo supera el tamaño máximo permitido de 5 MB.';
+      if (e.status === 409) return 'El estado de este pedido cambió. Pulsa «Actualizar estados» e inténtalo de nuevo.';
       if (e.status === 401 || e.status === 403) return 'Tu sesión expiró o no tienes acceso a este pedido.';
-      if (typeof e.error?.error === 'string') return e.error.error;
-      return 'No se pudo completar la operación. Inténtalo nuevamente.';
+      const error = e.error;
+      const detalle = typeof error?.mensaje === 'string' ? error.mensaje
+        : typeof error?.detail === 'string' ? error.detail
+        : typeof error?.error === 'string' && !['Bad Request','Service Unavailable','Internal Server Error'].includes(error.error)
+          ? error.error : '';
+      if (detalle.trim()) return detalle;
+      return 'No se pudo completar la operación. Comprueba el archivo e inténtalo de nuevo.';
     }
     return e instanceof Error ? e.message : 'Ocurrió un error al procesar el pago.';
   }
