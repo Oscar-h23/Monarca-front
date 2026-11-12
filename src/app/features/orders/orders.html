@@ -30,7 +30,7 @@
   </div>
 
   <div *ngIf="accionMensaje()" role="status" class="mb-5 rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">{{accionMensaje()}}</div>
-  <div *ngIf="accionError()" role="alert" class="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{{accionError()}}</div>
+  <div *ngIf="accionError() && accionErrorPedidoId() === null" role="alert" class="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{{accionError()}}</div>
 
   <p *ngIf="cargando()" role="status" class="rounded-xl border border-zinc-200 p-8 text-center text-zinc-600">Cargando tus pedidos…</p>
 
@@ -86,20 +86,70 @@
             {{descargandoId()===pedido.idPedido ? 'Generando PDF…' : 'Descargar boleta PDF de prueba'}}
           </button>
         </div>
-        <div *ngIf="puedeEnviarEvidencia(pedido)" class="mt-4 space-y-3 rounded-lg border border-zinc-200 bg-white p-4">
-          <p class="text-sm font-semibold">{{pedido.estadoPago==='RECHAZADO' ? 'Enviar nueva evidencia' : 'Subir evidencia de pago'}}</p>
-          <p class="text-xs text-zinc-600">Adjunta una captura de Yape o transferencia. Solo el administrador podrá verla; su revisión no es automática.</p>
-          <label class="block text-sm font-medium">Imagen del pago (JPG, PNG o WebP; máximo 5 MB)
-            <input type="file" class="mt-2 block w-full text-xs" accept="image/jpeg,image/png,image/webp"
-              [disabled]="enviandoId() !== null" (change)="seleccionarArchivo($event,pedido.idPedido)">
-          </label>
-          <p *ngIf="nombresArchivo()[pedido.idPedido]" class="text-xs text-zinc-600 break-words">{{nombresArchivo()[pedido.idPedido]}}</p>
-          <button type="button" (click)="enviarEvidencia(pedido)"
-            [disabled]="enviandoId() !== null || !nombresArchivo()[pedido.idPedido]"
-            class="rounded-lg bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
-            {{enviandoId()===pedido.idPedido ? 'Subiendo…' : 'Enviar para verificación'}}
-          </button>
-        </div>
+        <section *ngIf="puedeEnviarEvidencia(pedido)" class="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm" [attr.aria-label]="'Evidencia del pedido ' + (pedido.codigoPedido || pedido.idPedido)">
+          <div class="flex items-start gap-3 border-b border-zinc-100 px-4 py-4 sm:px-5">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-800" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="h-5 w-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 3.5h6l4 4V20H6V3.5h2zm6 0V8h4M9 12h6M9 16h6"/>
+              </svg>
+            </div>
+            <div class="min-w-0 flex-1">
+              <h4 class="text-sm font-semibold text-zinc-900">{{pedido.estadoPago === 'RECHAZADO' ? 'Reenviar comprobante' : 'Adjuntar comprobante de pago'}}</h4>
+              <p class="mt-1 text-xs leading-relaxed text-zinc-600">Sube una captura de Yape o transferencia. El administrador la revisará de forma privada antes de confirmar el pago.</p>
+            </div>
+          </div>
+
+          <div class="space-y-4 px-4 py-5 sm:px-5">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <input type="file" class="peer sr-only"
+                [id]="'evidencia-archivo-' + pedido.idPedido"
+                accept="image/jpeg,image/png,image/webp"
+                [disabled]="enviandoId() !== null"
+                (change)="seleccionarArchivo($event, pedido.idPedido)">
+              <label [attr.for]="'evidencia-archivo-' + pedido.idPedido"
+                [class.pointer-events-none]="enviandoId() !== null"
+                [class.opacity-60]="enviandoId() !== null"
+                class="inline-flex min-h-11 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl border border-zinc-300 bg-white px-5 py-3 text-sm font-semibold text-zinc-900 shadow-sm transition hover:border-zinc-700 hover:bg-zinc-50 peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-zinc-900">
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M4 16.5v2A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5v-2"/>
+                </svg>
+                {{nombresArchivo()[pedido.idPedido] ? 'Cambiar imagen' : 'Seleccionar imagen'}}
+              </label>
+              <p class="min-w-0 text-xs leading-relaxed text-zinc-500">JPG, PNG o WebP · Máximo 5 MB</p>
+            </div>
+
+            <div *ngIf="nombresArchivo()[pedido.idPedido]" class="flex min-w-0 items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3">
+              <svg class="h-5 w-5 shrink-0 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 3h7l4 4v13H5V3h3zm7 0v5h4M8 15l2.5 2.5L16 12"/>
+              </svg>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-zinc-900" [title]="nombresArchivo()[pedido.idPedido]">{{nombresArchivo()[pedido.idPedido]}}</p>
+                <p class="mt-0.5 text-xs text-emerald-800">{{tamanoArchivo(pedido.idPedido)}} · Lista para enviar</p>
+              </div>
+              <button type="button" (click)="quitarArchivo(pedido.idPedido)" [disabled]="enviandoId() !== null"
+                class="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-zinc-700 hover:bg-white disabled:opacity-50" aria-label="Quitar la imagen seleccionada">
+                Quitar
+              </button>
+            </div>
+
+            <div *ngIf="accionError() && accionErrorPedidoId() === pedido.idPedido"
+              class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm leading-relaxed text-red-800" role="alert">
+              {{accionError()}}
+            </div>
+
+            <div class="flex flex-col gap-3 border-t border-zinc-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <p class="text-xs leading-relaxed text-zinc-500 sm:max-w-xs">Enviar una imagen no confirma el pago. Tu pedido pasará a revisión.</p>
+              <button type="button" (click)="enviarEvidencia(pedido)"
+                [disabled]="enviandoId() !== null || !nombresArchivo()[pedido.idPedido]"
+                class="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300 disabled:text-zinc-600 sm:w-auto">
+                <svg *ngIf="enviandoId() !== pedido.idPedido" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"/>
+                </svg>
+                {{enviandoId() === pedido.idPedido ? 'Enviando evidencia…' : 'Enviar para revisión'}}
+              </button>
+            </div>
+          </div>
+        </section>
         <p *ngIf="pedido.boletaDisponible" class="mt-3 text-xs font-medium text-amber-900">
           PDF de simulación: no tiene validez tributaria, no se transmite a SUNAT y no reemplaza una boleta electrónica.
         </p>
