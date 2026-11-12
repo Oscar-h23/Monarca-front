@@ -86,6 +86,24 @@
             {{descargandoId()===pedido.idPedido ? 'Generando PDF…' : 'Descargar boleta PDF de prueba'}}
           </button>
         </div>
+        <section *ngIf="puedeEnviarEvidencia(pedido) && datosDelMetodo(pedido.codigoMetodoPago) as metodo"
+          class="mt-5 rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5" aria-label="Datos del método de pago">
+          <h4 class="text-sm font-bold text-zinc-900">Datos de pago · {{metodo.nombre}}</h4>
+          <p class="mt-1 text-xs text-zinc-500">Consulta aquí los datos aunque hayas cerrado la página de compra. Confirma el destinatario antes de realizar el abono.</p>
+          <div *ngIf="metodo.codigo==='YAPE'" class="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+            <img *ngIf="metodo.qrUrl" [src]="metodo.qrUrl" alt="Código QR Yape de la tienda" class="max-h-44 w-auto max-w-full rounded-lg border border-zinc-200 bg-white object-contain p-2">
+            <div class="space-y-2">
+              <p class="text-sm">Número Yape: <strong class="text-base">{{metodo.telefonoYape}}</strong></p>
+              <p *ngIf="metodo.titular" class="text-sm">Titular: <strong>{{metodo.titular}}</strong></p>
+            </div>
+          </div>
+          <dl *ngIf="metodo.codigo==='TRANSFERENCIA'" class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+            <div><dt class="text-zinc-500">Banco</dt><dd class="font-semibold">{{metodo.banco}}</dd></div>
+            <div *ngIf="metodo.titular"><dt class="text-zinc-500">Titular</dt><dd class="font-semibold">{{metodo.titular}}</dd></div>
+            <div><dt class="text-zinc-500">Cuenta</dt><dd class="break-all font-semibold">{{metodo.numeroCuenta}}</dd></div>
+            <div><dt class="text-zinc-500">CCI</dt><dd class="break-all font-semibold">{{metodo.cci}}</dd></div>
+          </dl>
+        </section>
         <section *ngIf="puedeEnviarEvidencia(pedido)" class="mt-5 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm" [attr.aria-label]="'Evidencia del pedido ' + (pedido.codigoPedido || pedido.idPedido)">
           <div class="flex items-start gap-3 border-b border-zinc-100 px-4 py-4 sm:px-5">
             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-800" aria-hidden="true">

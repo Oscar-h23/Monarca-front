@@ -26,6 +26,7 @@ export interface MiPedido {
   total: number;
   productos: ProductoDePedido[];
   estadoPago: string;
+  codigoMetodoPago: string|null;
   evidenciaEnviada: boolean;
   motivoRechazo: string|null;
   boletaDisponible: boolean;
