@@ -10,6 +10,7 @@ import { SessionService } from '../../core/services/session.service';
 import { AdminApi, Pedido, ProductForm, ProductVariantForm } from './data-access/admin-api.service';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.page';
 import { AdminPaymentsComponent } from './payments/admin-payments.page';
+import { AdminCorreoComponent } from './mail/admin-correo.page';
 
 function blankForm(): ProductForm {
   return {idVariante:null,nombre:'',categoria:'Tops',descripcion:'',marca:'Nayeli’s moda',talla:'ÚNICA',
@@ -23,7 +24,7 @@ function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): Pr
 
 @Component({
   standalone:true, selector:'app-admin',
-  imports:[CommonModule,FormsModule,RouterLink,AdminDashboardComponent,AdminPaymentsComponent],
+  imports:[CommonModule,FormsModule,RouterLink,AdminDashboardComponent,AdminPaymentsComponent,AdminCorreoComponent],
   templateUrl:'./admin.html'
 })
 export class AdminPage implements OnInit, OnDestroy {
