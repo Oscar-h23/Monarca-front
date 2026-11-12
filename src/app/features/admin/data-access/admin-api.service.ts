@@ -27,6 +27,12 @@ export interface EstadoCorreoAdmin {
   remitenteValido: boolean;
   servicioCorreo: boolean;
   mensaje: string;
+  eventosPublicados: number;
+  eventosConfirmados: number;
+  mensajesAceptadosSmtp: number;
+  mensajesFallidosSmtp: number;
+  eventosOmitidos: number;
+  eventosSinTransaccion: number;
 }
 
 export interface PeriodoVentas {
