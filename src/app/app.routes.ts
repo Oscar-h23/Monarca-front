@@ -9,6 +9,7 @@ export const routes: Routes = [
   { path: 'carrito', title: 'Mi bolsa | Nayeli’s moda', loadComponent: () => import('./features/cart/cart.page').then(m => m.CartComponent) },
   { path: 'checkout', title: 'Finalizar compra | Nayeli’s moda', canActivate: [authGuard], loadComponent: () => import('./features/checkout/checkout.page').then(m => m.CheckoutComponent) },
   { path: 'login', title: 'Mi cuenta | Nayeli’s moda', loadComponent: () => import('./features/auth/auth.page').then(m => m.AuthPage) },
+  { path: 'mis-pedidos', title: 'Mis pedidos | Nayeli’s moda', canActivate: [authGuard], loadComponent: () => import('./features/orders/orders.page').then(m => m.OrdersPage) },
   { path: 'perfil', title: 'Mi perfil | Nayeli’s moda', canActivate: [authGuard], loadComponent: () => import('./features/profile/profile.page').then(m => m.ProfilePage) },
   { path: 'probador/:id', title: 'Probador virtual | Nayeli’s moda', canActivate: [authGuard], loadComponent: () => import('./features/tryon/tryon.page').then(m => m.TryonPage) },
   { path: 'admin', title: 'Administración | Nayeli’s moda', canActivate: [adminGuard], loadComponent: () => import('./features/admin/admin.page').then(m => m.AdminPage) },
