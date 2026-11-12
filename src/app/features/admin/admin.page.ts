@@ -8,6 +8,8 @@ import { Producto, Variante } from '../../core/models/shop.models';
 import { asset } from '../../core/utils/assets';
 import { SessionService } from '../../core/services/session.service';
 import { AdminApi, Pedido, ProductForm, ProductVariantForm } from './data-access/admin-api.service';
+import { AdminDashboardComponent } from './dashboard/admin-dashboard.page';
+import { AdminPaymentsComponent } from './payments/admin-payments.page';
 
 function blankForm(): ProductForm {
   return {idVariante:null,nombre:'',categoria:'Tops',descripcion:'',marca:'Nayeli’s moda',talla:'ÚNICA',
@@ -21,7 +23,7 @@ function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): Pr
 
 @Component({
   standalone:true, selector:'app-admin',
-  imports:[CommonModule,FormsModule,RouterLink],
+  imports:[CommonModule,FormsModule,RouterLink,AdminDashboardComponent,AdminPaymentsComponent],
   templateUrl:'./admin.html'
 })
 export class AdminPage implements OnInit, OnDestroy {
@@ -42,7 +44,14 @@ export class AdminPage implements OnInit, OnDestroy {
     CONFIRMADO:'EN_PREPARACION', EN_PREPARACION:'EN_CAMINO', EN_CAMINO:'FINALIZADO'
   };
   search=signal('');
-  tab=signal<'productos'|'pedidos'>('productos');
+  tab=signal<'resumen'|'productos'|'pedidos'|'pagos'>('resumen');
+  categoryFilter=signal('TODAS');
+  productPage=signal(1);
+  orderPage=signal(1);
+  orderSearch=signal('');
+  orderState=signal('TODOS');
+  orderPayment=signal('TODOS');
+  readonly pageSize=10;
   pending=signal(false);
   saving=signal(false);
   message=signal('');
@@ -58,7 +67,36 @@ export class AdminPage implements OnInit, OnDestroy {
   readonly maxVariants=40;
   fallback=asset('mariposa.png');
   categories=['Tops','Bottoms','Vestidos','Calzado','Accesorios'];
-  filtered=computed(()=>this.products().filter(p=>p.nombre.toLowerCase().includes(this.search().toLowerCase())));
+  filtered=computed(()=>this.products().filter(p=>{
+    const coincide=p.nombre.toLowerCase().includes(this.search().toLowerCase().trim());
+    return coincide&&(this.categoryFilter()==='TODAS'||p.categoria===this.categoryFilter());
+  }).sort((a,b)=>a.nombre.localeCompare(b.nombre,'es')));
+  productTotalPages=computed(()=>Math.max(1,Math.ceil(this.filtered().length/this.pageSize)));
+  visibleProducts=computed(()=>{
+    const page=Math.min(this.productPage(),this.productTotalPages());
+    return this.filtered().slice((page-1)*this.pageSize,page*this.pageSize);
+  });
+  filteredOrders=computed(()=>this.orders()
+    .filter(p=>{
+      const q=this.orderSearch().trim().toLowerCase();
+      return (!q||[p.codigoPedido||'',p.cliente||'',String(p.idPedido)].some(s=>s.toLowerCase().includes(q)))
+        &&(this.orderState()==='TODOS'||p.estado===this.orderState())
+        &&(this.orderPayment()==='TODOS'||p.estadoPago===this.orderPayment());
+    })
+    .sort((a,b)=>(Date.parse(b.fechaPedido||'')||0)-(Date.parse(a.fechaPedido||'')||0)||b.idPedido-a.idPedido));
+  orderTotalPages=computed(()=>Math.max(1,Math.ceil(this.filteredOrders().length/this.pageSize)));
+  visibleOrders=computed(()=>{
+    const page=Math.min(this.orderPage(),this.orderTotalPages());
+    return this.filteredOrders().slice((page-1)*this.pageSize,page*this.pageSize);
+  });
+  setProductSearch(value:string){this.search.set(value);this.productPage.set(1);}
+  setProductCategory(value:string){this.categoryFilter.set(value);this.productPage.set(1);}
+  setOrderSearch(value:string){this.orderSearch.set(value);this.orderPage.set(1);}
+  setOrderState(value:string){this.orderState.set(value);this.orderPage.set(1);}
+  setOrderPayment(value:string){this.orderPayment.set(value);this.orderPage.set(1);}
+  changeProductPage(delta:number){this.productPage.set(Math.min(this.productTotalPages(),Math.max(1,this.productPage()+delta)));}
+  changeOrderPage(delta:number){this.orderPage.set(Math.min(this.orderTotalPages(),Math.max(1,this.orderPage()+delta)));}
+
   stock=computed(()=>this.products().reduce((s,p)=>s+(p.variantes||[]).reduce((n,v)=>n+v.stock,0),0));
   totalPedidos=computed(()=>this.orders().reduce((s,p)=>s+Number(p.total||0),0));
   async ngOnInit() {
@@ -74,9 +112,15 @@ export class AdminPage implements OnInit, OnDestroy {
         this.api.productos(),
         this.adminApi.listOrders()
       ]);
-      if(products.status==='fulfilled')this.products.set(products.value);
+      if(products.status==='fulfilled'){
+        this.products.set(products.value);
+        this.productPage.set(Math.min(this.productPage(),this.productTotalPages()));
+      }
       else this.error.set('No se pudo cargar el inventario.');
-      if(orders.status==='fulfilled')this.orders.set(orders.value);
+      if(orders.status==='fulfilled'){
+        this.orders.set(orders.value);
+        this.orderPage.set(Math.min(this.orderPage(),this.orderTotalPages()));
+      }
       else this.error.set(this.error()+' No se pudieron cargar los pedidos.');
     }finally{this.pending.set(false);}
   }

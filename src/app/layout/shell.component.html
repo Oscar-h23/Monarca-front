@@ -1,11 +1,42 @@
-
-<header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-zinc-100">
- <div class="max-w-7xl mx-auto px-5 min-h-20 flex items-center justify-between gap-3">
-  <a routerLink="/" class="flex items-center"><img [src]="logo" alt="Nayeli’s moda" class="w-32 sm:w-40 xl:w-48 h-auto object-contain" width="192" height="66"/></a>
-  <nav class="hidden lg:flex gap-7 text-sm uppercase tracking-widest"><a routerLink="/">Inicio</a><a *ngFor="let c of categories" [routerLink]="['/catalogo',c.toLowerCase()]">{{c}}</a><a routerLink="/contacto">Contacto</a><a routerLink="/nosotros">Nosotros</a></nav>
-  <div class="flex gap-4 items-center"><a *ngIf="!loggedIn()" routerLink="/login" aria-label="Mi cuenta">Cuenta</a><a *ngIf="loggedIn()" routerLink="/perfil" aria-label="Mi perfil">Mi perfil</a><a *ngIf="loggedIn()" routerLink="/mis-pedidos" aria-label="Mis pedidos" class="whitespace-nowrap">Mis pedidos</a><a *ngIf="loggedIn() && isAdmin()" routerLink="/admin" aria-label="Administración">Panel</a><button *ngIf="loggedIn()" type="button" (click)="logout()" aria-label="Cerrar sesión">Salir</button><a routerLink="/carrito" class="font-semibold" aria-label="Carrito">Bolsa ({{cart.count()}})</a><button type="button" class="lg:hidden text-xl" (click)="menu.set(!menu())" aria-label="Abrir menú">☰</button></div>
- </div>
- <nav *ngIf="menu()" class="lg:hidden flex flex-col gap-3 p-5 border-t bg-white"><a routerLink="/" (click)="menu.set(false)">Inicio</a><a *ngFor="let c of categories" [routerLink]="['/catalogo',c.toLowerCase()]" (click)="menu.set(false)">{{c}}</a><a *ngIf="loggedIn()" routerLink="/perfil" (click)="menu.set(false)">Mi perfil</a><a *ngIf="loggedIn()" routerLink="/mis-pedidos" (click)="menu.set(false)">Mis pedidos</a><a routerLink="/contacto" (click)="menu.set(false)">Contacto</a><a routerLink="/nosotros" (click)="menu.set(false)">Nosotros</a></nav>
-</header><router-outlet></router-outlet>
+<header class="sticky top-0 z-30 border-b border-zinc-200 bg-white/95 backdrop-blur-md">
+  <div class="mx-auto flex min-h-[76px] max-w-[1480px] items-center justify-between gap-4 px-4 sm:px-7 xl:px-10">
+    <a routerLink="/" class="flex min-w-0 shrink-0 items-center" aria-label="Nayeli's moda — inicio">
+      <img [src]="logo" alt="Nayeli’s moda" class="h-auto w-32 object-contain sm:w-40 xl:w-44" width="176" height="60">
+    </a>
+    <div class="flex min-w-0 items-center justify-end gap-2 sm:gap-3 lg:gap-4">
+      <a *ngIf="!loggedIn()" routerLink="/login" class="hidden rounded-full px-3 py-2 text-sm font-medium hover:bg-zinc-100 sm:inline-flex">Mi cuenta</a>
+      <a *ngIf="loggedIn()" routerLink="/perfil" class="hidden rounded-full px-3 py-2 text-sm font-medium hover:bg-zinc-100 lg:inline-flex">Mi perfil</a>
+      <a *ngIf="loggedIn()" routerLink="/mis-pedidos" class="hidden rounded-full px-3 py-2 text-sm font-medium hover:bg-zinc-100 lg:inline-flex">Mis pedidos</a>
+      <a *ngIf="loggedIn() && isAdmin()" routerLink="/admin" class="hidden rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold hover:bg-zinc-50 lg:inline-flex">Panel admin</a>
+      <button *ngIf="loggedIn()" type="button" (click)="logout()" class="hidden px-2 py-2 text-sm text-zinc-500 hover:text-zinc-900 xl:inline-flex">Salir</button>
+      <a routerLink="/carrito" class="inline-flex shrink-0 items-center gap-2 rounded-full bg-zinc-900 px-3 py-2.5 text-xs font-semibold text-white sm:px-5 sm:text-sm" aria-label="Ver bolsa de compras">
+        Bolsa <span class="rounded-full bg-white/20 px-2 py-0.5">{{cart.count()}}</span>
+      </a>
+      <button type="button" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-zinc-200 text-xl lg:hidden"
+        (click)="menu.set(!menu())" [attr.aria-expanded]="menu()" aria-controls="nayelis-mobile-nav" aria-label="Abrir o cerrar navegación">☰</button>
+    </div>
+  </div>
+  <nav class="hidden border-t border-zinc-100 lg:block" aria-label="Categorías de la tienda">
+    <div class="mx-auto flex max-w-[1480px] items-center justify-center gap-7 px-7 py-3.5 xl:gap-11">
+      <a routerLink="/" class="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-zinc-700">Inicio</a>
+      <a *ngFor="let c of categories" [routerLink]="['/catalogo',c.toLowerCase()]" class="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-zinc-700">{{c}}</a>
+      <a routerLink="/contacto" class="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-zinc-700">Contacto</a>
+      <a routerLink="/nosotros" class="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-zinc-700">Nosotros</a>
+    </div>
+  </nav>
+  <nav *ngIf="menu()" id="nayelis-mobile-nav" class="flex flex-col gap-1 border-t border-zinc-100 bg-white px-5 py-4 shadow-lg lg:hidden" aria-label="Menú móvil">
+    <a routerLink="/" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-50">Inicio</a>
+    <a *ngFor="let c of categories" [routerLink]="['/catalogo',c.toLowerCase()]" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm hover:bg-zinc-50">{{c}}</a>
+    <a routerLink="/contacto" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm hover:bg-zinc-50">Contacto</a>
+    <a routerLink="/nosotros" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm hover:bg-zinc-50">Nosotros</a>
+    <div class="my-2 border-t border-zinc-100"></div>
+    <a *ngIf="!loggedIn()" routerLink="/login" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm font-semibold">Iniciar sesión</a>
+    <a *ngIf="loggedIn()" routerLink="/perfil" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm">Mi perfil</a>
+    <a *ngIf="loggedIn()" routerLink="/mis-pedidos" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm">Mis pedidos</a>
+    <a *ngIf="loggedIn() && isAdmin()" routerLink="/admin" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm font-semibold">Panel de administración</a>
+    <button *ngIf="loggedIn()" type="button" (click)="logout();menu.set(false)" class="rounded-lg px-3 py-2 text-left text-sm text-red-700">Cerrar sesión</button>
+  </nav>
+</header>
+<router-outlet></router-outlet>
 <footer class="bg-zinc-950 text-white mt-20"><div class="max-w-7xl mx-auto px-5 py-14 grid gap-8 md:grid-cols-3"><div><img [src]="logo" alt="Nayeli’s moda" class="w-44 h-auto brightness-0 invert mb-5" width="176" height="60"/><p>Moda femenina, calzado y accesorios.</p></div><div><h3 class="font-semibold mb-4">CONTACTO</h3><p>912 675 893</p><p><a href="mailto:monarca_atencion@gmail.com" class="underline underline-offset-4">Escríbenos por correo</a></p></div><div><h3 class="font-semibold mb-4">EXPLORA</h3><a routerLink="/nosotros">Nosotros</a><p class="text-zinc-400 text-sm mt-5">© 2026 Nayeli’s moda.</p></div></div></footer>
 

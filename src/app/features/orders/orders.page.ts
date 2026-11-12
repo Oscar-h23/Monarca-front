@@ -3,6 +3,8 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MiPedido, PedidosClienteApi } from '../../core/services/pedidos-cliente-api.service';
+import { Api } from '../../core/services/api.service';
+import { MetodoPago } from '../../core/models/shop.models';
 
 type Filtro = 'pendientes' | 'anteriores';
 
@@ -39,6 +41,8 @@ const ESTADOS_LEGIBLES: Record<string, string> = {
 })
 export class OrdersPage implements OnInit {
   private api = inject(PedidosClienteApi);
+  private tiendaApi = inject(Api);
+  metodos = signal<MetodoPago[]>([]);
   pedidos = signal<MiPedido[]>([]);
   cargando = signal(true);
   error = signal('');
@@ -55,7 +59,19 @@ export class OrdersPage implements OnInit {
   anteriores = computed(() => this.pedidos().filter(p => this.esAnterior(p.estado)));
   visibles = computed(() => this.filtro() === 'pendientes' ? this.pendientes() : this.anteriores());
 
-  ngOnInit(): void { void this.cargar(); }
+  ngOnInit(): void {
+    void this.cargar();
+    void this.cargarMetodos();
+  }
+
+  async cargarMetodos():Promise<void>{
+    try{this.metodos.set(await this.tiendaApi.metodos());}
+    catch{this.metodos.set([]);}
+  }
+  datosDelMetodo(codigo:string|null):MetodoPago|undefined {
+    return this.metodos().find(m=>m.codigo===codigo && m.configurado);
+  }
+
 
   puedeEnviarEvidencia(p: MiPedido): boolean {
     return !this.esAnterior(p.estado) && ['PENDIENTE','RECHAZADO']

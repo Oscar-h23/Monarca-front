@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Api } from '../../../core/services/api.service';
+import { MetodoPago } from '../../../core/models/shop.models';
 
 /** Tipos usados por el panel de administración. */
 export interface Pedido {
@@ -16,6 +17,35 @@ export interface Pedido {
   evidenciaDisponible: boolean;
   motivoRechazo: string|null;
   boletaDisponible: boolean;
+}
+
+export interface PeriodoVentas {
+  desde: string;
+  hasta: string;
+  kpis: {
+    ventasConfirmadas: number;
+    pedidosConfirmados: number;
+    pedidosRegistrados: number;
+    pagosEnRevision: number;
+    unidadesVendidas: number;
+    ticketPromedio: number;
+  };
+  ventasDiarias: {fecha:string; importe:number; pedidos:number}[];
+  mediosPago: {nombre:string; importe:number; pedidos:number}[];
+  estados: {estado:string; cantidad:number}[];
+  topProductos: {nombre:string; unidades:number; importe:number}[];
+}
+
+export type MetodoPagoEditable = MetodoPago & {activo:boolean};
+
+export interface MetodoPagoDraft {
+  activo:boolean;
+  telefonoYape:string;
+  qrUrl:string;
+  titular:string;
+  banco:string;
+  numeroCuenta:string;
+  cci:string;
 }
 
 export interface ProductForm {
@@ -58,6 +88,23 @@ export type NewProductForm = ProductForm & { variantes: ProductVariantForm[] };
 export class AdminApi {
   private readonly http = inject(HttpClient);
   private readonly api = inject(Api);
+
+  reportesVentas(desde:string, hasta:string):Promise<PeriodoVentas> {
+    const params = new URLSearchParams({desde, hasta});
+    return firstValueFrom(this.http.get<PeriodoVentas>(
+      this.api.base + '/admin/reportes/ventas?' + params.toString(),
+      {headers:this.api.headers()}));
+  }
+
+  listarMetodos():Promise<MetodoPagoEditable[]> {
+    return firstValueFrom(this.http.get<MetodoPagoEditable[]>(
+      this.api.base + '/admin/metodos-pago',{headers:this.api.headers()}));
+  }
+
+  guardarMetodo(id:number,datos:MetodoPagoDraft):Promise<MetodoPagoEditable> {
+    return firstValueFrom(this.http.put<MetodoPagoEditable>(
+      this.api.base + '/admin/metodos-pago/' + id,datos,{headers:this.api.headers()}));
+  }
 
   listOrders(): Promise<Pedido[]> {
     return firstValueFrom(

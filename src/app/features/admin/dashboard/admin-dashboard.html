@@ -1,0 +1,115 @@
+<section class="space-y-7" aria-label="Dashboard de ventas">
+ <div class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
+  <div class="flex flex-col justify-between gap-4 xl:flex-row xl:items-end">
+   <div>
+    <h2 class="text-lg font-bold text-zinc-900">Rendimiento de la tienda</h2>
+    <p class="mt-1 text-sm text-zinc-500">Las ventas representan pedidos con pago aprobado, agrupados por fecha del pedido (hora de Lima).</p>
+   </div>
+   <div class="flex flex-wrap items-end gap-2">
+    <div class="inline-flex flex-wrap gap-1 rounded-lg bg-zinc-100 p-1" role="group" aria-label="Periodo de ventas">
+     <button *ngFor="let n of [7,30,90]" type="button" (click)="usarPeriodo(n)"
+       class="rounded-md px-3 py-2 text-xs font-semibold" [class.bg-white]="periodo===n" [class.shadow-sm]="periodo===n">{{n}} días</button>
+    </div>
+    <label class="flex flex-col gap-1 text-xs font-semibold text-zinc-500">Desde
+     <input type="date" [(ngModel)]="desde" (ngModelChange)="periodo=0" class="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900"></label>
+    <label class="flex flex-col gap-1 text-xs font-semibold text-zinc-500">Hasta
+     <input type="date" [(ngModel)]="hasta" (ngModelChange)="periodo=0" class="rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-900"></label>
+    <button type="button" (click)="cargar()" [disabled]="busy"
+      class="min-h-10 rounded-lg bg-zinc-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50">{{busy?'Consultando…':'Aplicar filtros'}}</button>
+   </div>
+  </div>
+  <div *ngIf="error" role="alert" class="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{error}}</div>
+ </div>
+
+ <ng-container *ngIf="reporte as r">
+  <div class="grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
+   <div class="rounded-2xl border border-zinc-200 bg-zinc-900 p-5 text-white col-span-2 lg:col-span-1 xl:col-span-2">
+    <p class="text-xs uppercase tracking-widest text-zinc-300">Ventas confirmadas</p>
+    <p class="mt-3 text-3xl font-bold tracking-tight">{{dinero(r.kpis.ventasConfirmadas)}}</p>
+    <p class="mt-2 text-xs text-zinc-300">No incluye pagos pendientes.</p>
+   </div>
+   <div class="rounded-2xl border border-zinc-200 bg-white p-5">
+    <p class="text-xs font-semibold text-zinc-500">Pedidos pagados</p>
+    <p class="mt-3 text-3xl font-bold">{{r.kpis.pedidosConfirmados}}</p>
+   </div>
+   <div class="rounded-2xl border border-zinc-200 bg-white p-5">
+    <p class="text-xs font-semibold text-zinc-500">Pedidos creados</p>
+    <p class="mt-3 text-3xl font-bold">{{r.kpis.pedidosRegistrados}}</p>
+   </div>
+   <div class="rounded-2xl border border-zinc-200 bg-white p-5">
+    <p class="text-xs font-semibold text-zinc-500">Por verificar</p>
+    <p class="mt-3 text-3xl font-bold text-amber-700">{{r.kpis.pagosEnRevision}}</p>
+   </div>
+   <div class="rounded-2xl border border-zinc-200 bg-white p-5">
+    <p class="text-xs font-semibold text-zinc-500">Ticket promedio</p>
+    <p class="mt-3 text-2xl font-bold">{{dinero(r.kpis.ticketPromedio)}}</p>
+    <p class="mt-2 text-xs text-zinc-500">{{r.kpis.unidadesVendidas}} unidades vendidas</p>
+   </div>
+  </div>
+  <div class="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
+   <section class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
+    <div class="mb-4"><h3 class="font-bold">Evolución de ventas</h3><p class="mt-1 text-xs text-zinc-500">Importes cobrados de pedidos creados en el periodo · S/</p></div>
+    <div *ngIf="barras().length" class="flex h-64 items-end gap-1 border-b border-zinc-200 pb-1 sm:gap-2" role="img" aria-label="Gráfico de barras de ventas por fechas">
+     <div *ngFor="let b of barras()" class="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2" [title]="b.etiqueta+': '+dinero(b.importe)+' · '+b.pedidos+' pedidos'">
+      <span class="hidden text-[10px] font-semibold text-zinc-500 sm:block" *ngIf="b.importe>0">{{dinero(b.importe)}}</span>
+      <div class="w-full max-w-12 rounded-t-md bg-zinc-800 transition-all hover:bg-zinc-600"
+        [style.height.%]="b.porcentaje" [style.min-height.px]="b.importe>0?5:0"></div>
+     </div>
+    </div>
+    <div *ngIf="barras().length" class="mt-3 flex gap-1 sm:gap-2">
+      <span *ngFor="let b of barras()" class="min-w-0 flex-1 overflow-hidden text-center text-[9px] text-zinc-500 sm:text-[10px]" [title]="b.etiqueta">{{b.etiqueta}}</span>
+    </div>
+    <p *ngIf="!r.kpis.pedidosConfirmados" class="mt-4 rounded-lg bg-zinc-50 p-3 text-xs text-zinc-500">No hay pagos confirmados en el periodo elegido.</p>
+   </section>
+   <section class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
+    <h3 class="font-bold">Ingresos por método de pago</h3>
+    <p class="mt-1 text-xs text-zinc-500">Distribución de ventas confirmadas.</p>
+    <div class="mt-7 flex flex-col items-center gap-6 sm:flex-row">
+     <div class="flex size-44 shrink-0 items-center justify-center rounded-full" [style.background]="graficoCircular()" role="img" aria-label="Gráfico circular de ingresos por método">
+      <div class="flex size-28 flex-col items-center justify-center rounded-full bg-white text-center">
+       <span class="text-[10px] text-zinc-500">Total cobrado</span>
+       <strong class="mt-1 text-sm">{{dinero(totalMedios())}}</strong>
+      </div>
+     </div>
+     <div class="min-w-0 flex-1 space-y-3">
+      <div *ngFor="let m of r.mediosPago;let i=index" class="flex items-center justify-between gap-3 text-xs">
+       <div class="flex min-w-0 items-center gap-2"><span class="size-2.5 shrink-0 rounded-full" [style.background]="colores[i%colores.length]"></span>
+         <span class="truncate">{{m.nombre}}</span></div><strong>{{dinero(m.importe)}}</strong>
+      </div>
+      <p *ngIf="!r.mediosPago.length" class="text-sm text-zinc-500">Sin pagos confirmados.</p>
+     </div>
+    </div>
+   </section>
+  </div>
+  <div class="grid gap-5 lg:grid-cols-3">
+   <section class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
+    <h3 class="font-bold">Productos más vendidos</h3><p class="mt-1 text-xs text-zinc-500">Unidades de pedidos pagados.</p>
+    <div class="mt-6 space-y-4">
+     <div *ngFor="let p of r.topProductos" class="space-y-2">
+      <div class="flex justify-between gap-3 text-xs"><span class="line-clamp-1">{{p.nombre}}</span><strong>{{p.unidades}} un.</strong></div>
+      <div class="h-2 overflow-hidden rounded-full bg-zinc-100"><div class="h-full rounded-full bg-zinc-800" [style.width.%]="100*p.unidades/maxTop()"></div></div>
+     </div><p *ngIf="!r.topProductos.length" class="text-sm text-zinc-500">Aún no hay productos vendidos.</p>
+    </div>
+   </section>
+   <section class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
+    <h3 class="font-bold">Estados de pedidos</h3><p class="mt-1 text-xs text-zinc-500">Incluye todos los pedidos del periodo.</p>
+    <div class="mt-6 space-y-4">
+     <div *ngFor="let e of estados()" class="space-y-2">
+      <div class="flex justify-between gap-3 text-xs"><span>{{etiquetaEstado(e.estado)}}</span><strong>{{e.cantidad}}</strong></div>
+      <div class="h-2 overflow-hidden rounded-full bg-zinc-100"><div class="h-full rounded-full bg-[#9f806e]" [style.width.%]="e.porcentaje"></div></div>
+     </div><p *ngIf="!r.estados.length" class="text-sm text-zinc-500">Sin pedidos en estas fechas.</p>
+    </div>
+   </section>
+   <section class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
+    <h3 class="font-bold">Alertas de inventario</h3><p class="mt-1 text-xs text-zinc-500">Variantes sin stock o por debajo del mínimo.</p>
+    <div class="mt-5 space-y-3">
+     <div *ngFor="let p of productosCriticos()" class="flex items-start justify-between gap-3 border-b border-zinc-100 pb-3 text-xs">
+      <span class="line-clamp-2 text-zinc-700">{{p.nombre}}</span><strong class="shrink-0 text-amber-800">{{p.stock}} un.</strong>
+     </div>
+     <p *ngIf="!productosCriticos().length" class="text-sm text-zinc-500">No hay alertas de stock mínimo.</p>
+    </div>
+   </section>
+  </div>
+ </ng-container>
+ <div *ngIf="busy && !reporte" class="rounded-2xl border border-zinc-200 bg-white p-12 text-center text-sm text-zinc-600">Consultando ventas y estadísticas…</div>
+</section>

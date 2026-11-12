@@ -39,6 +39,17 @@ export interface Item {
 export interface MetodoPago {
   idMetodoPago: number;
   nombre: string;
+  codigo: string;
+  descripcion?: string|null;
+  requiereComprobante: boolean;
+  activo: boolean;
+  configurado: boolean;
+  telefonoYape?: string|null;
+  qrUrl?: string|null;
+  titular?: string|null;
+  banco?: string|null;
+  numeroCuenta?: string|null;
+  cci?: string|null;
 }
 export interface AuthResponse {
   token?: string;
