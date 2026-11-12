@@ -12,6 +12,7 @@ export interface Pedido {
   total: number;
   estado: string;
   estadoPago: string;
+  metodoPago: string;
   evidenciaDisponible: boolean;
   motivoRechazo: string|null;
   boletaDisponible: boolean;
