@@ -36,6 +36,7 @@
    <p *ngIf="message()" class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">{{message()}}</p>
    <p *ngIf="error()" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{error()}}</p>
    <app-admin-dashboard *ngIf="tab()==='resumen'" [products]="products()"></app-admin-dashboard>
+   <app-admin-correo *ngIf="tab()==='resumen'" class="mt-6 block"></app-admin-correo>
    <app-admin-payments *ngIf="tab()==='pagos'"></app-admin-payments>
 
    <section *ngIf="tab()==='productos'" class="space-y-5" aria-label="Inventario">
