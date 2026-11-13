@@ -1,15 +1,15 @@
 <header class="sticky top-0 z-30 border-b border-zinc-200 bg-white/95 backdrop-blur-md">
-  <div class="mx-auto flex min-h-[76px] max-w-[1480px] items-center justify-between gap-4 px-4 sm:px-7 xl:px-10">
+  <div class="mx-auto flex min-h-[64px] max-w-[1480px] items-center justify-between gap-2 px-3 py-2 min-[375px]:px-4 sm:min-h-[76px] sm:gap-4 sm:px-7 xl:px-10">
     <a routerLink="/" class="flex min-w-0 shrink-0 items-center" aria-label="Nayeli's moda — inicio">
-      <img [src]="logo" alt="Nayeli’s moda" class="h-auto w-32 object-contain sm:w-40 xl:w-44" width="176" height="60">
+      <img [src]="logo" alt="Nayeli’s moda" class="h-auto w-24 object-contain min-[375px]:w-32 sm:w-40 xl:w-44" width="176" height="60">
     </a>
-    <div class="flex min-w-0 items-center justify-end gap-2 sm:gap-3 lg:gap-4">
+    <div class="flex min-w-0 shrink-0 items-center justify-end gap-1.5 sm:gap-3 lg:gap-4">
       <a *ngIf="!loggedIn()" routerLink="/login" class="hidden rounded-full px-3 py-2 text-sm font-medium hover:bg-zinc-100 sm:inline-flex">Mi cuenta</a>
       <a *ngIf="loggedIn()" routerLink="/perfil" class="hidden rounded-full px-3 py-2 text-sm font-medium hover:bg-zinc-100 lg:inline-flex">Mi perfil</a>
       <a *ngIf="loggedIn()" routerLink="/mis-pedidos" class="hidden rounded-full px-3 py-2 text-sm font-medium hover:bg-zinc-100 lg:inline-flex">Mis pedidos</a>
       <a *ngIf="loggedIn() && isAdmin()" routerLink="/admin" class="hidden rounded-full border border-zinc-200 px-4 py-2 text-sm font-semibold hover:bg-zinc-50 lg:inline-flex">Panel admin</a>
       <button *ngIf="loggedIn()" type="button" (click)="logout()" class="hidden px-2 py-2 text-sm text-zinc-500 hover:text-zinc-900 xl:inline-flex">Salir</button>
-      <a routerLink="/carrito" class="inline-flex shrink-0 items-center gap-2 rounded-full bg-zinc-900 px-3 py-2.5 text-xs font-semibold text-white sm:px-5 sm:text-sm" aria-label="Ver bolsa de compras">
+      <a routerLink="/carrito" class="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-zinc-900 px-3 py-2.5 text-xs font-semibold text-white sm:gap-2 sm:px-5 sm:text-sm" aria-label="Ver bolsa de compras">
         Bolsa <span class="rounded-full bg-white/20 px-2 py-0.5">{{cart.count()}}</span>
       </a>
       <button type="button" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-zinc-200 text-xl lg:hidden"
@@ -24,7 +24,7 @@
       <a routerLink="/nosotros" class="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-zinc-700">Nosotros</a>
     </div>
   </nav>
-  <nav *ngIf="menu()" id="nayelis-mobile-nav" class="flex flex-col gap-1 border-t border-zinc-100 bg-white px-5 py-4 shadow-lg lg:hidden" aria-label="Menú móvil">
+  <nav *ngIf="menu()" id="nayelis-mobile-nav" class="flex max-h-[calc(100dvh-64px)] flex-col gap-1 overflow-y-auto overscroll-contain border-t border-zinc-100 bg-white px-4 py-3 shadow-lg lg:hidden" aria-label="Menú móvil">
     <a routerLink="/" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-50">Inicio</a>
     <a *ngFor="let c of categories" [routerLink]="['/catalogo',c.toLowerCase()]" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm hover:bg-zinc-50">{{c}}</a>
     <a routerLink="/contacto" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm hover:bg-zinc-50">Contacto</a>
@@ -38,5 +38,5 @@
   </nav>
 </header>
 <router-outlet></router-outlet>
-<footer class="bg-zinc-950 text-white mt-20"><div class="max-w-7xl mx-auto px-5 py-14 grid gap-8 md:grid-cols-3"><div><img [src]="logo" alt="Nayeli’s moda" class="w-44 h-auto brightness-0 invert mb-5" width="176" height="60"/><p>Moda femenina, calzado y accesorios.</p></div><div><h3 class="font-semibold mb-4">CONTACTO</h3><p>912 675 893</p><p><a href="mailto:monarca_atencion@gmail.com" class="underline underline-offset-4">Escríbenos por correo</a></p></div><div><h3 class="font-semibold mb-4">EXPLORA</h3><a routerLink="/nosotros">Nosotros</a><p class="text-zinc-400 text-sm mt-5">© 2026 Nayeli’s moda.</p></div></div></footer>
+<footer class="mt-12 bg-zinc-950 text-white sm:mt-20"><div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-5 sm:py-14 md:grid-cols-3"><div><img [src]="logo" alt="Nayeli’s moda" class="w-44 h-auto brightness-0 invert mb-5" width="176" height="60"/><p>Moda femenina, calzado y accesorios.</p></div><div><h3 class="font-semibold mb-4">CONTACTO</h3><p>912 675 893</p><p><a href="mailto:monarca_atencion@gmail.com" class="underline underline-offset-4">Escríbenos por correo</a></p></div><div><h3 class="font-semibold mb-4">EXPLORA</h3><a routerLink="/nosotros">Nosotros</a><p class="text-zinc-400 text-sm mt-5">© 2026 Nayeli’s moda.</p></div></div></footer>
 
