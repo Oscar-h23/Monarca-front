@@ -1,9 +1,9 @@
 <main class="min-h-[75vh] grid md:grid-cols-2">
  <section class="hidden md:block relative"><img src="https://raw.githubusercontent.com/jpumaricradgjdgp-cyber/Monarca_herramientas_de_desarrollo/main/fronted/img/portada.png" alt="Moda Nayeli’s moda" class="w-full h-full max-h-[880px] object-cover"><div class="absolute bottom-10 left-10 text-white drop-shadow"><p class="text-5xl heading">Tu estilo.<br>Tu esencia.</p></div></section>
- <section class="px-5 py-12 sm:px-14 flex items-center justify-center">
+ <section class="flex min-w-0 items-center justify-center px-4 py-8 sm:px-8 sm:py-12 lg:px-14">
  <div class="w-full max-w-md">
-  <a routerLink="/" aria-label="Ir al inicio"><img [src]="logo" alt="Nayeli’s moda" class="w-56 sm:w-64 h-auto object-contain mb-10"></a>
-  <h1 class="heading text-4xl mb-3">{{mode()==='login'?'Iniciar sesión':mode()==='registro'?'Crear cuenta':mode()==='recuperar'?'Recuperar contraseña':'Nueva contraseña'}}</h1>
+  <a routerLink="/" aria-label="Ir al inicio"><img [src]="logo" alt="Nayeli’s moda" class="mb-7 h-auto w-44 max-w-full object-contain sm:mb-10 sm:w-64"></a>
+  <h1 class="heading mb-3 break-words text-3xl sm:text-4xl">{{mode()==='login'?'Iniciar sesión':mode()==='registro'?'Crear cuenta':mode()==='recuperar'?'Recuperar contraseña':'Nueva contraseña'}}</h1>
   <p class="text-zinc-500 mb-8">{{mode()==='login'?'Ingresa a tu cuenta Nayeli’s moda':mode()==='registro'?'Regístrate para comenzar a comprar':mode()==='recuperar'?'Te enviaremos un enlace si existe una cuenta':'Elige una nueva contraseña segura'}}</p>
   <div *ngIf="mode()==='login'||mode()==='registro'" class="mb-8">
     <p class="text-center text-sm font-medium text-zinc-700 mb-3">{{mode()==='login'?'Inicia sesión con Google':'Crea tu cuenta con Google'}}</p>
@@ -11,7 +11,7 @@
     <p class="text-xs text-center text-zinc-500 mt-3">¿Ya tienes una cuenta? Accede con tu correo y contraseña, y después activa Google en Mi perfil.</p>
     <div class="flex items-center gap-3 mt-6" aria-hidden="true">
       <span class="h-px flex-1 bg-zinc-200"></span>
-      <span class="text-xs text-zinc-500 whitespace-nowrap">o utiliza tu correo electrónico</span>
+      <span class="text-center text-[11px] text-zinc-500 sm:whitespace-nowrap sm:text-xs">o utiliza tu correo electrónico</span>
       <span class="h-px flex-1 bg-zinc-200"></span>
     </div>
   </div>
@@ -22,7 +22,7 @@
    </ng-container>
    <label *ngIf="mode()!=='restablecer'" class="block text-sm font-semibold">Correo electrónico<input type="email" class="field mt-2" name="email" [(ngModel)]="email" autocomplete="email" maxlength="150" required></label>
    <label *ngIf="mode()!=='recuperar'" class="block text-sm font-semibold">Contraseña
-    <div class="flex gap-2 mt-2"><input [type]="showPassword()?'text':'password'" class="field" name="password" [(ngModel)]="password" autocomplete="new-password" [attr.minlength]="mode()==='login'?null:8" required><button type="button" class="px-3 border" (click)="showPassword.set(!showPassword())">{{showPassword()?'Ocultar':'Ver'}}</button></div>
+    <div class="mt-2 flex min-w-0 gap-2"><input [type]="showPassword()?'text':'password'" class="field min-w-0 flex-1" name="password" [(ngModel)]="password" autocomplete="new-password" [attr.minlength]="mode()==='login'?null:8" required><button type="button" class="min-h-11 shrink-0 rounded-lg border border-zinc-300 px-3 text-sm" (click)="showPassword.set(!showPassword())">{{showPassword()?'Ocultar':'Ver'}}</button></div>
    </label>
    <label *ngIf="mode()==='registro'||mode()==='restablecer'" class="block text-sm font-semibold">Confirmar contraseña<input type="password" class="field mt-2" name="confirm" [(ngModel)]="confirmPassword" autocomplete="new-password" minlength="8" required></label>
    <button type="submit" class="btn-dark w-full" [disabled]="busy()||(mode()==='restablecer'&&!resetTokenValid())">{{busy()?'Procesando…':mode()==='login'?'Iniciar sesión':mode()==='registro'?'Crear mi cuenta':mode()==='recuperar'?'Enviar enlace':'Guardar nueva contraseña'}}</button>
