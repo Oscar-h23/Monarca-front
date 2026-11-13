@@ -4,7 +4,7 @@
    <h2 class="text-base font-bold text-zinc-900">Notificaciones por correo</h2>
    <p class="mt-1 max-w-2xl text-xs leading-relaxed text-zinc-600">
     Cuando hay un pedido nuevo o un pago por verificar, se notifica al administrador.
-    El cliente recibe actualizaciones de compra. Comprueba aquí la conexión del backend con Resend.
+    El cliente recibe actualizaciones de compra. Comprueba aquí el envío de correos mediante Resend (HTTPS en Railway Hobby).
    </p>
   </div>
   <button type="button" (click)="actualizar()" [disabled]="cargando || probando"
@@ -27,9 +27,9 @@
   </div>
   <p class="mt-3 text-xs text-zinc-600">{{e.mensaje}}</p>
   <div class="mt-4 grid grid-cols-2 gap-2 md:grid-cols-3">
-   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Servidor SMTP: <strong>{{e.servidorSmtp?'OK':'Falta'}}</strong></p>
-   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Usuario Resend: <strong>{{e.usuarioResend?'OK':'Revisar'}}</strong></p>
-   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">API Key: <strong>{{e.claveSmtp?'Configurada':'Falta'}}</strong></p>
+   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Configuración de servidor: <strong>{{e.servidorSmtp?'OK':'Falta'}}</strong></p>
+   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Usuario de Resend: <strong>{{e.usuarioResend?'OK':'Revisar'}}</strong></p>
+   <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Clave de Resend: <strong>{{e.claveSmtp?'Configurada':'Falta'}}</strong></p>
    <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Remitente: <strong>{{e.remitenteValido?'Formato válido':'Falta'}}</strong></p>
    <p class="rounded-lg bg-zinc-50 px-3 py-2 text-xs">Spring Mail: <strong>{{e.servicioCorreo?'Disponible':'No disponible'}}</strong></p>
   </div>
@@ -39,7 +39,7 @@
    <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
     <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Eventos creados</p><strong class="mt-1 block text-lg">{{e.eventosPublicados}}</strong></div>
     <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Transacciones confirmadas</p><strong class="mt-1 block text-lg">{{e.eventosConfirmados}}</strong></div>
-    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Mensajes aceptados por SMTP</p><strong class="mt-1 block text-lg text-emerald-800">{{e.mensajesAceptadosSmtp}}</strong></div>
+    <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Correos aceptados por Resend</p><strong class="mt-1 block text-lg text-emerald-800">{{e.mensajesAceptadosSmtp}}</strong></div>
     <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Envíos fallidos</p><strong class="mt-1 block text-lg text-red-700">{{e.mensajesFallidosSmtp}}</strong></div>
     <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Eventos omitidos</p><strong class="mt-1 block text-lg text-amber-800">{{e.eventosOmitidos}}</strong></div>
     <div class="rounded-lg border border-zinc-200 bg-white p-3"><p class="text-[11px] text-zinc-500">Sin transacción</p><strong class="mt-1 block text-lg text-amber-800">{{e.eventosSinTransaccion}}</strong></div>
@@ -47,7 +47,7 @@
    <p class="mt-3 text-xs leading-relaxed text-zinc-500">
      Si no aumenta «Eventos creados», no se está notificando desde la operación.
      Si aumenta «Transacciones confirmadas» pero aparecen errores u omisiones, revisa SMTP y los logs.
-     Si SMTP acepta el mensaje pero no llega, consulta el historial de envíos de Resend.
+     Si Resend acepta el correo pero no llega, consulta el historial de envíos de Resend.
    </p>
   </div>
   <p class="mt-3 text-xs text-zinc-500">
