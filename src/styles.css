@@ -6,3 +6,17 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .field{width:100%;border:1px solid #d4d4d8;border-radius:.35rem;padding:.8rem;background:white}
 .btn-dark{padding:.75rem 1.25rem;background:#18181b;color:#fff;border-radius:.25rem;cursor:pointer}
 .heading{font-family:Georgia,serif;letter-spacing:.05em}
+
+/* Layout móvil: controles táctiles e inputs que no agrandan el viewport. */
+html { width:100%; -webkit-text-size-adjust:100%; }
+body { min-width:0; margin:0; }
+input, select, textarea { min-width:0; max-width:100%; }
+img, video { max-width:100%; }
+@media(max-width:639px) {
+  .field { font-size:16px; min-height:44px; padding:.7rem .85rem; }
+  .btn-dark { min-height:44px; border-radius:.6rem; }
+}
+:where(a,button,input,select,textarea):focus-visible {
+  outline:2px solid #18181b;
+  outline-offset:3px;
+}
