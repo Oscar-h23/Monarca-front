@@ -65,7 +65,7 @@ export class AdminPage implements OnInit, OnDestroy {
   async asignarAdministrador(){
     if(this.administradoresBusy())return;
     const correo=this.correoAdministrador.trim().toLowerCase();
-    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(correo)){
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){
       this.administradoresError.set('Ingresa un correo válido.');return;
     }
     if(!window.confirm('¿Confirmas que deseas dar acceso administrativo completo a '+correo+'?'))return;
