@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Perfil, PerfilApi, PerfilEditable } from '../../core/services/perfil-api.service';
 import { GoogleButtonComponent } from '../../shared/google-button.component';
@@ -10,6 +10,12 @@ import { OrdersPage } from '../orders/orders.page';
 @Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink,GoogleButtonComponent,OrdersPage],templateUrl:'./profile.html'})
 export class ProfilePage implements OnInit,OnDestroy {
   private api=inject(PerfilApi);
+  private route=inject(ActivatedRoute);
+  private router=inject(Router);
+  onboarding=signal(false);
+  onboardingError=signal('');
+  onboardingFile:File|null=null;
+  onboardingFileName='';
   loading=signal(true);busy=signal(false);error=signal('');message=signal('');
   editing=signal(false);
   section=signal<'datos'|'direccion'|'medidas'|'foto'|'cuenta'|'pedidos'>('datos');
@@ -30,6 +36,7 @@ export class ProfilePage implements OnInit,OnDestroy {
         bustoCm:p.bustoCm,cinturaCm:p.cinturaCm,caderaCm:p.caderaCm,alturaCm:p.alturaCm};
       this.savedForm={...this.form};
       if(p.tieneFoto)await this.mostrarFoto();
+      if(this.route.snapshot.queryParamMap.get('onboarding')==='1')this.onboarding.set(true);
     }catch(e){this.error.set(this.mensajeError(e));}
     finally{this.loading.set(false);}
   }
@@ -74,6 +81,57 @@ export class ProfilePage implements OnInit,OnDestroy {
     }
     catch(e){this.error.set(this.mensajeError(e));}
     finally{this.busy.set(false);}
+  }
+  private closeOnboarding(){
+    this.onboarding.set(false);
+    this.onboardingFile=null;
+    this.onboardingFileName='';
+    this.onboardingError.set('');
+    void this.router.navigate([],{relativeTo:this.route,queryParams:{onboarding:null},
+      queryParamsHandling:'merge',replaceUrl:true});
+  }
+  skipOnboarding(){
+    if(this.busy())return;
+    if(this.savedForm)this.form={...this.savedForm};
+    this.closeOnboarding();
+  }
+  selectOnboardingPhoto(event:Event){
+    const input=event.target as HTMLInputElement;
+    const file=input.files?.[0];
+    input.value='';
+    if(!file)return;
+    if(file.size===0||file.size>4_000_000||!['image/jpeg','image/png','image/webp'].includes(file.type)){
+      this.onboardingError.set('La fotografía debe ser JPG, PNG o WebP de hasta 4 MB.');
+      return;
+    }
+    this.onboardingFile=file;
+    this.onboardingFileName=file.name;
+    this.onboardingError.set('');
+  }
+  async saveOnboarding(){
+    if(this.busy())return;
+    this.onboardingError.set('');
+    this.busy.set(true);
+    try{
+      if([this.form.bustoCm,this.form.cinturaCm,this.form.caderaCm,this.form.alturaCm]
+        .some(v=>v!==null&&(!Number.isFinite(Number(v))||Number(v)<=0))){
+        throw new Error('Revisa las medidas ingresadas.');
+      }
+      if(this.form.bustoCm!==null||this.form.cinturaCm!==null||
+         this.form.caderaCm!==null||this.form.alturaCm!==null){
+        await this.api.guardar(this.form);
+        this.savedForm={...this.form};
+      }
+      if(this.onboardingFile){
+        await this.api.subirFoto(this.onboardingFile);
+        this.hasPhoto.set(true);
+        try{await this.mostrarFoto();}catch{/* La fotografía se guardó; se cargará al volver al perfil. */}
+      }
+      this.closeOnboarding();
+      this.message.set('¡Preferencias guardadas exitosamente!');
+    }catch(e){
+      this.onboardingError.set(this.mensajeError(e));
+    }finally{this.busy.set(false);}
   }
   async vincularGoogle(credential:string){
     if(this.busy()||!this.editing())return;
