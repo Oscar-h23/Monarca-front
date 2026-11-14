@@ -52,6 +52,9 @@ export interface PeriodoVentas {
     pagosEnRevision: number;
     unidadesVendidas: number;
     ticketPromedio: number;
+    costoMercaderia: number;
+    gananciaVentaMenosCompra: number|null;
+    partidasSinCosto: number;
   };
   ventasDiarias: {fecha:string; importe:number; pedidos:number}[];
   mediosPago: {nombre:string; importe:number; pedidos:number}[];
