@@ -71,6 +71,8 @@ export interface MetodoPagoDraft {
   cci:string;
 }
 
+export interface CostoProducto {idProducto:number; costoCompra:number|null;}
+
 export interface ProductForm {
   idVariante: number | null;
   nombre: string;
@@ -82,6 +84,7 @@ export interface ProductForm {
   colorHex: string;
   precio: number;
   precioBase: number;
+  costoCompra: number|null;
   stock: number;
   stockMinimo: number;
   pechoCm: number|null;
@@ -144,6 +147,10 @@ export class AdminApi {
   guardarMetodo(id:number,datos:MetodoPagoDraft):Promise<MetodoPagoEditable> {
     return firstValueFrom(this.http.put<MetodoPagoEditable>(
       this.api.base + '/admin/metodos-pago/' + id,datos,{headers:this.api.headers()}));
+  }
+
+  listarCostos():Promise<CostoProducto[]> {
+    return firstValueFrom(this.http.get<CostoProducto[]>(this.api.base+'/admin/productos/costos',{headers:this.api.headers()}));
   }
 
   listOrders(): Promise<Pedido[]> {
