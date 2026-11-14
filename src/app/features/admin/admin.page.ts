@@ -203,6 +203,24 @@ export class AdminPage implements OnInit, OnDestroy {
     return !!p.evidenciaDisponible && p.estadoPago==='EN_REVISION' && p.estado!=='CANCELADO';
   }
 
+  puedeAprobarPrueba(p:Pedido):boolean {
+    return !p.evidenciaDisponible && ['PENDIENTE','RECHAZADO'].includes(p.estadoPago)
+      && !['CANCELADO','FINALIZADO'].includes(p.estado);
+  }
+
+  async confirmarPedidoPrueba(){
+    const pedido=this.gestionPedido();
+    if(!pedido || !this.puedeAprobarPrueba(pedido) || this.gestionBusy())return;
+    if(!window.confirm('SOLO PRUEBAS: este pedido se marcará confirmado SIN comprobar un pago. No se contará como ingreso real en el dashboard. ¿Continuar?'))return;
+    this.gestionBusy.set(true);this.gestionError.set('');this.gestionMensaje.set('');
+    try{
+      await this.adminApi.aprobarPedidoPrueba(pedido.idPedido);
+      await this.actualizarGestion();
+      this.gestionMensaje.set('Pedido confirmado en modo prueba, sin evidencia ni abono registrado.');
+    }catch(e){this.gestionError.set(this.err(e));}
+    finally{this.gestionBusy.set(false);}
+  }
+
   proximoEstado(p:Pedido):string|null{
     if(p.estadoPago!=='PAGADO')return null;
     return this.siguientes[p.estado]||null;
