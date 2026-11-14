@@ -34,15 +34,18 @@
    [ngClass]="section()==='cuenta'?'bg-white text-zinc-950 shadow-sm':'text-white hover:bg-zinc-800 hover:text-white'">
    <span class="w-5 text-center" aria-hidden="true">◇</span>Cuenta y acceso
  </button>
-     <a routerLink="/mis-pedidos" class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 hover:text-white"><span class="w-5 text-center" aria-hidden="true">▤</span>Mis pedidos</a>
+     <button type="button" (click)="cambiarSeccion('pedidos')" [attr.aria-current]="section()==='pedidos'?'page':null"
+       class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
+       [ngClass]="section()==='pedidos'?'bg-white text-zinc-950 shadow-sm':'text-white hover:bg-zinc-800 hover:text-white'"><span class="w-5 text-center" aria-hidden="true">▤</span>Mis pedidos</button>
     </div>
   </nav>
   <div class="min-w-0 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-8">
-   <div class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-5">
+   <div *ngIf="section()!=='pedidos'" class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-5">
      <p class="text-sm text-zinc-500">{{editing()?'Modo edición: puedes realizar cambios.':'Modo consulta: tus datos están protegidos.'}}</p>
      <button *ngIf="!editing()" type="button" (click)="editar()" [disabled]="busy()" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-900 px-5 py-2 text-sm font-semibold hover:bg-zinc-100">Editar</button>
      <button *ngIf="editing()" type="button" (click)="cancelar()" [disabled]="busy()" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-300 px-5 py-2 text-sm font-semibold hover:bg-zinc-100">Cancelar edición</button>
    </div>
+   <app-orders *ngIf="section()==='pedidos'" [embedded]="true"></app-orders>
    <form (ngSubmit)="guardar()" *ngIf="section()==='datos'||section()==='direccion'||section()==='medidas'">
      <fieldset [disabled]="!editing() || busy()" class="min-w-0 border-0 p-0">
       <section *ngIf="section()==='datos'">
