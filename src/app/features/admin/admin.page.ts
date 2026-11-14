@@ -13,7 +13,7 @@ import { AdminPaymentsComponent } from './payments/admin-payments.page';
 
 function blankForm(): ProductForm {
   return {idVariante:null,nombre:'',categoria:'Tops',descripcion:'',marca:'Nayeli’s moda',talla:'ÚNICA',
-    color:'N/A',colorHex:'',precio:0,precioBase:0,stock:0,stockMinimo:0,
+    color:'N/A',colorHex:'',precio:0,precioBase:0,costoCompra:null,stock:0,stockMinimo:0,
     pechoCm:null,cinturaCm:null,caderaCm:null,largoCm:null,img:''};
 } 
 function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): ProductVariantForm {
@@ -32,6 +32,8 @@ export class AdminPage implements OnInit, OnDestroy {
   router=inject(Router);
   session=inject(SessionService);
   products=signal<Producto[]>([]);
+  costos=signal<Record<number,number|null>>({});
+  costoProducto(id:number):number|null{return this.costos()[id]??null;}
   orders=signal<Pedido[]>([]);
   gestionPedido=signal<Pedido|null>(null);
   imagenEvidencia=signal('');
@@ -149,6 +151,10 @@ export class AdminPage implements OnInit, OnDestroy {
       ]);
       if(products.status==='fulfilled'){
         this.products.set(products.value);
+        try{
+          const costos=await this.adminApi.listarCostos();
+          this.costos.set(Object.fromEntries(costos.map(c=>[c.idProducto,c.costoCompra])));
+        }catch{this.error.set(this.error()+' No se pudieron consultar los costos de compra.');}
         this.productPage.set(Math.min(this.productPage(),this.productTotalPages()));
       }
       else this.error.set('No se pudo cargar el inventario.');
@@ -391,7 +397,7 @@ export class AdminPage implements OnInit, OnDestroy {
     this.form={idVariante:v?.idVariante||null,nombre:p.nombre,categoria:p.categoria,
       descripcion:p.descripcion||'',marca:(p.marca?.trim().toLowerCase()==='monarca'?'Nayeli’s moda':(p.marca||'Nayeli’s moda')),talla:v?.talla||'ÚNICA',
       color:v?.color||'N/A',colorHex:v?.colorHex||'',precio:Number(v?.precio??p.precioBase),
-      precioBase:Number(p.precioBase),stock:v?.stock??0,stockMinimo:v?.stockMinimo??0,
+      precioBase:Number(p.precioBase),costoCompra:this.costoProducto(p.idProducto),stock:v?.stock??0,stockMinimo:v?.stockMinimo??0,
       pechoCm:v?.pechoCm??null,cinturaCm:v?.cinturaCm??null,caderaCm:v?.caderaCm??null,
       largoCm:v?.largoCm??null,img:p.imagen||''};
     this.editor.set(true);this.error.set('');
@@ -427,6 +433,9 @@ export class AdminPage implements OnInit, OnDestroy {
     }
     if(!Number.isFinite(data.precioBase)||data.precioBase<0){
       this.error.set('El precio base debe ser un número igual o mayor a cero.');return;
+    }
+    if(data.costoCompra===null || !Number.isFinite(Number(data.costoCompra)) || Number(data.costoCompra)<0){
+      this.error.set('Indica un costo de compra válido para el producto.');return;
     }
     if(data.img.trim()&&!/^https:\/\//i.test(data.img.trim())){
       this.error.set('La imagen debe ser una URL HTTPS.');return;
