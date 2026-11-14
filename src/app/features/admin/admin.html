@@ -255,6 +255,15 @@
           Motivo anterior: {{pedido.motivoRechazo}}
         </div>
 
+        <div *ngIf="puedeAprobarPrueba(pedido)" class="mt-5 rounded-lg border border-amber-300 bg-amber-50 p-4">
+           <p class="text-sm font-bold text-amber-900">Aprobación manual · Solo para pruebas</p>
+           <p class="mt-2 text-xs leading-relaxed text-amber-900">Confirmará el pedido sin comprobante ni pago verificado. No contará como ingreso en los reportes de ventas.</p>
+           <button type="button" [disabled]="gestionBusy()" (click)="confirmarPedidoPrueba()"
+             class="mt-4 w-full rounded-lg border border-amber-700 bg-white px-4 py-3 text-sm font-bold text-amber-900 disabled:opacity-50">
+             Confirmar pedido de prueba sin evidencia
+           </button>
+         </div>
+
         <div *ngIf="puedeRevisar(pedido)" class="mt-5 space-y-4">
           <p class="text-xs font-medium text-amber-800">Verifica el abono en tu propia cuenta antes de confirmarlo. La captura por sí sola no demuestra un pago.</p>
           <button type="button" [disabled]="gestionBusy()||imagenCargando()||!imagenEvidencia()"
