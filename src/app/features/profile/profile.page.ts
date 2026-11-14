@@ -10,6 +10,8 @@ import { GoogleButtonComponent } from '../../shared/google-button.component';
 export class ProfilePage implements OnInit,OnDestroy {
   private api=inject(PerfilApi);
   loading=signal(true);busy=signal(false);error=signal('');message=signal('');
+  editing=signal(false);
+  private savedForm:PerfilEditable|null=null;
   fotoUrl=signal('');hasPhoto=signal(false);
   email='';
   googleVinculado=signal(false);
@@ -24,6 +26,7 @@ export class ProfilePage implements OnInit,OnDestroy {
         direccion:p.direccion||'',distrito:p.distrito||'',provincia:p.provincia||'',
         departamento:p.departamento||'',referencia:p.referencia||'',
         bustoCm:p.bustoCm,cinturaCm:p.cinturaCm,caderaCm:p.caderaCm,alturaCm:p.alturaCm};
+      this.savedForm={...this.form};
       if(p.tieneFoto)await this.mostrarFoto();
     }catch(e){this.error.set(this.mensajeError(e));}
     finally{this.loading.set(false);}
@@ -34,14 +37,39 @@ export class ProfilePage implements OnInit,OnDestroy {
   private mensajeError(e:unknown){return e instanceof HttpErrorResponse
     ?(typeof e.error?.error==='string'?e.error.error:'No fue posible completar la operación.')
     :(e instanceof Error?e.message:'No se pudo conectar con el servidor.');}
+  editar(){
+    if(this.busy())return;
+    this.error.set('');
+    this.message.set('');
+    this.savedForm={...this.form};
+    this.editing.set(true);
+  }
+  cancelar(){
+    if(this.busy())return;
+    if(this.savedForm)this.form={...this.savedForm};
+    this.editing.set(false);
+    this.error.set('');
+    this.message.set('');
+  }
   async guardar(){
-    if(this.busy())return;this.busy.set(true);this.error.set('');this.message.set('');
-    try{await this.api.guardar(this.form);this.message.set('Perfil actualizado correctamente.');}
+    if(this.busy()||!this.editing())return;
+    this.busy.set(true);this.error.set('');this.message.set('');
+    try{
+      const updated=await this.api.guardar(this.form);
+      this.form={nombres:updated.nombres,apellidos:updated.apellidos,telefono:updated.telefono||'',
+        tipoDocumento:updated.tipoDocumento||'DNI',numeroDocumento:updated.numeroDocumento||'',
+        direccion:updated.direccion||'',distrito:updated.distrito||'',provincia:updated.provincia||'',
+        departamento:updated.departamento||'',referencia:updated.referencia||'',
+        bustoCm:updated.bustoCm,cinturaCm:updated.cinturaCm,caderaCm:updated.caderaCm,alturaCm:updated.alturaCm};
+      this.savedForm={...this.form};
+      this.editing.set(false);
+      this.message.set('¡Cambios guardados exitosamente!');
+    }
     catch(e){this.error.set(this.mensajeError(e));}
     finally{this.busy.set(false);}
   }
   async vincularGoogle(credential:string){
-    if(this.busy())return;
+    if(this.busy()||!this.editing())return;
     this.busy.set(true);this.googleError.set('');this.googleMessage.set('');
     try{
       await this.api.vincularGoogle(credential);
@@ -52,6 +80,7 @@ export class ProfilePage implements OnInit,OnDestroy {
   }
   async subir(event:Event){
     const input=event.target as HTMLInputElement;
+    if(this.busy()||!this.editing()){input.value='';return;}
     const file=input.files?.[0];if(!file)return;
     input.value='';
     if(file.size>4_000_000||!['image/jpeg','image/png','image/webp'].includes(file.type)){
@@ -64,7 +93,7 @@ export class ProfilePage implements OnInit,OnDestroy {
     finally{this.busy.set(false);}
   }
   async borrar(){
-    if(this.busy()||!this.hasPhoto())return;
+    if(this.busy()||!this.editing()||!this.hasPhoto())return;
     this.busy.set(true);this.error.set('');this.message.set('');
     try{await this.api.borrarFoto();this.limpiarFoto();this.hasPhoto.set(false);
       this.message.set('Foto eliminada del perfil.');}
