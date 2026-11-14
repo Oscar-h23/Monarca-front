@@ -67,15 +67,32 @@ export class AuthPage implements OnInit{
       if(mode==='login'){
         if(!response.token)throw new Error('El servidor no envió el token de sesión.');
         this.session.start(response.token,response.rol||'');
-        await this.router.navigateByUrl(response.rol==='ROLE_ADMIN'?'/admin':'/');
-      }else{
-        if(mode==='registro'||mode==='restablecer'){
-          if(mode==='restablecer'){
-            this.resetToken=null;this.session.clear();
-          }
+        const pending=localStorage.getItem('nayelis_onboarding_pending');
+        const showWelcome=response.rol!=='ROLE_ADMIN'&&pending===this.email.trim().toLowerCase();
+        if(showWelcome)localStorage.removeItem('nayelis_onboarding_pending');
+        await this.router.navigateByUrl(response.rol==='ROLE_ADMIN'?'/admin':showWelcome?'/perfil?onboarding=1':'/');
+      }else if(mode==='registro'){
+        // El registro no garantiza una sesión: se intenta iniciar sesión antes de abrir el perfil.
+        const registeredEmail=this.email.trim().toLowerCase();
+        localStorage.setItem('nayelis_onboarding_pending',registeredEmail);
+        try{
+          const login=await this.api.auth('login',{email:registeredEmail,password:this.password});
+          if(!login.token)throw new Error('Sesión no disponible');
+          this.session.start(login.token,login.rol||'');
+          localStorage.removeItem('nayelis_onboarding_pending');
+          this.password='';this.confirmPassword='';
+          await this.router.navigateByUrl(login.rol==='ROLE_ADMIN'?'/admin':'/perfil?onboarding=1');
+        }catch{
+          // Si se requiere verificar el correo, el asistente aparecerá en el primer ingreso.
           this.password='';this.confirmPassword='';this.setMode('login');
-          this.message.set(response.mensaje||'Operación completada. Ya puedes iniciar sesión.');
-        }else this.message.set(response.mensaje||'Si el correo existe, recibirás un enlace.');
+          this.message.set('Cuenta creada. Inicia sesión para completar opcionalmente tus medidas y fotografía.');
+        }
+      }else if(mode==='restablecer'){
+        this.resetToken=null;this.session.clear();
+        this.password='';this.confirmPassword='';this.setMode('login');
+        this.message.set(response.mensaje||'Contraseña actualizada. Ya puedes iniciar sesión.');
+      }else{
+        this.message.set(response.mensaje||'Si el correo existe, recibirás un enlace.');
       }
     }catch(e){this.fail(this.errorMessage(e));}
     finally{this.busy.set(false);}
