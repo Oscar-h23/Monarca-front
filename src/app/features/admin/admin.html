@@ -24,6 +24,8 @@
       class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Inventario <span class="ml-1 text-xs opacity-70">({{products().length}})</span></button>
     <button type="button" (click)="tab.set('pagos')" [class.bg-zinc-900]="tab()==='pagos'" [class.text-white]="tab()==='pagos'"
       class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Métodos de pago</button>
+    <button type="button" (click)="abrirAdministradores()" [class.bg-zinc-900]="tab()==='administradores'" [class.text-white]="tab()==='administradores'"
+      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Administradores</button>
    </nav>
    <div class="mt-5 hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-5 lg:block">
     <p class="text-xs font-bold text-zinc-700">Existencias totales</p>
@@ -36,8 +38,34 @@
    <p *ngIf="message()" class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">{{message()}}</p>
    <p *ngIf="error()" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{error()}}</p>
    <app-admin-dashboard *ngIf="tab()==='resumen'" [products]="products()"></app-admin-dashboard>
-   <app-admin-correo *ngIf="tab()==='resumen'" class="mt-6 block"></app-admin-correo>
    <app-admin-payments *ngIf="tab()==='pagos'"></app-admin-payments>
+   <section *ngIf="tab()==='administradores'" class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-7" aria-label="Gestión de administradores">
+    <h2 class="text-xl font-bold text-zinc-900">Administradores</h2>
+    <p class="mt-2 text-sm leading-relaxed text-zinc-600">Asigna permisos de administración a una cuenta existente mediante su correo. Esta acción concede acceso a pedidos, inventario, pagos y configuración.</p>
+    <form (ngSubmit)="asignarAdministrador()" class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-end">
+     <label class="block min-w-0 flex-1 text-sm font-semibold text-zinc-800">Correo de la cuenta
+      <input name="correoAdministrador" type="email" autocomplete="off" maxlength="150" required class="field mt-2"
+       placeholder="correo@ejemplo.com" [(ngModel)]="correoAdministrador">
+     </label>
+     <button type="submit" class="min-h-12 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+       [disabled]="administradoresBusy() || !correoAdministrador.trim()">{{administradoresBusy()?'Procesando…':'Asignar administrador'}}</button>
+    </form>
+    <p *ngIf="administradoresError()" role="alert" class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{administradoresError()}}</p>
+    <p *ngIf="administradoresMensaje()" role="status" class="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{{administradoresMensaje()}}</p>
+    <div class="mt-7 border-t border-zinc-200 pt-5">
+     <div class="flex flex-wrap items-center justify-between gap-3">
+      <h3 class="font-semibold text-zinc-900">Cuentas administradoras activas</h3>
+      <button type="button" (click)="cargarAdministradores()" [disabled]="administradoresBusy()" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium">Actualizar lista</button>
+     </div>
+     <p *ngIf="!administradores().length" class="mt-4 text-sm text-zinc-500">No hay administradores para mostrar.</p>
+     <ul class="mt-4 divide-y divide-zinc-100">
+      <li *ngFor="let admin of administradores()" class="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
+       <span class="min-w-0 break-all font-semibold">{{admin.correo}}</span>
+       <span class="text-zinc-500">{{admin.nombres}} {{admin.apellidos}}</span>
+      </li>
+     </ul>
+    </div>
+   </section>
 
    <section *ngIf="tab()==='productos'" class="space-y-5" aria-label="Inventario">
     <div class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
