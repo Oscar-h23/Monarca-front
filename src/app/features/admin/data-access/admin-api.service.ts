@@ -19,6 +19,13 @@ export interface Pedido {
   boletaDisponible: boolean;
 }
 
+export interface AdministradorCuenta {
+  idUsuario:number;
+  correo:string;
+  nombres:string;
+  apellidos:string;
+}
+
 export interface EstadoCorreoAdmin {
   configurado: boolean;
   servidorSmtp: boolean;
@@ -104,6 +111,13 @@ export type NewProductForm = ProductForm & { variantes: ProductVariantForm[] };
 export class AdminApi {
   private readonly http = inject(HttpClient);
   private readonly api = inject(Api);
+
+  listarAdministradores():Promise<AdministradorCuenta[]> {
+    return firstValueFrom(this.http.get<AdministradorCuenta[]>(this.api.base+'/admin/usuarios/administradores',{headers:this.api.headers()}));
+  }
+  asignarAdministrador(correo:string):Promise<{mensaje:string}> {
+    return firstValueFrom(this.http.put<{mensaje:string}>(this.api.base+'/admin/usuarios/administradores',{correo},{headers:this.api.headers()}));
+  }
 
   estadoCorreo(): Promise<EstadoCorreoAdmin> {
     return firstValueFrom(this.http.get<EstadoCorreoAdmin>(
