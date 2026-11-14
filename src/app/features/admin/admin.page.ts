@@ -7,10 +7,9 @@ import { Api } from '../../core/services/api.service';
 import { Producto, Variante } from '../../core/models/shop.models';
 import { asset } from '../../core/utils/assets';
 import { SessionService } from '../../core/services/session.service';
-import { AdminApi, Pedido, ProductForm, ProductVariantForm } from './data-access/admin-api.service';
+import { AdminApi, AdministradorCuenta, Pedido, ProductForm, ProductVariantForm } from './data-access/admin-api.service';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.page';
 import { AdminPaymentsComponent } from './payments/admin-payments.page';
-import { AdminCorreoComponent } from './mail/admin-correo.page';
 
 function blankForm(): ProductForm {
   return {idVariante:null,nombre:'',categoria:'Tops',descripcion:'',marca:'Nayeli’s moda',talla:'ÚNICA',
@@ -24,7 +23,7 @@ function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): Pr
 
 @Component({
   standalone:true, selector:'app-admin',
-  imports:[CommonModule,FormsModule,RouterLink,AdminDashboardComponent,AdminPaymentsComponent,AdminCorreoComponent],
+  imports:[CommonModule,FormsModule,RouterLink,AdminDashboardComponent,AdminPaymentsComponent],
   templateUrl:'./admin.html'
 })
 export class AdminPage implements OnInit, OnDestroy {
@@ -45,7 +44,42 @@ export class AdminPage implements OnInit, OnDestroy {
     CONFIRMADO:'EN_PREPARACION', EN_PREPARACION:'EN_CAMINO', EN_CAMINO:'FINALIZADO'
   };
   search=signal('');
-  tab=signal<'resumen'|'productos'|'pedidos'|'pagos'>('resumen');
+  tab=signal<'resumen'|'productos'|'pedidos'|'pagos'|'administradores'>('resumen');
+  correoAdministrador='';
+  administradores=signal<AdministradorCuenta[]>([]);
+  administradoresBusy=signal(false);
+  administradoresError=signal('');
+  administradoresMensaje=signal('');
+  abrirAdministradores(){
+    this.tab.set('administradores');
+    void this.cargarAdministradores();
+  }
+  async cargarAdministradores(){
+    if(this.administradoresBusy())return;
+    this.administradoresBusy.set(true);
+    this.administradoresError.set('');
+    try{this.administradores.set(await this.adminApi.listarAdministradores());}
+    catch(e){this.administradoresError.set(this.err(e));}
+    finally{this.administradoresBusy.set(false);}
+  }
+  async asignarAdministrador(){
+    if(this.administradoresBusy())return;
+    const correo=this.correoAdministrador.trim().toLowerCase();
+    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(correo)){
+      this.administradoresError.set('Ingresa un correo válido.');return;
+    }
+    if(!window.confirm('¿Confirmas que deseas dar acceso administrativo completo a '+correo+'?'))return;
+    this.administradoresBusy.set(true);
+    this.administradoresError.set('');
+    this.administradoresMensaje.set('');
+    try{
+      const result=await this.adminApi.asignarAdministrador(correo);
+      this.correoAdministrador='';
+      this.administradoresMensaje.set(result.mensaje);
+      this.administradores.set(await this.adminApi.listarAdministradores());
+    }catch(e){this.administradoresError.set(this.err(e));}
+    finally{this.administradoresBusy.set(false);}
+  }
   categoryFilter=signal('TODAS');
   productPage=signal(1);
   orderPage=signal(1);
