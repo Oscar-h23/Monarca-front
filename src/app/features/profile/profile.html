@@ -6,35 +6,35 @@
  </div>
  <p *ngIf="loading()" class="py-10" role="status">Cargando tu perfil…</p>
  <div *ngIf="!loading()" class="grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
-  <nav aria-label="Secciones de mi perfil" class="min-w-0 rounded-xl border border-zinc-200 bg-white p-3 lg:sticky lg:top-32">
+  <nav aria-label="Secciones de mi perfil" class="min-w-0 rounded-xl border border-zinc-900 bg-zinc-950 p-3 text-white lg:sticky lg:top-32">
     <p class="mb-3 px-3 text-xs font-semibold uppercase tracking-widest text-zinc-400">Mi cuenta</p>
     <div class="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
      <button type="button" (click)="cambiarSeccion('datos')" [attr.aria-current]="section()==='datos'?'page':null"
    class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
-   [ngClass]="section()==='datos'?'bg-zinc-900 text-white':'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'">
+   [ngClass]="section()==='datos'?'bg-white text-zinc-950 shadow-sm':'text-white hover:bg-zinc-800 hover:text-white'">
    <span class="w-5 text-center" aria-hidden="true">◉</span>Datos personales
  </button>
 <button type="button" (click)="cambiarSeccion('direccion')" [attr.aria-current]="section()==='direccion'?'page':null"
    class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
-   [ngClass]="section()==='direccion'?'bg-zinc-900 text-white':'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'">
+   [ngClass]="section()==='direccion'?'bg-white text-zinc-950 shadow-sm':'text-white hover:bg-zinc-800 hover:text-white'">
    <span class="w-5 text-center" aria-hidden="true">⌖</span>Dirección de entrega
  </button>
 <button type="button" (click)="cambiarSeccion('medidas')" [attr.aria-current]="section()==='medidas'?'page':null"
    class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
-   [ngClass]="section()==='medidas'?'bg-zinc-900 text-white':'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'">
+   [ngClass]="section()==='medidas'?'bg-white text-zinc-950 shadow-sm':'text-white hover:bg-zinc-800 hover:text-white'">
    <span class="w-5 text-center" aria-hidden="true">↔</span>Mis medidas
  </button>
 <button type="button" (click)="cambiarSeccion('foto')" [attr.aria-current]="section()==='foto'?'page':null"
    class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
-   [ngClass]="section()==='foto'?'bg-zinc-900 text-white':'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'">
+   [ngClass]="section()==='foto'?'bg-white text-zinc-950 shadow-sm':'text-white hover:bg-zinc-800 hover:text-white'">
    <span class="w-5 text-center" aria-hidden="true">▧</span>Mi fotografía
  </button>
 <button type="button" (click)="cambiarSeccion('cuenta')" [attr.aria-current]="section()==='cuenta'?'page':null"
    class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
-   [ngClass]="section()==='cuenta'?'bg-zinc-900 text-white':'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'">
+   [ngClass]="section()==='cuenta'?'bg-white text-zinc-950 shadow-sm':'text-white hover:bg-zinc-800 hover:text-white'">
    <span class="w-5 text-center" aria-hidden="true">◇</span>Cuenta y acceso
  </button>
-     <a routerLink="/mis-pedidos" class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"><span class="w-5 text-center" aria-hidden="true">▤</span>Mis pedidos</a>
+     <a routerLink="/mis-pedidos" class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 hover:text-white"><span class="w-5 text-center" aria-hidden="true">▤</span>Mis pedidos</a>
     </div>
   </nav>
   <div class="min-w-0 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-8">
