@@ -169,9 +169,9 @@ export class AdminApi {
     ));
   }
 
-  aprobarPedidoPrueba(idPedido:number):Promise<{mensaje:string}> {
+  confirmarPagoManual(idPedido:number):Promise<{mensaje:string}> {
     return firstValueFrom(this.http.put<{mensaje:string}>(
-      this.api.base + '/admin/pedidos/' + idPedido + '/aprobar-prueba',
+      this.api.base + '/admin/pedidos/' + idPedido + '/confirmar-pago-manual',
       {}, {headers:this.api.headers()}));
   }
 
