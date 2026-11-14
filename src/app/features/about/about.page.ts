@@ -12,7 +12,7 @@ export class AboutPage{
     {name:'Josue Gonzales',role:'Coordinación y desarrollo JavaScript',image:asset('Nosotros_img/josue.jpeg')},
     {name:'Luz Grandez',role:'HTML y experiencia visual',image:asset('Nosotros_img/Luz.png')},
     {name:'Jordy Espinoza',role:'CSS y diseño adaptable',image:asset('Nosotros_img/Juntos.jpg')},
-    {name:'Oscar Herrera Calle',role:'Desarrollo web',image:asset('Nosotros_img/oscar-herrera.jpg')}
+    {name:'Oscar Herrera Calle',role:'Desarrollo web',image:asset('Nosotros_img/oscar-avatar-v3.jpg')}
   ];
   values=['Centrado en las personas','Orientación al cliente','Desarrollo sostenible','Innovación','Integridad'];
 }
