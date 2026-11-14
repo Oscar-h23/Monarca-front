@@ -91,7 +91,8 @@
           <div class="min-w-0 flex-1">
             <p class="text-[11px] uppercase tracking-wide text-zinc-500">{{p.categoria}}</p>
             <h3 class="mt-1 break-words text-sm font-semibold leading-snug">{{p.nombre}}</h3>
-            <p class="mt-2 text-sm font-bold">S/ {{p.precioBase | number:'1.2-2'}}</p>
+            <p class="mt-2 text-sm font-bold">Venta: S/ {{p.precioBase | number:'1.2-2'}}</p>
+            <p class="mt-1 text-xs text-zinc-600">Compra: {{costoProducto(p.idProducto)===null?'Pendiente':'S/ '+(costoProducto(p.idProducto) | number:'1.2-2')}}</p>
           </div>
         </div>
         <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
@@ -114,8 +115,8 @@
     <div class="hidden overflow-x-auto rounded-2xl border border-zinc-200 bg-white md:block">
      <table class="w-full min-w-[740px] text-left">
       <thead class="bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-500"><tr>
-       <th class="px-5 py-4">Producto</th><th class="px-4 py-4">Categoría</th><th class="px-4 py-4">Precio base</th>
-       <th class="px-4 py-4">Stock</th><th class="px-4 py-4">Tallas</th><th class="px-4 py-4">Acciones</th>
+       <th class="px-5 py-4">Producto</th><th class="px-4 py-4">Categoría</th><th class="px-4 py-4">Precio de venta</th>
+       <th class="px-4 py-4">Costo compra</th><th class="px-4 py-4">Stock</th><th class="px-4 py-4">Tallas</th><th class="px-4 py-4">Acciones</th>
       </tr></thead>
       <tbody>
        <tr *ngFor="let p of visibleProducts()" class="border-t border-zinc-100 hover:bg-zinc-50/50">
@@ -124,6 +125,7 @@
          <span class="max-w-[280px] font-semibold text-zinc-900">{{p.nombre}}</span></div></td>
         <td class="px-4 py-3 text-sm text-zinc-600">{{p.categoria}}</td>
         <td class="px-4 py-3 whitespace-nowrap text-sm font-medium">S/ {{p.precioBase | number:'1.2-2'}}</td>
+        <td class="px-4 py-3 text-sm tabular-nums">{{costoProducto(p.idProducto)===null?'Pendiente':'S/ '+(costoProducto(p.idProducto) | number:'1.2-2')}}</td>
         <td class="px-4 py-3"><span class="rounded-full px-3 py-1 text-xs font-semibold" [class.bg-red-50]="totalStock(p)===0" [class.text-red-700]="totalStock(p)===0" [class.bg-green-50]="totalStock(p)>0" [class.text-green-800]="totalStock(p)>0">{{totalStock(p)}}</span></td>
         <td class="px-4 py-3 text-sm text-zinc-600">{{p.variantes?.length||0}}</td>
         <td class="px-4 py-3 whitespace-nowrap"><button type="button" class="mr-3 text-sm font-semibold underline underline-offset-4" (click)="openEdit(p)">Editar</button><button type="button" class="text-sm text-red-700 underline underline-offset-4" (click)="remove(p)">Eliminar</button></td>
@@ -327,7 +329,14 @@
         <input class="field mt-1" name="img" type="url" [(ngModel)]="form.img" (ngModelChange)="chooseUrl()" placeholder="https://...">
       </label>
     </div>
-    <label class="block text-sm">Precio base (S/) *<input class="field mt-1" name="precioBase" type="number" min="0" step=".01" [(ngModel)]="form.precioBase" required></label>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="block text-sm">Precio de venta (S/) *<input class="field mt-1" name="precioBase" type="number" min="0" step=".01" [(ngModel)]="form.precioBase" required></label>
+      <label class="block text-sm">Costo de compra (S/) *<input class="field mt-1" name="costoCompra" type="number" min="0" step=".01" [(ngModel)]="form.costoCompra" required placeholder="0.00"></label>
+     </div>
+     <p class="mt-2 text-xs text-zinc-500">El costo de compra es privado y editable. Los importes precargados del inventario son estimaciones, no costos reales de proveedor.</p>
+     <p *ngIf="form.costoCompra!==null && form.precioBase>=0" class="mt-2 text-sm font-semibold text-zinc-700">
+       Margen bruto estimado por unidad: S/ {{(form.precioBase-form.costoCompra) | number:'1.2-2'}}
+     </p>
     <ng-container *ngIf="editingId()">
     <label class="block text-sm">Precio variante (S/) *<input class="field mt-1" name="precio" type="number" min="0" step=".01" [(ngModel)]="form.precio" required></label>
     <label class="block text-sm">Talla *<input class="field mt-1" name="talla" [(ngModel)]="form.talla" required></label>
