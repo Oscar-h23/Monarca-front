@@ -8,7 +8,6 @@ import { Producto } from '../../core/models/shop.models';
 import { asset } from '../../core/utils/assets';
 
 const categories = ['Tops', 'Bottoms', 'Vestidos', 'Calzado', 'Accesorios'];
-const productKinds = ['Crop Top', 'Pantalón', 'Sandalia', 'Zapato', 'Vestido', 'Blusa', 'Polo', 'Falda', 'Jean', 'Bolso', 'Accesorio'];
 
 const normalize = (value:string) =>
   value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -26,11 +25,9 @@ export class CatalogComponent implements OnInit,OnDestroy {
   maxPrice:number|null=null;
   size='';
   color='';
-  kind='';
   sort='relevancia';
   sizes:string[]=[];
   colors:string[]=[];
-  kinds:string[]=[];
   fallback=asset('mariposa.png');
   private routeSubscription?:Subscription;
   private requestId=0;
@@ -45,7 +42,6 @@ export class CatalogComponent implements OnInit,OnDestroy {
         this.filtered.set([]);
         this.sizes=[];
         this.colors=[];
-        this.kinds=[];
         this.filtersOpen.set(false);
       }
       this.category.set(nextCategory);
@@ -78,10 +74,8 @@ export class CatalogComponent implements OnInit,OnDestroy {
       return (ai<0?order.length:ai)-(bi<0?order.length:bi)||a.localeCompare(b,'es');
     });
     this.colors=[...new Set(variants.map(v=>v.color?.trim()).filter((v):v is string=>!!v))].sort((a,b)=>a.localeCompare(b,'es'));
-    this.kinds=productKinds.filter(k=>availableProducts.some(p=>normalize(p.nombre).includes(normalize(k))));
     if(this.size&&!this.sizes.includes(this.size))this.size='';
     if(this.color&&!this.colors.includes(this.color))this.color='';
-    if(this.kind&&!this.kinds.includes(this.kind))this.kind='';
   }
 
   apply(){
@@ -90,7 +84,6 @@ export class CatalogComponent implements OnInit,OnDestroy {
       const variants=(p.variantes||[]).filter(v=>v.stock>0);
       return normalize(p.nombre).includes(text)
         &&(this.maxPrice==null||Number(p.precioBase)<=this.maxPrice)
-        &&(!this.kind||normalize(p.nombre).includes(normalize(this.kind)))
         &&(!this.size||variants.some(v=>normalize(v.talla)===normalize(this.size)))
         &&(!this.color||variants.some(v=>normalize(v.color)===normalize(this.color)))
         &&(!this.size||!this.color||variants.some(v=>normalize(v.talla)===normalize(this.size)&&normalize(v.color)===normalize(this.color)));
@@ -105,7 +98,6 @@ export class CatalogComponent implements OnInit,OnDestroy {
     this.maxPrice=null;
     this.size='';
     this.color='';
-    this.kind='';
     this.sort='relevancia';
   }
   reset(){this.resetValues();this.apply();}
