@@ -23,6 +23,10 @@ export class CatalogComponent implements OnInit,OnDestroy {
   filtersOpen=signal(false);
   search='';
   maxPrice:number|null=null;
+  minCatalogPrice=0;
+  maxCatalogPrice=0;
+  get selectedMaxPrice(){return this.maxPrice??this.maxCatalogPrice;}
+  setMaxPrice(value:number){this.maxPrice=Math.min(this.maxCatalogPrice,Math.max(this.minCatalogPrice,Number(value)));this.apply();}
   size='';
   color='';
   sort='relevancia';
@@ -42,6 +46,8 @@ export class CatalogComponent implements OnInit,OnDestroy {
         this.filtered.set([]);
         this.sizes=[];
         this.colors=[];
+        this.minCatalogPrice=0;
+        this.maxCatalogPrice=0;
         this.filtersOpen.set(false);
       }
       this.category.set(nextCategory);
@@ -74,6 +80,10 @@ export class CatalogComponent implements OnInit,OnDestroy {
       return (ai<0?order.length:ai)-(bi<0?order.length:bi)||a.localeCompare(b,'es');
     });
     this.colors=[...new Set(variants.map(v=>v.color?.trim()).filter((v):v is string=>!!v))].sort((a,b)=>a.localeCompare(b,'es'));
+    const prices=this.all.map(p=>Number(p.precioBase)).filter(p=>Number.isFinite(p)&&p>=0);
+    this.minCatalogPrice=prices.length?Math.min(...prices):0;
+    this.maxCatalogPrice=prices.length?Math.max(...prices):0;
+    if(this.maxPrice!==null)this.maxPrice=Math.min(this.maxCatalogPrice,Math.max(this.minCatalogPrice,this.maxPrice));
     if(this.size&&!this.sizes.includes(this.size))this.size='';
     if(this.color&&!this.colors.includes(this.color))this.color='';
   }
