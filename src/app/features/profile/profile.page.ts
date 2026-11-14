@@ -11,6 +11,7 @@ export class ProfilePage implements OnInit,OnDestroy {
   private api=inject(PerfilApi);
   loading=signal(true);busy=signal(false);error=signal('');message=signal('');
   editing=signal(false);
+  section=signal<'datos'|'direccion'|'medidas'|'foto'|'cuenta'>('datos');
   private savedForm:PerfilEditable|null=null;
   fotoUrl=signal('');hasPhoto=signal(false);
   email='';
@@ -37,6 +38,11 @@ export class ProfilePage implements OnInit,OnDestroy {
   private mensajeError(e:unknown){return e instanceof HttpErrorResponse
     ?(typeof e.error?.error==='string'?e.error.error:'No fue posible completar la operación.')
     :(e instanceof Error?e.message:'No se pudo conectar con el servidor.');}
+  cambiarSeccion(value:'datos'|'direccion'|'medidas'|'foto'|'cuenta'){
+    if(this.busy())return;
+    this.section.set(value);
+    this.error.set('');
+  }
   editar(){
     if(this.busy())return;
     this.error.set('');
