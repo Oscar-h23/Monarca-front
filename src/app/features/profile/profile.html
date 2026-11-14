@@ -51,9 +51,9 @@
    <label class="text-sm">Nombres *<input name="nombres" class="field mt-1" [(ngModel)]="form.nombres" maxlength="100" required></label>
    <label class="text-sm">Apellidos *<input name="apellidos" class="field mt-1" [(ngModel)]="form.apellidos" maxlength="100" required></label>
    <label class="text-sm sm:col-span-2">Correo electrónico<input class="field mt-1 bg-zinc-100" [value]="email" disabled></label>
-   <label class="text-sm">Teléfono<input name="telefono" type="tel" class="field mt-1" [(ngModel)]="form.telefono" maxlength="20"></label>
    <label class="text-sm">Tipo de documento<select name="tipoDocumento" class="field mt-1" [(ngModel)]="form.tipoDocumento"><option>DNI</option><option>CE</option><option>Pasaporte</option></select></label>
-   <label class="text-sm sm:col-span-2">Número de documento<input name="numeroDocumento" class="field mt-1" [(ngModel)]="form.numeroDocumento" maxlength="20"></label>
+   <label class="text-sm">Número de documento<input name="numeroDocumento" class="field mt-1" [(ngModel)]="form.numeroDocumento" maxlength="20"></label>
+   <label class="text-sm sm:col-span-2">Teléfono<input name="telefono" type="tel" class="field mt-1" [(ngModel)]="form.telefono" maxlength="20"></label>
   </div>
       </section>
       <section *ngIf="section()==='direccion'">
