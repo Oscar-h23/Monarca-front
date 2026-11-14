@@ -255,12 +255,12 @@
           Motivo anterior: {{pedido.motivoRechazo}}
         </div>
 
-        <div *ngIf="puedeAprobarPrueba(pedido)" class="mt-5 rounded-lg border border-amber-300 bg-amber-50 p-4">
-           <p class="text-sm font-bold text-amber-900">Aprobación manual · Solo para pruebas</p>
-           <p class="mt-2 text-xs leading-relaxed text-amber-900">Confirmará el pedido sin comprobante ni pago verificado. No contará como ingreso en los reportes de ventas.</p>
-           <button type="button" [disabled]="gestionBusy()" (click)="confirmarPedidoPrueba()"
+        <div *ngIf="puedeConfirmarPagoManual(pedido)" class="mt-5 rounded-lg border border-amber-300 bg-amber-50 p-4">
+           <p class="text-sm font-bold text-amber-900">Confirmación manual del pago</p>
+           <p class="mt-2 text-xs leading-relaxed text-amber-900">Si ya recibiste el pago, puedes confirmarlo sin exigir una fotografía del comprobante. El pedido se contará en las ventas del dashboard.</p>
+           <button type="button" [disabled]="gestionBusy()" (click)="confirmarPagoManual()"
              class="mt-4 w-full rounded-lg border border-amber-700 bg-white px-4 py-3 text-sm font-bold text-amber-900 disabled:opacity-50">
-             Confirmar pedido de prueba sin evidencia
+             Confirmar pago recibido sin comprobante
            </button>
          </div>
 
