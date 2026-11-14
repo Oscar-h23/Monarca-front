@@ -21,6 +21,8 @@ export class ProductComponent implements OnInit {
   perfil=signal<Perfil|null>(null);
   recomendacion=signal<RecomendacionTalla|null>(null);
   message=signal('');
+  added=signal(false);
+  quantity=signal(1);
   error=signal('');
   fallback=asset('mariposa.png');
 
@@ -51,11 +53,33 @@ export class ProductComponent implements OnInit {
   }
   seleccionarRecomendada(){
     const opcion=this.recomendacion();
-    if(opcion)this.selected.set(opcion.variante);
+    if(opcion)this.selectVariant(opcion.variante);
+  }
+  selectVariant(v:Variante){
+    this.selected.set(v);
+    this.quantity.set(1);
+    this.message.set('');
+    this.added.set(false);
+  }
+  setQuantity(value:string){
+    const v=this.selected();
+    if(!v)return;
+    const number=Number(value);
+    this.quantity.set(Number.isSafeInteger(number)?Math.max(1,Math.min(v.stock,number)):1);
+  }
+  changeQuantity(delta:number){
+    this.setQuantity(String(this.quantity()+delta));
   }
   add(p:Producto){
     const v=this.selected();
     if(!v)return;
-    this.message.set(this.cart.add(p,v)?'Producto agregado a la bolsa.':'No hay stock suficiente.');
+    const count=this.quantity();
+    if(this.cart.add(p,v,count)){
+      this.message.set('');
+      this.added.set(true);
+    }else{
+      this.added.set(false);
+      this.message.set('No hay stock suficiente para la cantidad seleccionada.');
+    }
   }
 }
