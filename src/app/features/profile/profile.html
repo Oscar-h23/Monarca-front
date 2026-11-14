@@ -1,34 +1,74 @@
-<main class="mx-auto min-h-[65vh] max-w-5xl px-4 py-8 sm:px-5 sm:py-12">
- <a routerLink="/" class="text-sm text-zinc-500">← Volver a la tienda</a>
- <h1 class="heading mb-3 mt-6 text-3xl sm:text-4xl">Mi perfil</h1>
- <p class="text-zinc-600 mb-5">Guarda tus datos una vez para que se completen automáticamente cuando hagas un pedido.</p>
- <a routerLink="/mis-pedidos" class="mb-8 inline-flex w-full min-h-11 items-center justify-between gap-2 rounded-lg border border-zinc-200 px-4 py-3 text-sm font-semibold sm:w-auto sm:px-5 hover:bg-zinc-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-900">Ver mis pedidos pendientes y anteriores <span aria-hidden="true">→</span></a>
- <p *ngIf="loading()" class="py-10">Cargando tu perfil…</p>
- <div *ngIf="!loading()" class="grid gap-9 lg:grid-cols-[1.5fr_1fr]">
- <form (ngSubmit)="guardar()" class="bg-white border border-zinc-200 rounded-xl p-5 sm:p-8">
-  <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-    <div>
-      <h2 class="font-semibold text-lg">Información y dirección</h2>
-      <p class="mt-1 text-sm text-zinc-500">{{editing()?'Modo edición activado.':'Tus datos están protegidos contra cambios accidentales.'}}</p>
+<main class="mx-auto min-h-[65vh] max-w-6xl px-4 py-8 sm:px-5 sm:py-12">
+ <a routerLink="/" class="text-sm text-zinc-500 hover:text-zinc-900">← Volver a la tienda</a>
+ <div class="mt-6 mb-7">
+   <h1 class="heading text-3xl sm:text-4xl">Mi perfil</h1>
+   <p class="mt-2 text-sm text-zinc-600 sm:text-base">Administra tus datos, dirección y preferencias de forma segura.</p>
+ </div>
+ <p *ngIf="loading()" class="py-10" role="status">Cargando tu perfil…</p>
+ <div *ngIf="!loading()" class="grid items-start gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-8">
+  <nav aria-label="Secciones de mi perfil" class="min-w-0 rounded-xl border border-zinc-200 bg-white p-3 lg:sticky lg:top-32">
+    <p class="mb-3 px-3 text-xs font-semibold uppercase tracking-widest text-zinc-400">Mi cuenta</p>
+    <div class="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
+     <button type="button" (click)="cambiarSeccion('datos')" [attr.aria-current]="section()==='datos'?'page':null"
+   class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
+   [ngClass]="section()==='datos'?'bg-zinc-900 text-white':'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'">
+   <span class="w-5 text-center" aria-hidden="true">◉</span>Datos personales
+ </button>
+<button type="button" (click)="cambiarSeccion('direccion')" [attr.aria-current]="section()==='direccion'?'page':null"
+   class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
+   [ngClass]="section()==='direccion'?'bg-zinc-900 text-white':'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'">
+   <span class="w-5 text-center" aria-hidden="true">⌖</span>Dirección de entrega
+ </button>
+<button type="button" (click)="cambiarSeccion('medidas')" [attr.aria-current]="section()==='medidas'?'page':null"
+   class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
+   [ngClass]="section()==='medidas'?'bg-zinc-900 text-white':'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'">
+   <span class="w-5 text-center" aria-hidden="true">↔</span>Mis medidas
+ </button>
+<button type="button" (click)="cambiarSeccion('foto')" [attr.aria-current]="section()==='foto'?'page':null"
+   class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
+   [ngClass]="section()==='foto'?'bg-zinc-900 text-white':'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'">
+   <span class="w-5 text-center" aria-hidden="true">▧</span>Mi fotografía
+ </button>
+<button type="button" (click)="cambiarSeccion('cuenta')" [attr.aria-current]="section()==='cuenta'?'page':null"
+   class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-semibold transition-colors"
+   [ngClass]="section()==='cuenta'?'bg-zinc-900 text-white':'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900'">
+   <span class="w-5 text-center" aria-hidden="true">◇</span>Cuenta y acceso
+ </button>
+     <a routerLink="/mis-pedidos" class="flex min-h-12 w-full shrink-0 items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"><span class="w-5 text-center" aria-hidden="true">▤</span>Mis pedidos</a>
     </div>
-    <button *ngIf="!editing()" type="button" class="min-h-11 rounded-lg border border-zinc-900 px-5 py-2 text-sm font-semibold hover:bg-zinc-100"
-            (click)="editar()" [disabled]="busy()">Editar</button>
-  </div>
-  <fieldset [disabled]="!editing() || busy()" class="min-w-0">
-  <div class="grid sm:grid-cols-2 gap-4">
+  </nav>
+  <div class="min-w-0 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-8">
+   <div class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 pb-5">
+     <p class="text-sm text-zinc-500">{{editing()?'Modo edición: puedes realizar cambios.':'Modo consulta: tus datos están protegidos.'}}</p>
+     <button *ngIf="!editing()" type="button" (click)="editar()" [disabled]="busy()" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-900 px-5 py-2 text-sm font-semibold hover:bg-zinc-100">Editar</button>
+     <button *ngIf="editing()" type="button" (click)="cancelar()" [disabled]="busy()" class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-300 px-5 py-2 text-sm font-semibold hover:bg-zinc-100">Cancelar edición</button>
+   </div>
+   <form (ngSubmit)="guardar()" *ngIf="section()==='datos'||section()==='direccion'||section()==='medidas'">
+     <fieldset [disabled]="!editing() || busy()" class="min-w-0 border-0 p-0">
+      <section *ngIf="section()==='datos'">
+       <div class="mb-6"><h2 class="text-xl font-semibold text-zinc-900">Datos personales</h2><p class="mt-1 text-sm text-zinc-500">Información básica para tu cuenta y tus pedidos.</p></div>
+         <div class="grid sm:grid-cols-2 gap-4">
    <label class="text-sm">Nombres *<input name="nombres" class="field mt-1" [(ngModel)]="form.nombres" maxlength="100" required></label>
    <label class="text-sm">Apellidos *<input name="apellidos" class="field mt-1" [(ngModel)]="form.apellidos" maxlength="100" required></label>
    <label class="text-sm sm:col-span-2">Correo electrónico<input class="field mt-1 bg-zinc-100" [value]="email" disabled></label>
    <label class="text-sm">Teléfono<input name="telefono" type="tel" class="field mt-1" [(ngModel)]="form.telefono" maxlength="20"></label>
    <label class="text-sm">Tipo de documento<select name="tipoDocumento" class="field mt-1" [(ngModel)]="form.tipoDocumento"><option>DNI</option><option>CE</option><option>Pasaporte</option></select></label>
    <label class="text-sm sm:col-span-2">Número de documento<input name="numeroDocumento" class="field mt-1" [(ngModel)]="form.numeroDocumento" maxlength="20"></label>
+  </div>
+      </section>
+      <section *ngIf="section()==='direccion'">
+       <div class="mb-6"><h2 class="text-xl font-semibold text-zinc-900">Dirección de entrega</h2><p class="mt-1 text-sm text-zinc-500">Estos datos se utilizarán para completar tus próximos pedidos.</p></div>
+       <div class="grid sm:grid-cols-2 gap-4">
    <label class="text-sm sm:col-span-2">Dirección de entrega<input name="direccion" class="field mt-1" [(ngModel)]="form.direccion" maxlength="200" placeholder="Avenida, calle, número y departamento"></label>
    <label class="text-sm">Departamento<input name="departamento" class="field mt-1" [(ngModel)]="form.departamento" maxlength="100" placeholder="Lima"></label>
    <label class="text-sm">Provincia<input name="provincia" class="field mt-1" [(ngModel)]="form.provincia" maxlength="100" placeholder="Lima"></label>
    <label class="text-sm">Distrito<input name="distrito" class="field mt-1" [(ngModel)]="form.distrito" maxlength="100" placeholder="Surco"></label>
    <label class="text-sm sm:col-span-2">Referencia<input name="referencia" class="field mt-1" [(ngModel)]="form.referencia" maxlength="200" placeholder="Al costado de..."></label>
   </div>
-  <fieldset class="mt-8 border-t border-zinc-200 pt-6">
+      </section>
+      <section *ngIf="section()==='medidas'">
+       <div class="mb-6"><h2 class="text-xl font-semibold text-zinc-900">Mis medidas</h2><p class="mt-1 text-sm text-zinc-500">Medidas opcionales para recomendarte una talla.</p></div>
+         <fieldset class="border-0 p-0">
     <legend class="font-semibold text-lg">Mis medidas (opcional)</legend>
     <p class="text-sm text-zinc-600 mt-2 mb-4">Guarda tus contornos corporales en centímetros para recibir recomendaciones de talla. Solo se usan para comparar con las medidas de cada prenda.</p>
     <div class="grid sm:grid-cols-2 gap-4">
@@ -39,15 +79,37 @@
     </div>
     <p class="text-xs text-zinc-500 mt-3">Si prefieres no compartir tus medidas, deja los campos vacíos. No se utiliza esta información para generar imágenes del probador.</p>
   </fieldset>
-  </fieldset>
-  <div *ngIf="editing()" class="mt-7 flex flex-wrap gap-3">
-    <button type="submit" class="btn-dark min-h-11 rounded-lg px-5" [disabled]="busy()">{{busy()?'Guardando…':'Guardar cambios'}}</button>
-    <button type="button" class="min-h-11 rounded-lg border border-zinc-300 px-5 text-sm font-semibold hover:bg-zinc-100"
-            (click)="cancelar()" [disabled]="busy()">Cancelar</button>
-  </div>
- </form>
- <aside class="border border-zinc-200 rounded-xl p-5 sm:p-7 h-fit">
-   <section aria-labelledby="google-profile-title" class="pb-7 border-b border-zinc-200">
+      </section>
+     </fieldset>
+     <div *ngIf="editing()" class="mt-7 flex flex-wrap gap-3 border-t border-zinc-100 pt-6">
+       <button type="submit" class="btn-dark min-h-11 rounded-lg px-6" [disabled]="busy()">{{busy()?'Guardando…':'Guardar cambios'}}</button>
+       <button type="button" class="min-h-11 rounded-lg border border-zinc-300 px-5 text-sm font-semibold hover:bg-zinc-100" (click)="cancelar()" [disabled]="busy()">Cancelar</button>
+     </div>
+   </form>
+   <section *ngIf="section()==='foto'">
+    <div class="mb-6"><h2 class="text-xl font-semibold text-zinc-900">Foto para el probador virtual</h2><p class="mt-1 text-sm text-zinc-500">Carga una fotografía privada para probarte prendas virtualmente.</p></div>
+       <section class="" aria-labelledby="virtual-tryon-title">
+   <h2 id="virtual-tryon-title" class="text-lg font-semibold">Foto para el probador virtual</h2>
+   <p class="text-sm text-zinc-600 my-3">Sube una foto tuya de cuerpo entero, con buena iluminación y de frente. La fotografía es opcional.</p>
+   <div class="mx-auto aspect-[3/4] max-w-sm bg-zinc-100 rounded-xl overflow-hidden flex items-center justify-center border border-zinc-200">
+    <img *ngIf="fotoUrl()" [src]="fotoUrl()" class="w-full h-full object-contain" alt="Foto privada para el probador">
+    <span *ngIf="!fotoUrl()" class="text-zinc-400 text-sm">Aún no tienes una fotografía</span>
+   </div>
+   <input #photoInput type="file" class="sr-only" aria-label="Seleccionar fotografía" accept="image/jpeg,image/png,image/webp" (change)="subir($event)" [disabled]="!editing() || busy()">
+   <button type="button" class="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white hover:bg-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-300 sm:w-auto"
+           (click)="photoInput.click()" [disabled]="!editing() || busy()">
+     <span aria-hidden="true">↑</span> {{busy()?'Procesando…':(hasPhoto()?'Cambiar fotografía':'Subir fotografía')}}
+   </button>
+   <p *ngIf="!editing()" class="mt-2 text-xs text-zinc-500">Pulsa «Editar» para habilitar la carga de fotografías.</p>
+   <p class="text-xs text-zinc-500 mt-2">JPG, PNG o WebP · hasta 4 MB. Tu foto no aparece en el catálogo.</p>
+   <button *ngIf="hasPhoto()" type="button" class="text-sm text-red-700 underline mt-4" (click)="borrar()" [disabled]="!editing() || busy()">Eliminar mi fotografía</button>
+   <p class="text-sm text-zinc-500 mt-4">Solo se enviará una copia al proveedor externo cuando confirmes expresamente una prueba virtual.</p>
+   </section>
+
+   </section>
+   <section *ngIf="section()==='cuenta'">
+    <div class="mb-6"><h2 class="text-xl font-semibold text-zinc-900">Cuenta y acceso</h2><p class="mt-1 text-sm text-zinc-500">Gestiona la vinculación de tu cuenta de Google.</p></div>
+       <section aria-labelledby="google-profile-title" class="pb-7 border-b border-zinc-200">
      <div class="flex flex-wrap items-center gap-2">
        <h2 id="google-profile-title" class="text-lg font-semibold">Acceso con Google</h2>
        <span *ngIf="googleVinculado()" class="text-xs font-medium rounded-full bg-green-50 text-green-800 px-2.5 py-1">Vinculado</span>
@@ -64,27 +126,16 @@
      <p *ngIf="googleMessage()" class="text-sm text-green-700 mt-3" role="status">{{googleMessage()}}</p>
      <p *ngIf="googleError()" class="text-sm text-red-700 mt-3" role="alert">{{googleError()}}</p>
    </section>
-   <section class="pt-7" aria-labelledby="virtual-tryon-title">
-   <h2 id="virtual-tryon-title" class="text-lg font-semibold">Foto para el probador virtual</h2>
-   <p class="text-sm text-zinc-600 my-3">Sube una foto tuya de cuerpo entero, con buena iluminación y de frente. La fotografía es opcional.</p>
-   <div class="aspect-[3/4] bg-zinc-100 rounded-lg overflow-hidden flex items-center justify-center">
-    <img *ngIf="fotoUrl()" [src]="fotoUrl()" class="w-full h-full object-contain" alt="Foto privada para el probador">
-    <span *ngIf="!fotoUrl()" class="text-zinc-400 text-sm">Aún no tienes una fotografía</span>
-   </div>
-   <label class="block mt-5 text-sm font-semibold">Cargar o cambiar foto
-    <input type="file" class="mt-2 block w-full text-sm" accept="image/jpeg,image/png,image/webp" (change)="subir($event)" [disabled]="!editing() || busy()">
-   </label>
-   <p class="text-xs text-zinc-500 mt-2">JPG, PNG o WebP · hasta 4 MB. Tu foto no aparece en el catálogo.</p>
-   <button *ngIf="hasPhoto()" type="button" class="text-sm text-red-700 underline mt-4" (click)="borrar()" [disabled]="!editing() || busy()">Eliminar mi fotografía</button>
-   <p class="text-sm text-zinc-500 mt-4">Solo se enviará una copia al proveedor externo cuando confirmes expresamente una prueba virtual.</p>
+
    </section>
- </aside>
+  </div>
  </div>
- <div *ngIf="message()" class="fixed bottom-5 left-4 right-4 z-50 mx-auto flex max-w-md items-center gap-3 rounded-xl border border-emerald-200 bg-white p-4 shadow-xl sm:left-auto sm:right-6"
+  <div *ngIf="message()" class="fixed bottom-5 left-4 right-4 z-50 mx-auto flex max-w-md items-center gap-3 rounded-xl border border-emerald-200 bg-white p-4 shadow-xl sm:left-auto sm:right-6"
       role="status" aria-live="polite">
    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700" aria-hidden="true">✓</span>
    <p class="min-w-0 flex-1 text-sm font-semibold text-zinc-900">{{message()}}</p>
    <button type="button" class="rounded-lg px-2 py-1 text-zinc-500 hover:bg-zinc-100" aria-label="Cerrar aviso" (click)="message.set('')">✕</button>
  </div>
+
  <p *ngIf="error()" class="mt-6 text-red-700" role="alert">{{error()}}</p>
 </main>
