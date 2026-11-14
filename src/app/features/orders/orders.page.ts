@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, Input, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MiPedido, PedidosClienteApi } from '../../core/services/pedidos-cliente-api.service';
@@ -40,6 +40,7 @@ const ESTADOS_LEGIBLES: Record<string, string> = {
   templateUrl: './orders.html'
 })
 export class OrdersPage implements OnInit {
+  @Input() embedded = false;
   private api = inject(PedidosClienteApi);
   private tiendaApi = inject(Api);
   metodos = signal<MetodoPago[]>([]);
