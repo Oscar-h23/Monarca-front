@@ -1,7 +1,7 @@
 // Imágenes migradas localmente desde el frontend original.
 export const localAssetPaths = new Set<string>([
   "Nosotros_img/Juntos.jpg",
-  "Nosotros_img/oscar-herrera.jpg",
+  "Nosotros_img/oscar-avatar-v3.jpg",
   "Nosotros_img/fabiola.jpeg",
   "Nosotros_img/josue.jpeg",
   "Nosotros_img/juan.jpeg",
