@@ -5,13 +5,14 @@ import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Perfil, PerfilApi, PerfilEditable } from '../../core/services/perfil-api.service';
 import { GoogleButtonComponent } from '../../shared/google-button.component';
+import { OrdersPage } from '../orders/orders.page';
 
-@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink,GoogleButtonComponent],templateUrl:'./profile.html'})
+@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink,GoogleButtonComponent,OrdersPage],templateUrl:'./profile.html'})
 export class ProfilePage implements OnInit,OnDestroy {
   private api=inject(PerfilApi);
   loading=signal(true);busy=signal(false);error=signal('');message=signal('');
   editing=signal(false);
-  section=signal<'datos'|'direccion'|'medidas'|'foto'|'cuenta'>('datos');
+  section=signal<'datos'|'direccion'|'medidas'|'foto'|'cuenta'|'pedidos'>('datos');
   private savedForm:PerfilEditable|null=null;
   fotoUrl=signal('');hasPhoto=signal(false);
   email='';
@@ -38,7 +39,7 @@ export class ProfilePage implements OnInit,OnDestroy {
   private mensajeError(e:unknown){return e instanceof HttpErrorResponse
     ?(typeof e.error?.error==='string'?e.error.error:'No fue posible completar la operación.')
     :(e instanceof Error?e.message:'No se pudo conectar con el servidor.');}
-  cambiarSeccion(value:'datos'|'direccion'|'medidas'|'foto'|'cuenta'){
+  cambiarSeccion(value:'datos'|'direccion'|'medidas'|'foto'|'cuenta'|'pedidos'){
     if(this.busy())return;
     this.section.set(value);
     this.error.set('');
