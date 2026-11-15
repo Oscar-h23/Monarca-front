@@ -18,7 +18,8 @@
         <ng-container *ngIf="recomendacion() as rec">
           <p class="mt-3 text-sm">Te sugerimos <strong class="text-lg">{{rec.variante.talla}}</strong>
             en color {{rec.variante.color}}.</p>
-          <p class="mt-2 text-sm text-zinc-600">Comparamos las medidas necesarias de esta prenda y comprobamos una holgura mínima de 2 cm.</p>
+          <p *ngIf="rec.tipo==='SUPERVISADO'" class="mt-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Recomendación realizada por un modelo de Machine Learning experimental. Puede estar entrenado con datos sintéticos y no está validado con compradores reales.</p>
+          <p *ngIf="rec.tipo==='REGLAS'" class="mt-2 text-sm text-zinc-600">Comparamos las medidas necesarias de esta prenda y comprobamos una holgura mínima de 2 cm.</p>
           <div class="mt-3 overflow-x-auto rounded-lg border border-zinc-200 bg-white">
             <table class="w-full min-w-[280px] text-left text-xs sm:text-sm">
               <thead class="bg-zinc-100 text-zinc-600"><tr>
