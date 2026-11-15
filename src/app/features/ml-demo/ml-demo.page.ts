@@ -3,6 +3,7 @@ import {Component,OnInit,inject,signal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {RouterLink} from '@angular/router';
 import {Api} from '../../core/services/api.service';
+import {Cart} from '../../core/services/cart.service';
 import {AdminApi, EjecucionAcademica, FuenteMlInfo, ModuloMl} from '../admin/data-access/admin-api.service';
 import {Producto} from '../../core/models/shop.models';
 
@@ -14,6 +15,7 @@ type Complemento={idProducto:number;nombre:string;precioDesde:number;confianza:n
 })
 export class MlDemoPage implements OnInit {
  private readonly api=inject(Api);
+ readonly carrito=inject(Cart);
  private readonly admin=inject(AdminApi);
  productos=signal<Producto[]>([]);
  fuentes=signal<FuenteMlInfo[]>([]);
@@ -22,6 +24,7 @@ export class MlDemoPage implements OnInit {
  trabajando=signal('');
  error=signal('');
  mensaje=signal('');
+ mensajeOutfit=signal('');
  seleccionado=2;
  presupuesto=180;
  complementos=signal<Complemento[]>([]);
@@ -31,6 +34,41 @@ export class MlDemoPage implements OnInit {
  resultado(modulo:'CLUSTERING'|'DEMANDA'|'OUTFITS'):EjecucionAcademica|undefined{
    return this.resultados().find(x=>x.modulo===modulo);
  }
+  variantesOutfit():Array<{producto:Producto;variante:NonNullable<Producto['variantes']>[number]}> {
+    const ids=this.resultado('OUTFITS')?.resultado.a_estrella?.combinacion?.id_variantes??[];
+    return ids.flatMap(id=>this.productos().flatMap(producto=>
+       (producto.variantes??[]).filter(variante=>variante.idVariante===id).map(variante=>({producto,variante}))
+    ));
+  }
+  costoActualOutfit():number {
+    return this.variantesOutfit().reduce((total,x)=>total+Number(x.variante.precio),0);
+  }
+  agregarOutfit():void {
+    this.mensajeOutfit.set('');
+    const items=this.variantesOutfit();
+    if(items.length!==2 || items.some(x=>x.variante.stock<=0)){
+      this.mensajeOutfit.set('Las dos variantes sugeridas no están disponibles; selecciona otras prendas.');
+      return;
+    }
+    if(this.costoActualOutfit()>this.presupuesto){
+      this.mensajeOutfit.set('El precio actual supera tu presupuesto. Vuelve a buscar con el precio actualizado.');
+      return;
+    }
+    if(items.some(x=>(this.carrito.items().find(i=>i.idVariante===x.variante.idVariante)?.cantidad??0)+1>x.variante.stock)){
+      this.mensajeOutfit.set('La bolsa ya tiene el máximo disponible de alguna talla.');
+      return;
+    }
+    const agregadas:number[]=[];
+    for(const item of items){
+      if(!this.carrito.add(item.producto,item.variante,1)){
+        for(const id of agregadas)this.carrito.change(id,-1);
+        this.mensajeOutfit.set('No se pudieron agregar todas las prendas.');
+        return;
+      }
+      agregadas.push(item.variante.idVariante);
+    }
+    this.mensajeOutfit.set('Las dos prendas fueron agregadas a tu bolsa con sus tallas específicas.');
+  }
  async ngOnInit(){await this.cargar();}
  async cargar(){
   this.cargando.set(true);this.error.set('');
