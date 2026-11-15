@@ -7,7 +7,7 @@ import { Api } from '../../core/services/api.service';
 import { Producto, Variante } from '../../core/models/shop.models';
 import { asset } from '../../core/utils/assets';
 import { SessionService } from '../../core/services/session.service';
-import { AdminApi, AdministradorCuenta, Pedido, ProductForm, ProductVariantForm } from './data-access/admin-api.service';
+import { AdminApi, AdministradorCuenta, Pedido, ProductForm, ProductVariantForm, FuenteMl, FuenteMlInfo, ModuloMl } from './data-access/admin-api.service';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.page';
 import { AdminPaymentsComponent } from './payments/admin-payments.page';
 
@@ -46,7 +46,60 @@ export class AdminPage implements OnInit, OnDestroy {
     CONFIRMADO:'EN_PREPARACION', EN_PREPARACION:'EN_CAMINO', EN_CAMINO:'FINALIZADO'
   };
   search=signal('');
-  tab=signal<'resumen'|'productos'|'pedidos'|'pagos'|'administradores'>('resumen');
+  tab=signal<'resumen'|'productos'|'pedidos'|'pagos'|'administradores'|'ml'>('resumen');
+  fuentesMl=signal<FuenteMlInfo[]>([]);
+  mlCargando=signal(false);
+  mlGuardando=signal<ModuloMl|null>(null);
+  mlDescargando=signal(false);
+  mlError=signal('');
+  mlMensaje=signal('');
+  readonly nombresModuloMl:Record<ModuloMl,string>={
+    TALLAS:'Recomendación de tallas',OUTFITS:'Recomendación de outfits',PATRONES:'Análisis de patrones'
+  };
+
+  abrirMl():void{
+    this.tab.set('ml');
+    void this.cargarFuentesMl();
+  }
+  async cargarFuentesMl():Promise<void>{
+    if(this.mlCargando())return;
+    this.mlCargando.set(true);
+    this.mlError.set('');
+    try{this.fuentesMl.set(await this.adminApi.fuentesMl());}
+    catch(e){this.mlError.set(this.err(e));}
+    finally{this.mlCargando.set(false);}
+  }
+  async cambiarFuenteMl(modulo:ModuloMl,fuente:FuenteMl):Promise<void>{
+    if(this.mlGuardando()||this.mlCargando())return;
+    const actual=this.fuentesMl().find(x=>x.modulo===modulo);
+    if(actual?.fuente===fuente)return;
+    const aviso=fuente==='PRUEBA'
+      ? 'Activarás datos SINTÉTICOS de prueba para '+this.nombresModuloMl[modulo]+'. No son compras reales ni acreditan precisión del modelo. ¿Continuar?'
+      : 'Volverás a los datos REALES para '+this.nombresModuloMl[modulo]+'. ¿Continuar?';
+    if(!window.confirm(aviso))return;
+    this.mlGuardando.set(modulo);this.mlError.set('');this.mlMensaje.set('');
+    try{
+      const nuevo=await this.adminApi.configurarFuenteMl(modulo,fuente);
+      this.fuentesMl.update(xs=>xs.map(x=>x.modulo===modulo?nuevo:x));
+      this.mlMensaje.set('Fuente de '+this.nombresModuloMl[modulo]+' guardada: '+(fuente==='PRUEBA'?'DATOS SINTÉTICOS':'DATOS REALES')+'.');
+    }catch(e){this.mlError.set(this.err(e));}
+    finally{this.mlGuardando.set(null);}
+  }
+  async descargarDatasetTallas():Promise<void>{
+    if(this.mlDescargando())return;
+    this.mlDescargando.set(true);this.mlError.set('');
+    try{
+      const archivo=await this.adminApi.exportarDatasetTallas();
+      const fuente=this.fuentesMl().find(x=>x.modulo==='TALLAS')?.fuente||'REALES';
+      const url=URL.createObjectURL(archivo);
+      const a=document.createElement('a');
+      a.href=url;a.download='monarca_tallas_'+fuente.toLowerCase()+'.csv';
+      document.body.appendChild(a);a.click();a.remove();
+      window.setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }catch(e){this.mlError.set(this.err(e));}
+    finally{this.mlDescargando.set(false);}
+  }
+
   correoAdministrador='';
   administradores=signal<AdministradorCuenta[]>([]);
   administradoresBusy=signal(false);
