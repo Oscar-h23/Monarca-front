@@ -91,6 +91,70 @@
         </p>
         <p class="text-xs font-semibold text-amber-800" *ngIf="!fuente.datasetImplementado">Dataset pendiente de integrar</p>
        </div>
+       <div *ngIf="fuente.modulo==='CLUSTERING'||fuente.modulo==='DEMANDA'||fuente.modulo==='OUTFITS'"
+          class="mt-4 border-t border-zinc-200 pt-4 space-y-3">
+         <p class="text-xs text-zinc-600" *ngIf="fuente.fuente==='PRUEBA'">
+           Demostración con datos simulados; no representa compradores ni ventas observadas.
+         </p>
+         <p class="text-xs text-amber-800" *ngIf="!fuente.datasetImplementado">
+           Los registros reales necesarios aún no están disponibles con todas las variables requeridas.
+         </p>
+         <div *ngIf="fuente.modulo==='OUTFITS'" class="flex flex-wrap items-center gap-2">
+           <label class="text-sm font-semibold" for="presupuesto-outfits-ml">Presupuesto máximo (S/)</label>
+           <input id="presupuesto-outfits-ml" type="number" min="20" max="2000" step="10"
+             [(ngModel)]="presupuestoOutfits" class="w-32 min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-sm"/>
+         </div>
+         <button type="button" (click)="ejecutarAcademico(fuente.modulo==='CLUSTERING'?'CLUSTERING':fuente.modulo==='DEMANDA'?'DEMANDA':'OUTFITS')"
+           [disabled]="!fuente.datasetImplementado||fuente.registrosDisponibles===0||moduloEjecutando()!==null||mlCargando()||mlGuardando()!==null||(fuente.modulo==='OUTFITS'&&(!presupuestoOutfits||presupuestoOutfits<20||presupuestoOutfits>2000))"
+           class="min-h-11 rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-40">
+           {{moduloEjecutando()===fuente.modulo?'Procesando…':fuente.modulo==='CLUSTERING'?'Ejecutar K-Means y DBSCAN':fuente.modulo==='DEMANDA'?'Entrenar regresión lineal':'Buscar outfits con Hill Climbing y A*'}}
+         </button>
+         <div *ngIf="resultadoAcademico(fuente.modulo) as ejecucion" class="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
+            <div class="flex flex-wrap justify-between gap-2">
+              <strong class="text-sm">Última ejecución #{{ejecucion.idEjecucion}}</strong>
+              <span class="text-xs font-semibold" [class.text-amber-800]="ejecucion.fuente==='PRUEBA'">{{ejecucion.fuente==='PRUEBA'?'SINTÉTICO':'DATOS REALES'}} · {{ejecucion.registros}} registros</span>
+            </div>
+            <ng-container *ngIf="ejecucion.modulo==='CLUSTERING'">
+              <div class="grid gap-2 text-sm sm:grid-cols-2">
+                <p>K-Means: <strong>{{ejecucion.resultado.algoritmos?.['kmeans']?.grupos}} segmentos</strong></p>
+                <p>DBSCAN: <strong>{{ejecucion.resultado.algoritmos?.['dbscan']?.grupos}} grupos</strong>, ruido {{ejecucion.resultado.algoritmos?.['dbscan']?.ruido}}</p>
+                <p>Silhouette K-Means: <strong>{{ejecucion.resultado.algoritmos?.['kmeans']?.silhouette??'No calculable'}}</strong></p>
+                <p>Silhouette DBSCAN: <strong>{{ejecucion.resultado.algoritmos?.['dbscan']?.silhouette??'No calculable'}}</strong></p>
+              </div>
+              <div class="grid gap-2 sm:grid-cols-2">
+               <div *ngFor="let segmento of ejecucion.resultado.segmentos" class="rounded-lg bg-zinc-50 p-3 text-xs">
+                 <strong>Segmento {{segmento.segmento}}</strong> · {{segmento.clientes}} clientes simulados
+                 <p class="mt-1">Compras promedio: {{segmento.compras_promedio}} · Gasto promedio: S/ {{segmento.gasto_promedio_soles|number:'1.2-2'}}</p>
+               </div>
+              </div>
+            </ng-container>
+            <ng-container *ngIf="ejecucion.modulo==='DEMANDA'">
+              <div class="grid gap-3 text-sm sm:grid-cols-3">
+                <div><p class="text-xs text-zinc-500">MAE (unidades)</p><strong>{{ejecucion.resultado.mae_unidades??'—'}}</strong></div>
+                <div><p class="text-xs text-zinc-500">MAE baseline</p><strong>{{ejecucion.resultado.mae_baseline_unidades??'—'}}</strong></div>
+                <div><p class="text-xs text-zinc-500">R² prueba</p><strong>{{ejecucion.resultado.r2_prueba??'—'}}</strong></div>
+              </div>
+              <p class="text-xs text-zinc-600">Separación temporal: {{ejecucion.resultado.entrenamiento}} entrenamiento / {{ejecucion.resultado.prueba}} prueba.</p>
+              <p class="text-xs text-amber-800">Las métricas de datos sintéticos no permiten asegurar demanda futura real.</p>
+            </ng-container>
+            <ng-container *ngIf="ejecucion.modulo==='OUTFITS'">
+              <p class="text-sm">{{ejecucion.resultado.factibles}} combinaciones dentro del presupuesto de S/ {{ejecucion.resultado.presupuesto_soles}}.</p>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <div class="rounded-lg bg-zinc-50 p-3 text-sm">
+                  <strong>A*</strong>
+                  <p class="mt-1">{{ejecucion.resultado.a_estrella?.combinacion?.superior}} + {{ejecucion.resultado.a_estrella?.combinacion?.inferior}}</p>
+                  <p class="mt-1">Costo: S/ {{ejecucion.resultado.a_estrella?.combinacion?.precio_soles}} · Puntuación: {{ejecucion.resultado.a_estrella?.puntuacion}}</p>
+                </div>
+                <div class="rounded-lg bg-zinc-50 p-3 text-sm">
+                  <strong>Hill Climbing</strong>
+                  <p class="mt-1">{{ejecucion.resultado.hill_climbing?.combinacion?.superior}} + {{ejecucion.resultado.hill_climbing?.combinacion?.inferior}}</p>
+                  <p class="mt-1">Costo: S/ {{ejecucion.resultado.hill_climbing?.combinacion?.precio_soles}} · Puntuación: {{ejecucion.resultado.hill_climbing?.puntuacion}}</p>
+                </div>
+              </div>
+              <p class="text-xs text-zinc-600">La puntuación de estilo solo está simulada; la búsqueda respeta el presupuesto.</p>
+            </ng-container>
+          </div>
+       </div>
        <div *ngIf="fuente.modulo==='TALLAS'" class="mt-4 border-t border-zinc-200 pt-4">
         <button type="button" (click)="descargarDatasetTallas()" [disabled]="mlDescargando()||mlGuardando()!==null"
          class="min-h-11 rounded-xl border border-zinc-900 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-100 disabled:opacity-50">
@@ -143,7 +207,7 @@
      </div>
     </div>
     <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950">
-     <strong>Uso académico:</strong> los datos de prueba son sintéticos y no representan compras reales. Outfits y patrones tienen el selector preparado, pero aún no sus datasets conectados.
+     <strong>Uso académico:</strong> los datos de prueba son sintéticos y no representan compras reales. Clustering, demanda y outfits usan datasets de demostración independientes; las estimaciones sintéticas no describen clientes reales.
     </div>
    </section>
 
