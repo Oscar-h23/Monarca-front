@@ -20,13 +20,37 @@ export interface Pedido {
 }
 
 export type FuenteMl = 'REALES' | 'PRUEBA';
-export type ModuloMl = 'TALLAS' | 'OUTFITS' | 'PATRONES';
+export type ModuloMl = 'TALLAS' | 'OUTFITS' | 'PATRONES' | 'CLUSTERING' | 'DEMANDA';
 export interface FuenteMlInfo {
   modulo:ModuloMl;
   fuente:FuenteMl;
   registrosDisponibles:number;
   datasetImplementado:boolean;
   descripcion:string;
+}
+
+export interface EjecucionAcademica {
+  idEjecucion: number;
+  modulo: 'CLUSTERING' | 'DEMANDA' | 'OUTFITS';
+  fuente: FuenteMl;
+  registros: number;
+  fecha?: string;
+  resultado: {
+    algoritmos?: Record<string,{grupos?:number;ruido?:number;silhouette?:number|null}>;
+    segmentos?: Array<{segmento:number;clientes:number;compras_promedio:number;gasto_promedio_soles:number}>;
+    mae_unidades?:number;
+    mae_baseline_unidades?:number;
+    r2_prueba?:number;
+    entrenamiento?:number;
+    prueba?:number;
+    presupuesto_soles?:number;
+    factibles?:number;
+    a_estrella?:{combinacion:{superior:string;inferior:string;precio_soles:number};puntuacion:number};
+    hill_climbing?:{combinacion:{superior:string;inferior:string;precio_soles:number};puntuacion:number};
+    advertencia?:string;
+    nota?:string;
+    [key:string]:unknown;
+  };
 }
 
 export interface ModeloTallaMl {
@@ -153,6 +177,16 @@ export class AdminApi {
   exportarDatasetTallas():Promise<Blob> {
     return firstValueFrom(this.http.get(this.api.base+'/admin/ml/tallas/dataset.csv',
       {headers:this.api.headers(),responseType:'blob'}));
+  }
+
+  resultadosModulosMl():Promise<EjecucionAcademica[]> {
+    return firstValueFrom(this.http.get<EjecucionAcademica[]>(
+      this.api.base+'/admin/ml/modulos/resultados',{headers:this.api.headers()}));
+  }
+  ejecutarModuloMl(modulo:'CLUSTERING'|'DEMANDA'|'OUTFITS',presupuestoSoles?:number):Promise<EjecucionAcademica> {
+    return firstValueFrom(this.http.post<EjecucionAcademica>(
+      this.api.base+'/admin/ml/modulos/'+modulo+'/ejecutar',
+      presupuestoSoles==null?{}:{presupuestoSoles},{headers:this.api.headers()}));
   }
 
   modelosTallasMl():Promise<ModeloTallaMl[]> {
