@@ -37,8 +37,19 @@ export class ProductComponent implements OnInit {
     return (p.variantes||[]).some(v=>
       v.pechoCm!=null||v.cinturaCm!=null||v.caderaCm!=null);
   }
-  async ngOnInit(){
-    const id=Number(this.route.snapshot.paramMap.get('id'));
+  ngOnInit(){
+    this.route.paramMap.subscribe(params=>{
+      void this.cargarProducto(Number(params.get('id')));
+    });
+  }
+  private async cargarProducto(id:number){
+    this.error.set('');
+    this.product.set(null);
+    this.selected.set(null);
+    this.recomendacion.set(null);
+    this.complementos.set([]);
+    this.fuenteComplementos.set(null);
+    this.mensajeComplementos.set('');
     if(!Number.isSafeInteger(id)||id<=0){this.error.set('Producto inválido');return;}
     try{
       const producto=await this.api.producto(id);
