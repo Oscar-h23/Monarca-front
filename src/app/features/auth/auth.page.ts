@@ -6,12 +6,14 @@ import { Router, RouterLink } from '@angular/router';
 import { Api } from '../../core/services/api.service';
 import { asset } from '../../core/utils/assets';
 import { SessionService } from '../../core/services/session.service';
+import { PerfilApi } from '../../core/services/perfil-api.service';
 import { GoogleButtonComponent } from '../../shared/google-button.component';
 
 type Modo='login'|'registro'|'recuperar'|'restablecer';
 @Component({standalone:true,selector:'app-auth',imports:[CommonModule,FormsModule,RouterLink,GoogleButtonComponent],templateUrl:'./auth.html'})
 export class AuthPage implements OnInit{
   api=inject(Api);router=inject(Router);session=inject(SessionService);
+  private perfilApi=inject(PerfilApi);
   logo=asset('nayelis-logo.svg');
   mode=signal<Modo>('login');
   busy=signal(false);
@@ -46,6 +48,20 @@ export class AuthPage implements OnInit{
     }
     return e instanceof Error?e.message:'Ocurrió un error.';
   }
+  // El aviso se completa una vez por cuenta y navegador; en un dispositivo nuevo vuelve a aparecer.
+  private async navigateAfterSignIn(role:string){
+    const home=role==='ROLE_ADMIN'?'/admin':'/';
+    try{
+      const perfil=await this.perfilApi.obtener();
+      const email=perfil.correo.trim().toLowerCase();
+      const completedKey='nayelis_onboarding_done_v2:'+email;
+      await this.router.navigateByUrl(localStorage.getItem(completedKey)==='1'
+        ?home:'/perfil?onboarding=1');
+    }catch{
+      // Un fallo temporal del perfil no debe bloquear el inicio de sesión.
+      await this.router.navigateByUrl(home);
+    }
+  }
   async submit(){
     if(this.busy())return;
     this.message.set('');this.isError.set(false);
@@ -67,10 +83,8 @@ export class AuthPage implements OnInit{
       if(mode==='login'){
         if(!response.token)throw new Error('El servidor no envió el token de sesión.');
         this.session.start(response.token,response.rol||'');
-        const pending=localStorage.getItem('nayelis_onboarding_pending');
-        const showWelcome=response.rol!=='ROLE_ADMIN'&&pending===this.email.trim().toLowerCase();
-        if(showWelcome)localStorage.removeItem('nayelis_onboarding_pending');
-        await this.router.navigateByUrl(response.rol==='ROLE_ADMIN'?'/admin':showWelcome?'/perfil?onboarding=1':'/');
+        localStorage.removeItem('nayelis_onboarding_pending');
+        await this.navigateAfterSignIn(response.rol||'');
       }else if(mode==='registro'){
         // El registro no garantiza una sesión: se intenta iniciar sesión antes de abrir el perfil.
         const registeredEmail=this.email.trim().toLowerCase();
@@ -81,7 +95,7 @@ export class AuthPage implements OnInit{
           this.session.start(login.token,login.rol||'');
           localStorage.removeItem('nayelis_onboarding_pending');
           this.password='';this.confirmPassword='';
-          await this.router.navigateByUrl(login.rol==='ROLE_ADMIN'?'/admin':'/perfil?onboarding=1');
+          await this.navigateAfterSignIn(login.rol||'');
         }catch{
           // Si se requiere verificar el correo, el asistente aparecerá en el primer ingreso.
           this.password='';this.confirmPassword='';this.setMode('login');
@@ -104,7 +118,7 @@ export class AuthPage implements OnInit{
       const response=await this.api.auth('google',{credential});
       if(!response.token)throw new Error('El servidor no envió el token de sesión.');
       this.session.start(response.token,response.rol||'');
-      await this.router.navigateByUrl(response.rol==='ROLE_ADMIN'?'/admin':'/');
+      await this.navigateAfterSignIn(response.rol||'');
     }catch(e){this.fail(this.errorMessage(e,'google'));}
     finally{this.busy.set(false);}
   }
