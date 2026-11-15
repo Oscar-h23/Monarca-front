@@ -7,7 +7,7 @@ import { Api } from '../../core/services/api.service';
 import { Producto, Variante } from '../../core/models/shop.models';
 import { asset } from '../../core/utils/assets';
 import { SessionService } from '../../core/services/session.service';
-import { AdminApi, AdministradorCuenta, Pedido, ProductForm, ProductVariantForm, FuenteMl, FuenteMlInfo, ModuloMl, ModeloTallaMl } from './data-access/admin-api.service';
+import { AdminApi, AdministradorCuenta, Pedido, ProductForm, ProductVariantForm, FuenteMl, FuenteMlInfo, ModuloMl, ModeloTallaMl, EjecucionAcademica } from './data-access/admin-api.service';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.page';
 import { AdminPaymentsComponent } from './payments/admin-payments.page';
 
@@ -54,10 +54,29 @@ export class AdminPage implements OnInit, OnDestroy {
   mlEntrenando=signal(false);
   mlAccionModelo=signal(false);
   modelosTallasMl=signal<ModeloTallaMl[]>([]);
+  ejecucionesAcademicas=signal<EjecucionAcademica[]>([]);
+  moduloEjecutando=signal<ModuloMl|null>(null);
+  presupuestoOutfits=180;
+  resultadoAcademico(modulo:ModuloMl):EjecucionAcademica|undefined {
+    return this.ejecucionesAcademicas().find(x=>x.modulo===modulo);
+  }
+  async ejecutarAcademico(modulo:'CLUSTERING'|'DEMANDA'|'OUTFITS'):Promise<void>{
+    if(this.moduloEjecutando()||this.mlCargando())return;
+    const info=this.fuentesMl().find(x=>x.modulo===modulo);
+    if(!info||!info.datasetImplementado||!info.registrosDisponibles)return;
+    if(!window.confirm('Ejecutar '+this.nombresModuloMl[modulo]+' usando '+(info.fuente==='PRUEBA'?'100 registros SINTÉTICOS':'datos reales disponibles')+'? Los resultados son orientativos.'))return;
+    this.moduloEjecutando.set(modulo);this.mlError.set('');this.mlMensaje.set('');
+    try{
+      const resultado=await this.adminApi.ejecutarModuloMl(modulo,modulo==='OUTFITS'?this.presupuestoOutfits:undefined);
+      this.ejecucionesAcademicas.update(xs=>[resultado,...xs.filter(x=>x.modulo!==modulo)]);
+      this.mlMensaje.set('Ejecución '+modulo+' completada y registrada en Supabase.');
+    }catch(e){this.mlError.set(this.err(e));}
+    finally{this.moduloEjecutando.set(null);}
+  }
   mlError=signal('');
   mlMensaje=signal('');
   readonly nombresModuloMl:Record<ModuloMl,string>={
-    TALLAS:'Recomendación de tallas',OUTFITS:'Recomendación de outfits',PATRONES:'Análisis de patrones'
+    TALLAS:'Recomendación de tallas',OUTFITS:'Búsqueda de outfits por presupuesto',PATRONES:'Análisis de patrones (heredado)',CLUSTERING:'Segmentación de clientes',DEMANDA:'Predicción de demanda'
   };
 
   abrirMl():void{
@@ -69,8 +88,8 @@ export class AdminPage implements OnInit, OnDestroy {
     this.mlCargando.set(true);
     this.mlError.set('');
     try{
-      const [fuentes,modelos]=await Promise.all([this.adminApi.fuentesMl(),this.adminApi.modelosTallasMl()]);
-      this.fuentesMl.set(fuentes);this.modelosTallasMl.set(modelos);
+      const [fuentes,modelos,ejecuciones]=await Promise.all([this.adminApi.fuentesMl(),this.adminApi.modelosTallasMl(),this.adminApi.resultadosModulosMl()]);
+      this.fuentesMl.set(fuentes.filter(x=>x.modulo!=='PATRONES'));this.modelosTallasMl.set(modelos);this.ejecucionesAcademicas.set(ejecuciones);
     }
     catch(e){this.mlError.set(this.err(e));}
     finally{this.mlCargando.set(false);}
