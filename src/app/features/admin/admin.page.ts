@@ -76,7 +76,7 @@ export class AdminPage implements OnInit, OnDestroy {
   mlError=signal('');
   mlMensaje=signal('');
   readonly nombresModuloMl:Record<ModuloMl,string>={
-    TALLAS:'Recomendación de tallas',OUTFITS:'Búsqueda de outfits por presupuesto',PATRONES:'Análisis de patrones (heredado)',CLUSTERING:'Segmentación de clientes',DEMANDA:'Predicción de demanda'
+    TALLAS:'Recomendación de tallas',OUTFITS:'Búsqueda de outfits por presupuesto',PATRONES:'Análisis de patrones (heredado)',CLUSTERING:'Segmentación de clientes',DEMANDA:'Predicción de demanda',COCOMPRA:'Prendas que se compran juntas'
   };
 
   abrirMl():void{
