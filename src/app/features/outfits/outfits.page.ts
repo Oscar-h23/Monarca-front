@@ -32,6 +32,8 @@ export class OutfitsPage implements OnInit {
   private readonly api=inject(Api);
   private readonly cart=inject(Cart);
   readonly fallback=asset('mariposa.png');
+  readonly imagenTops=asset('portada_tops/Portada_Tops.png');
+  readonly imagenBottoms=asset('portada_bottoms/portada_bottom_1.png');
   presupuesto=180;
   presupuestoConsultado=signal(0);
   procesando=signal(false);
