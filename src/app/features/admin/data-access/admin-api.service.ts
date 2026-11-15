@@ -37,7 +37,8 @@ export interface EjecucionAcademica {
   fecha?: string;
   resultado: {
     algoritmos?: Record<string,{grupos?:number;ruido?:number;silhouette?:number|null}>;
-    segmentos?: Array<{segmento:number;clientes:number;compras_promedio:number;gasto_promedio_soles:number}>;
+    segmentos?: Array<{segmento:number;clientes:number;compras_promedio:number;gasto_promedio_soles:number;dias_desde_ultima_compra_promedio?:number}>;
+    escenarios_producto?:Array<{idProducto:number;visitasSupuestas:number;descuentoSupuesto:number;unidadesEscenario:number;precioReferencia:number}>;
     mae_unidades?:number;
     mae_baseline_unidades?:number;
     r2_prueba?:number;
