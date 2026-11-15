@@ -20,6 +20,11 @@ export class ProductComponent implements OnInit {
   selected=signal<Variante|null>(null);
   perfil=signal<Perfil|null>(null);
   recomendacion=signal<RecomendacionTalla|null>(null);
+  complementos=signal<Array<{idProducto:number;nombre:string;precioDesde:number;confianza:number;lift:number}>>([]);
+  fuenteComplementos=signal<'PRUEBA'|'REALES'|null>(null);
+  cargandoComplementos=signal(false);
+  mensajeComplementos=signal('');
+
   message=signal('');
   added=signal(false);
   quantity=signal(1);
@@ -38,6 +43,17 @@ export class ProductComponent implements OnInit {
     try{
       const producto=await this.api.producto(id);
       this.product.set(producto);
+      this.cargandoComplementos.set(true);
+      try {
+        const res=await this.api.complementos(id);
+        this.complementos.set(res.recomendaciones);
+        this.fuenteComplementos.set(res.fuente);
+        this.mensajeComplementos.set(res.mensaje);
+      } catch {
+        this.mensajeComplementos.set('No fue posible consultar las sugerencias complementarias.');
+      } finally {
+        this.cargandoComplementos.set(false);
+      }
       if(this.session.isAuthenticated()){
         try{
           const perfil=await this.perfilApi.obtener();
