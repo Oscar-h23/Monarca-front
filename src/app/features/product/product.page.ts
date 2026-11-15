@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Api } from '../../core/services/api.service';
@@ -9,7 +10,7 @@ import { SessionService } from '../../core/services/session.service';
 import { PerfilApi, Perfil } from '../../core/services/perfil-api.service';
 import { RecomendacionTalla, recomendarTalla, tieneMedidas } from '../../core/utils/recomendar-talla';
 
-@Component({standalone:true,imports:[CommonModule,RouterLink],templateUrl:'./product.html'})
+@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink],templateUrl:'./product.html'})
 export class ProductComponent implements OnInit {
   api=inject(Api);
   cart=inject(Cart);
@@ -22,6 +23,34 @@ export class ProductComponent implements OnInit {
   recomendacion=signal<RecomendacionTalla|null>(null);
   complementos=signal<Array<{idProducto:number;nombre:string;precioDesde:number;confianza:number;lift:number}>>([]);
   fuenteComplementos=signal<'PRUEBA'|'REALES'|null>(null);
+  catalogo=signal<Producto[]>([]);
+  tallasComplemento=signal<Record<number,number>>({});
+  mensajeAgregadoComplemento=signal('');
+  productoComplemento(id:number):Producto|undefined {
+    return this.catalogo().find(p=>p.idProducto===id);
+  }
+  variantesComplemento(id:number):Variante[] {
+    return (this.productoComplemento(id)?.variantes||[]).filter(v=>v.stock>0);
+  }
+  elegirComplemento(id:number,varianteId:number) {
+    this.tallasComplemento.update(xs=>({...xs,[id]:Number(varianteId)}));
+    this.mensajeAgregadoComplemento.set('');
+  }
+  agregarComplemento(id:number) {
+    const producto=this.productoComplemento(id);
+    const varianteId=this.tallasComplemento()[id];
+    const variante=producto?.variantes?.find(v=>v.idVariante===varianteId&&v.stock>0);
+    if(!producto||!variante) {
+      this.mensajeAgregadoComplemento.set('Elige una talla disponible antes de añadir.');
+      return;
+    }
+    if(this.cart.add(producto,variante,1)){
+      this.mensajeAgregadoComplemento.set(producto.nombre+' añadido a tu bolsa.');
+    } else {
+      this.mensajeAgregadoComplemento.set('No hay suficiente stock de la variante seleccionada.');
+    }
+  }
+
   cargandoComplementos=signal(false);
   mensajeComplementos=signal('');
 
@@ -48,6 +77,9 @@ export class ProductComponent implements OnInit {
     this.selected.set(null);
     this.recomendacion.set(null);
     this.complementos.set([]);
+    this.catalogo.set([]);
+    this.tallasComplemento.set({});
+    this.mensajeAgregadoComplemento.set('');
     this.fuenteComplementos.set(null);
     this.mensajeComplementos.set('');
     if(!Number.isSafeInteger(id)||id<=0){this.error.set('Producto inválido');return;}
@@ -56,7 +88,11 @@ export class ProductComponent implements OnInit {
       this.product.set(producto);
       this.cargandoComplementos.set(true);
       try {
-        const res=await this.api.complementos(id);
+        const [res, catalogo] = await Promise.all([
+          this.api.complementos(id),
+          this.api.productos()
+        ]);
+        this.catalogo.set(catalogo);
         this.complementos.set(res.recomendaciones);
         this.fuenteComplementos.set(res.fuente);
         this.mensajeComplementos.set(res.mensaje);
