@@ -27,8 +27,8 @@ export class Api {
     return firstValueFrom(this.http.get<Producto>(this.base + '/productos/' + id));
   }
 
-  recomendarTalla(idProducto:number): Promise<{disponible:boolean;idVariante?:number;talla?:string;holgurasCm?:Record<string,number>;metodo?:string;motivo?:string}> {
-    return firstValueFrom(this.http.get<{disponible:boolean;idVariante?:number;talla?:string;holgurasCm?:Record<string,number>;metodo?:string;motivo?:string}>(
+  recomendarTalla(idProducto:number): Promise<{disponible:boolean;idVariante?:number;talla?:string;holgurasCm?:Record<string,number>;metodo?:string;motivo?:string;experimental?:boolean;fuenteModelo?:string;aviso?:string}> {
+    return firstValueFrom(this.http.get<{disponible:boolean;idVariante?:number;talla?:string;holgurasCm?:Record<string,number>;metodo?:string;motivo?:string;experimental?:boolean;fuenteModelo?:string;aviso?:string}>(
       this.base + '/perfil/tallas/' + idProducto, {headers:this.headers()}));
   }
 
