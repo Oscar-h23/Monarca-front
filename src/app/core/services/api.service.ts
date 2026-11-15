@@ -32,6 +32,16 @@ export class Api {
       this.base + '/perfil/tallas/' + idProducto, {headers:this.headers()}));
   }
 
+  complementos(idProducto:number): Promise<{
+    fuente:'REALES'|'PRUEBA';cestas:number;mensaje:string;
+    recomendaciones:Array<{idProducto:number;nombre:string;precioDesde:number;soporte:number;confianza:number;lift:number}>;
+  }> {
+    return firstValueFrom(this.http.get<{
+      fuente:'REALES'|'PRUEBA';cestas:number;mensaje:string;
+      recomendaciones:Array<{idProducto:number;nombre:string;precioDesde:number;soporte:number;confianza:number;lift:number}>;
+    }>(this.base+'/productos/'+idProducto+'/complementos'));
+  }
+
   metodos(): Promise<MetodoPago[]> {
     return firstValueFrom(this.http.get<MetodoPago[]>(this.base + '/metodos-pago', { headers: this.headers() }));
   }
