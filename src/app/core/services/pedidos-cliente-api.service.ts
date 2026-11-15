@@ -53,6 +53,11 @@ export class PedidosClienteApi {
     ));
   }
 
+  requisitosTalla(): Promise<Array<{idDetalle:number;faltantes:string[]}>> {
+    return firstValueFrom(this.http.get<Array<{idDetalle:number;faltantes:string[]}>>(
+      this.api.base + '/pedidos/valoraciones-talla/requisitos', {headers:this.api.headers()}));
+  }
+
   listarValoraciones(): Promise<Array<{idDetalle:number;ajuste:string}>> {
     return firstValueFrom(this.http.get<Array<{idDetalle:number;ajuste:string}>>(
       this.api.base + '/pedidos/valoraciones-talla', {headers:this.api.headers()}));
