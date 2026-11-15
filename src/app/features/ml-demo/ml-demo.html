@@ -111,8 +111,22 @@
      <p class="text-xs font-bold text-zinc-500">RESULTADO A*</p>
      <p class="mt-2 text-sm font-semibold">{{outfit.superior}} + {{outfit.inferior}}</p>
      <p class="mt-1 text-sm">Total: S/ {{outfit.precio_soles|number:'1.2-2'}}</p>
-     <p class="mt-2 text-xs text-zinc-600">Busca las dos prendas en el catálogo, elige sus tallas y agrégalas a tu bolsa. No se añaden automáticamente.</p>
-     <a routerLink="/" class="mt-3 inline-block text-sm font-bold underline underline-offset-4">Ir al catálogo</a>
+     <div class="mt-3 grid gap-2 sm:grid-cols-2">
+      <a *ngFor="let item of variantesOutfit()" [routerLink]="['/producto',item.producto.idProducto]"
+        class="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-sm hover:border-zinc-900">
+        <strong>{{item.producto.nombre}}</strong>
+        <p class="mt-1 text-xs text-zinc-600">Talla {{item.variante.talla}} · {{item.variante.color}} · Stock {{item.variante.stock}} · S/ {{item.variante.precio|number:'1.2-2'}}</p>
+        <p class="mt-2 text-xs font-semibold underline">Ver producto y cambiar talla</p>
+      </a>
+     </div>
+     <p class="mt-3 text-sm font-semibold">Precio actual del catálogo: S/ {{costoActualOutfit()|number:'1.2-2'}}</p>
+     <div class="mt-3 flex flex-wrap gap-2">
+      <button type="button" (click)="agregarOutfit()" [disabled]="variantesOutfit().length!==2||costoActualOutfit()>presupuesto"
+        class="min-h-11 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">Agregar outfit a la bolsa</button>
+      <a routerLink="/carrito" class="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 px-4 py-2 text-sm font-semibold">Ver bolsa</a>
+     </div>
+     <p *ngIf="mensajeOutfit()" role="status" class="mt-2 text-sm text-zinc-700">{{mensajeOutfit()}}</p>
+     <p class="mt-2 text-xs text-zinc-500">La combinación es académica, pero la bolsa utiliza las variantes, precios y existencias actuales. Puedes revisar o quitar prendas antes de comprar.</p>
     </div>
    </div>
   </section>
