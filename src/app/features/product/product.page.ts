@@ -56,9 +56,9 @@ export class ProductComponent implements OnInit {
                   nombre,cuerpoCm:cuerpo[nombre]??0,prendaCm:prenda[nombre]??0,
                   holguraCm:remota.holgurasCm![nombre]
                 }));
-                if(detalle.length && detalle.every(x=>x.cuerpoCm>0 && x.prendaCm>0 && x.holguraCm>=2)) {
+                if(detalle.length && detalle.every(x=>x.cuerpoCm>0 && x.prendaCm>0 && (remota.metodo==='supervisado' || x.holguraCm>=2))) {
                   this.recomendacion.set({
-                    variante,medidasComparadas:dimensiones,detalle,tipo:'REGLAS',
+                    variante,medidasComparadas:dimensiones,detalle,tipo:remota.metodo==='supervisado'?'SUPERVISADO':'REGLAS',
                     holguraPromedioCm:detalle.reduce((n,x)=>n+x.holguraCm,0)/detalle.length
                   });
                 }
