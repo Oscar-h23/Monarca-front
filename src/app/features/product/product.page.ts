@@ -27,7 +27,7 @@ export class ProductComponent implements OnInit {
   fallback=asset('mariposa.png');
 
   available(p:Producto){return(p.variantes||[]).filter(v=>v.stock>0);}
-  hasBodyMeasurements(){return tieneMedidas(this.perfil());}
+  hasBodyMeasurements(){return !!this.product() && tieneMedidas(this.perfil(),this.product()!.categoria);}
   hasGarmentMeasurements(p:Producto) {
     return (p.variantes||[]).some(v=>
       v.pechoCm!=null||v.cinturaCm!=null||v.caderaCm!=null);
