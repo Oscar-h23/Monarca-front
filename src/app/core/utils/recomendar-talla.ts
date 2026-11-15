@@ -1,49 +1,67 @@
 import { Perfil } from '../services/perfil-api.service';
 import { Producto, Variante } from '../models/shop.models';
 
+export interface ComparacionMedida {
+  nombre: string;
+  cuerpoCm: number;
+  prendaCm: number;
+  holguraCm: number;
+}
 export interface RecomendacionTalla {
   variante: Variante;
   medidasComparadas: string[];
   holguraPromedioCm: number;
+  detalle: ComparacionMedida[];
+  tipo: 'REGLAS';
 }
 
-function numero(n: number|null|undefined): n is number {
-  return typeof n === 'number' && Number.isFinite(n) && n > 0;
+const REQUERIDAS:Record<string,Array<'pecho'|'cintura'|'cadera'>>={
+  Tops:['pecho','cintura'],
+  Bottoms:['cintura','cadera'],
+  Vestidos:['pecho','cintura','cadera']
+};
+const MARGEN_MINIMO_CM=2;
+
+function numero(n:number|null|undefined): n is number {
+  return typeof n==='number' && Number.isFinite(n) && n>=25 && n<=300;
 }
 
 /**
- * Regla transparente, no IA: busca prendas cuyas circunferencias
- * superen los contornos corporales en al menos 2 cm.
- * No utiliza estatura porque el largo de una prenda no equivale a talla.
- * Si faltan medidas comparables, no inventa una recomendación.
+ * Baseline determinista, NO modelo de ML entrenado.
+ * Exige las medidas pertinentes completas y 2 cm de holgura en cada una.
+ * Un tamaño de cuerpo y uno de prenda deben medirse como circunferencias
+ * comparables. No se deducen medidas faltantes y no se utiliza la fotografía.
  */
-export function recomendarTalla(producto: Producto, perfil: Perfil): RecomendacionTalla|null {
-  const disponibles = (producto.variantes || []).filter(v => v.stock > 0);
-  const opciones: RecomendacionTalla[] = [];
-  for (const v of disponibles) {
-    const comparaciones: { nombre: string; cuerpo: number; prenda: number }[] = [];
-    const datos: Array<[string, number|null|undefined, number|null|undefined]> = [
-      ['pecho', perfil.bustoCm, v.pechoCm],
-      ['cintura', perfil.cinturaCm, v.cinturaCm],
-      ['cadera', perfil.caderaCm, v.caderaCm]
-    ];
-    for (const [nombre, cuerpo, prenda] of datos) {
-      if (numero(cuerpo) && numero(prenda)) comparaciones.push({ nombre, cuerpo, prenda });
-    }
-    if (!comparaciones.length || comparaciones.some(x => x.prenda - x.cuerpo < 2)) continue;
+export function recomendarTalla(producto:Producto,perfil:Perfil):RecomendacionTalla|null {
+  const requeridas=REQUERIDAS[producto.categoria];
+  if(!requeridas)return null;
+  const cuerpo={pecho:perfil.bustoCm,cintura:perfil.cinturaCm,cadera:perfil.caderaCm};
+  if(requeridas.some(k=>!numero(cuerpo[k])))return null;
+  const opciones:RecomendacionTalla[]=[];
+  for(const variante of producto.variantes||[]){
+    if(variante.stock<=0)continue;
+    const prenda={pecho:variante.pechoCm,cintura:variante.cinturaCm,cadera:variante.caderaCm};
+    if(requeridas.some(k=>!numero(prenda[k])))continue;
+    const detalle:ComparacionMedida[]=requeridas.map(k=>{
+      const holguraCm=Number((prenda[k]!-cuerpo[k]!).toFixed(1));
+      return {nombre:k,cuerpoCm:cuerpo[k]!,prendaCm:prenda[k]!,holguraCm};
+    });
+    if(detalle.some(d=>d.holguraCm<MARGEN_MINIMO_CM))continue;
     opciones.push({
-      variante: v,
-      medidasComparadas: comparaciones.map(x => x.nombre),
-      holguraPromedioCm: comparaciones.reduce((s,x) => s + x.prenda-x.cuerpo,0)/comparaciones.length
+      variante,medidasComparadas:[...requeridas],detalle,tipo:'REGLAS',
+      holguraPromedioCm:detalle.reduce((s,d)=>s+d.holguraCm,0)/detalle.length
     });
   }
-  opciones.sort((a,b) =>
-    b.medidasComparadas.length - a.medidasComparadas.length ||
-    a.holguraPromedioCm - b.holguraPromedioCm ||
-    a.variante.precio - b.variante.precio);
-  return opciones[0] || null;
+  opciones.sort((a,b)=>a.holguraPromedioCm-b.holguraPromedioCm ||
+    a.variante.precio-b.variante.precio ||
+    a.variante.idVariante-b.variante.idVariante);
+  return opciones[0]||null;
 }
-
-export function tieneMedidas(perfil: Perfil|null): boolean {
-  return !!perfil && [perfil.bustoCm,perfil.cinturaCm,perfil.caderaCm].some(numero);
+export function tieneMedidas(perfil:Perfil|null, categoria?:string):boolean {
+  if(!perfil)return false;
+  const datos={pecho:perfil.bustoCm,cintura:perfil.cinturaCm,cadera:perfil.caderaCm};
+  const dimensiones=categoria?REQUERIDAS[categoria]:undefined;
+  return dimensiones
+    ?dimensiones.every(k=>numero(datos[k]))
+    :Object.values(datos).some(numero);
 }
