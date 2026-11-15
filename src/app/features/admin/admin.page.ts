@@ -7,7 +7,7 @@ import { Api } from '../../core/services/api.service';
 import { Producto, Variante } from '../../core/models/shop.models';
 import { asset } from '../../core/utils/assets';
 import { SessionService } from '../../core/services/session.service';
-import { AdminApi, AdministradorCuenta, Pedido, ProductForm, ProductVariantForm, FuenteMl, FuenteMlInfo, ModuloMl } from './data-access/admin-api.service';
+import { AdminApi, AdministradorCuenta, Pedido, ProductForm, ProductVariantForm, FuenteMl, FuenteMlInfo, ModuloMl, ModeloTallaMl } from './data-access/admin-api.service';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.page';
 import { AdminPaymentsComponent } from './payments/admin-payments.page';
 
@@ -51,6 +51,9 @@ export class AdminPage implements OnInit, OnDestroy {
   mlCargando=signal(false);
   mlGuardando=signal<ModuloMl|null>(null);
   mlDescargando=signal(false);
+  mlEntrenando=signal(false);
+  mlAccionModelo=signal(false);
+  modelosTallasMl=signal<ModeloTallaMl[]>([]);
   mlError=signal('');
   mlMensaje=signal('');
   readonly nombresModuloMl:Record<ModuloMl,string>={
@@ -65,7 +68,10 @@ export class AdminPage implements OnInit, OnDestroy {
     if(this.mlCargando())return;
     this.mlCargando.set(true);
     this.mlError.set('');
-    try{this.fuentesMl.set(await this.adminApi.fuentesMl());}
+    try{
+      const [fuentes,modelos]=await Promise.all([this.adminApi.fuentesMl(),this.adminApi.modelosTallasMl()]);
+      this.fuentesMl.set(fuentes);this.modelosTallasMl.set(modelos);
+    }
     catch(e){this.mlError.set(this.err(e));}
     finally{this.mlCargando.set(false);}
   }
@@ -98,6 +104,48 @@ export class AdminPage implements OnInit, OnDestroy {
       window.setTimeout(()=>URL.revokeObjectURL(url),1000);
     }catch(e){this.mlError.set(this.err(e));}
     finally{this.mlDescargando.set(false);}
+  }
+
+  async entrenarModeloTallas():Promise<void>{
+    if(this.mlEntrenando()||this.mlAccionModelo())return;
+    const fuente=this.fuentesMl().find(x=>x.modulo==='TALLAS');
+    if(!fuente)return;
+    if(!window.confirm('Entrenarás un modelo con '+(fuente.fuente==='PRUEBA'?'DATOS SINTÉTICOS':'DATOS REALES')+'. El entrenamiento no activa automáticamente el resultado. ¿Continuar?'))return;
+    this.mlEntrenando.set(true);this.mlError.set('');this.mlMensaje.set('');
+    try{
+      const modelo=await this.adminApi.entrenarTallasMl();
+      this.modelosTallasMl.update(xs=>[modelo,...xs]);
+      this.mlMensaje.set('Entrenamiento completado. Modelo #'+modelo.idModelo+' guardado como candidato, sin activar.');
+    }catch(e){this.mlError.set(this.err(e));}
+    finally{this.mlEntrenando.set(false);}
+  }
+  async activarModeloTallas(id:number):Promise<void>{
+    if(this.mlEntrenando()||this.mlAccionModelo())return;
+    const seleccionado=this.modelosTallasMl().find(x=>x.idModelo===id);
+    if(!seleccionado)return;
+    const aviso='¿Activar el modelo #'+id+'? '+(seleccionado.fuente==='PRUEBA'
+      ? 'ATENCIÓN: fue entrenado con datos sintéticos. Las recomendaciones para clientes serán experimentales y no están validadas con compradores reales.'
+      : 'El entrenamiento con valoraciones reales no garantiza precisión hasta realizar una evaluación externa.')+
+      ' Puedes desactivarlo para regresar a las reglas.';
+    if(!window.confirm(aviso))return;
+    this.mlAccionModelo.set(true);this.mlError.set('');this.mlMensaje.set('');
+    try{
+      await this.adminApi.activarModeloTallasMl(id);
+      this.modelosTallasMl.update(xs=>xs.map(x=>({...x,activo:x.idModelo===id})));
+      this.mlMensaje.set('Modelo #'+id+' activado. Las recomendaciones muestran su condición experimental.');
+    }catch(e){this.mlError.set(this.err(e));}
+    finally{this.mlAccionModelo.set(false);}
+  }
+  async desactivarModeloTallas():Promise<void>{
+    if(this.mlAccionModelo()||this.mlEntrenando())return;
+    if(!window.confirm('¿Desactivar ML supervisado y volver al sistema de reglas?'))return;
+    this.mlAccionModelo.set(true);this.mlError.set('');this.mlMensaje.set('');
+    try{
+      await this.adminApi.desactivarModeloTallasMl();
+      this.modelosTallasMl.update(xs=>xs.map(x=>({...x,activo:false})));
+      this.mlMensaje.set('Modelo desactivado. El recomendador utiliza las reglas anteriores.');
+    }catch(e){this.mlError.set(this.err(e));}
+    finally{this.mlAccionModelo.set(false);}
   }
 
   correoAdministrador='';
