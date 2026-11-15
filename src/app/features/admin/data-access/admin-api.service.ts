@@ -29,6 +29,20 @@ export interface FuenteMlInfo {
   descripcion:string;
 }
 
+export interface ModeloTallaMl {
+  idModelo:number;
+  fuente:FuenteMl;
+  algoritmo:'knn'|'arbol';
+  activo:boolean;
+  creadoEn?:string;
+  metricas?:{
+    rows?:number;
+    experimental?:boolean;
+    test?:{accuracy?:number;macro_f1?:number;confusion_matrix?:number[][];confusion_matrix_labels?:string[]};
+    validation?:Record<string,{accuracy:number;macro_f1:number}>;
+  };
+}
+
 export interface AdministradorCuenta {
   idUsuario:number;
   correo:string;
@@ -139,6 +153,23 @@ export class AdminApi {
   exportarDatasetTallas():Promise<Blob> {
     return firstValueFrom(this.http.get(this.api.base+'/admin/ml/tallas/dataset.csv',
       {headers:this.api.headers(),responseType:'blob'}));
+  }
+
+  modelosTallasMl():Promise<ModeloTallaMl[]> {
+    return firstValueFrom(this.http.get<ModeloTallaMl[]>(
+      this.api.base+'/admin/ml/tallas/modelos',{headers:this.api.headers()}));
+  }
+  entrenarTallasMl():Promise<ModeloTallaMl> {
+    return firstValueFrom(this.http.post<ModeloTallaMl>(
+      this.api.base+'/admin/ml/tallas/entrenar',{}, {headers:this.api.headers()}));
+  }
+  activarModeloTallasMl(id:number):Promise<{activo:boolean;idModelo:number;fuente:FuenteMl}> {
+    return firstValueFrom(this.http.post<{activo:boolean;idModelo:number;fuente:FuenteMl}>(
+      this.api.base+'/admin/ml/tallas/modelos/'+id+'/activar',{}, {headers:this.api.headers()}));
+  }
+  desactivarModeloTallasMl():Promise<{activo:boolean}> {
+    return firstValueFrom(this.http.post<{activo:boolean}>(
+      this.api.base+'/admin/ml/tallas/desactivar',{}, {headers:this.api.headers()}));
   }
 
   listarAdministradores():Promise<AdministradorCuenta[]> {
