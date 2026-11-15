@@ -55,6 +55,42 @@ export class OrdersPage implements OnInit {
   archivos = new Map<number,File>();
   nombresArchivo = signal<Record<number,string>>({});
   filtro = signal<Filtro>('pendientes');
+  valoraciones = signal<Record<number,string>>({});
+  ajusteSeleccionado = signal<Record<number,'PEQUENA'|'BIEN'|'GRANDE'>>({});
+  consentimientoTalla = signal<Record<number,boolean>>({});
+  guardandoTalla = signal<number|null>(null);
+  tallaError = signal('');
+  tallaErrorId = signal<number|null>(null);
+  tallaMensaje = signal('');
+  tallaMensajeId = signal<number|null>(null);
+
+  puedeValorarTalla(p:MiPedido):boolean {
+    return ['FINALIZADO','ENTREGADO','COMPLETADO'].includes((p.estado||'').toUpperCase());
+  }
+
+  seleccionarAjuste(id:number, ajuste:string):void {
+    if(['PEQUENA','BIEN','GRANDE'].includes(ajuste)){
+      this.ajusteSeleccionado.update(v=>({...v,[id]:ajuste as 'PEQUENA'|'BIEN'|'GRANDE'}));
+    }
+  }
+  cambiarConsentimiento(id:number,event:Event):void {
+    const input=event.target as HTMLInputElement;
+    this.consentimientoTalla.update(v=>({...v,[id]:input.checked}));
+  }
+  async guardarValoracion(id:number):Promise<void>{
+    if(this.guardandoTalla()!==null || this.valoraciones()[id] || !this.consentimientoTalla()[id])return;
+    this.guardandoTalla.set(id);this.tallaError.set('');this.tallaErrorId.set(null);
+    this.tallaMensaje.set('');this.tallaMensajeId.set(null);
+    try{
+      const ajuste=this.ajusteSeleccionado()[id]||'BIEN';
+      const resp=await this.api.valorarTalla(id,ajuste);
+      this.valoraciones.update(v=>({...v,[resp.idDetalle]:resp.ajuste}));
+      this.tallaMensajeId.set(id);this.tallaMensaje.set('Gracias. Guardamos tu valoración de talla.');
+    }catch(e){
+      this.tallaErrorId.set(id);this.tallaError.set(this.mensajeError(e));
+    }finally{this.guardandoTalla.set(null);}
+  }
+
 
   pendientes = computed(() => this.pedidos().filter(p => !this.esAnterior(p.estado)));
   anteriores = computed(() => this.pedidos().filter(p => this.esAnterior(p.estado)));
@@ -197,6 +233,12 @@ export class OrdersPage implements OnInit {
     this.error.set('');
     try {
       this.pedidos.set(await this.api.listar());
+      try {
+        const existentes=await this.api.listarValoraciones();
+        this.valoraciones.set(Object.fromEntries(existentes.map(x=>[x.idDetalle,x.ajuste])));
+      }catch{
+        // El listado de pedidos sigue disponible si falla el servicio de valoraciones.
+      }
     } catch (error) {
       if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
         this.error.set('Tu sesión expiró. Inicia sesión nuevamente para consultar tus pedidos.');
