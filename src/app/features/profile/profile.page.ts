@@ -6,12 +6,14 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Perfil, PerfilApi, PerfilEditable } from '../../core/services/perfil-api.service';
 import { GoogleButtonComponent } from '../../shared/google-button.component';
 import { OrdersPage } from '../orders/orders.page';
+import { SessionService } from '../../core/services/session.service';
 
 @Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink,GoogleButtonComponent,OrdersPage],templateUrl:'./profile.html'})
 export class ProfilePage implements OnInit,OnDestroy {
   private api=inject(PerfilApi);
   private route=inject(ActivatedRoute);
   private router=inject(Router);
+  private session=inject(SessionService);
   onboarding=signal(false);
   onboardingError=signal('');
   onboardingFile:File|null=null;
@@ -83,12 +85,17 @@ export class ProfilePage implements OnInit,OnDestroy {
     finally{this.busy.set(false);}
   }
   private closeOnboarding(){
+    if(this.email) localStorage.setItem('nayelis_onboarding_done_v2:'+this.email.trim().toLowerCase(),'1');
     this.onboarding.set(false);
     this.onboardingFile=null;
     this.onboardingFileName='';
     this.onboardingError.set('');
-    void this.router.navigate([],{relativeTo:this.route,queryParams:{onboarding:null},
-      queryParamsHandling:'merge',replaceUrl:true});
+    if(this.session.isAdmin()){
+      void this.router.navigateByUrl('/admin');
+    }else{
+      void this.router.navigate([],{relativeTo:this.route,queryParams:{onboarding:null},
+        queryParamsHandling:'merge',replaceUrl:true});
+    }
   }
   skipOnboarding(){
     if(this.busy())return;
