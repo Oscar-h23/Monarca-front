@@ -59,6 +59,15 @@ export class OrdersPage implements OnInit {
   ajusteSeleccionado = signal<Record<number,'PEQUENA'|'BIEN'|'GRANDE'>>({});
   consentimientoTalla = signal<Record<number,boolean>>({});
   guardandoTalla = signal<number|null>(null);
+  requisitosMedidas = signal<Record<number,string[]>|null>(null);
+  faltantesTalla(idDetalle:number): string[] {
+    return this.requisitosMedidas()?.[idDetalle] ?? [];
+  }
+  tallaHabilitada(idDetalle:number):boolean {
+    const datos=this.requisitosMedidas();
+    return datos !== null && Object.prototype.hasOwnProperty.call(datos,idDetalle) && datos[idDetalle].length===0;
+  }
+
   tallaError = signal('');
   tallaErrorId = signal<number|null>(null);
   tallaMensaje = signal('');
@@ -78,7 +87,7 @@ export class OrdersPage implements OnInit {
     this.consentimientoTalla.update(v=>({...v,[id]:input.checked}));
   }
   async guardarValoracion(id:number):Promise<void>{
-    if(this.guardandoTalla()!==null || this.valoraciones()[id] || !this.consentimientoTalla()[id])return;
+    if(this.guardandoTalla()!==null || this.valoraciones()[id] || !this.consentimientoTalla()[id] || !this.tallaHabilitada(id))return;
     this.guardandoTalla.set(id);this.tallaError.set('');this.tallaErrorId.set(null);
     this.tallaMensaje.set('');this.tallaMensajeId.set(null);
     try{
@@ -233,6 +242,16 @@ export class OrdersPage implements OnInit {
     this.error.set('');
     try {
       this.pedidos.set(await this.api.listar());
+      this.requisitosMedidas.set(null);
+      try {
+        const requisitos=await this.api.requisitosTalla();
+        this.requisitosMedidas.set(Object.fromEntries(
+          requisitos.map(x=>[x.idDetalle,x.faltantes])
+        ));
+      }catch{
+        // Si no se pudieron validar las medidas, bloquear el envío hasta reintentar.
+        this.requisitosMedidas.set(null);
+      }
       try {
         const existentes=await this.api.listarValoraciones();
         this.valoraciones.set(Object.fromEntries(existentes.map(x=>[x.idDetalle,x.ajuste])));
