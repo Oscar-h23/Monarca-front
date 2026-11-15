@@ -19,6 +19,16 @@ export interface Pedido {
   boletaDisponible: boolean;
 }
 
+export type FuenteMl = 'REALES' | 'PRUEBA';
+export type ModuloMl = 'TALLAS' | 'OUTFITS' | 'PATRONES';
+export interface FuenteMlInfo {
+  modulo:ModuloMl;
+  fuente:FuenteMl;
+  registrosDisponibles:number;
+  datasetImplementado:boolean;
+  descripcion:string;
+}
+
 export interface AdministradorCuenta {
   idUsuario:number;
   correo:string;
@@ -117,6 +127,19 @@ export type NewProductForm = ProductForm & { variantes: ProductVariantForm[] };
 export class AdminApi {
   private readonly http = inject(HttpClient);
   private readonly api = inject(Api);
+
+  fuentesMl():Promise<FuenteMlInfo[]> {
+    return firstValueFrom(this.http.get<FuenteMlInfo[]>(
+      this.api.base+'/admin/ml/fuentes',{headers:this.api.headers()}));
+  }
+  configurarFuenteMl(modulo:ModuloMl,fuente:FuenteMl):Promise<FuenteMlInfo> {
+    return firstValueFrom(this.http.put<FuenteMlInfo>(
+      this.api.base+'/admin/ml/fuentes/'+modulo,{fuente},{headers:this.api.headers()}));
+  }
+  exportarDatasetTallas():Promise<Blob> {
+    return firstValueFrom(this.http.get(this.api.base+'/admin/ml/tallas/dataset.csv',
+      {headers:this.api.headers(),responseType:'blob'}));
+  }
 
   listarAdministradores():Promise<AdministradorCuenta[]> {
     return firstValueFrom(this.http.get<AdministradorCuenta[]>(this.api.base+'/admin/usuarios/administradores',{headers:this.api.headers()}));
