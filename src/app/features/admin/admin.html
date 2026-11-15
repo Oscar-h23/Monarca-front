@@ -96,7 +96,48 @@
          class="min-h-11 rounded-xl border border-zinc-900 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-100 disabled:opacity-50">
          {{mlDescargando()?'Descargando…':'Descargar CSV de la fuente seleccionada'}}
         </button>
-        <p class="mt-2 text-xs text-zinc-500">El CSV sirve para entrenamiento. Cambiar la fuente no entrena ni reemplaza automáticamente el modelo de recomendaciones para clientes.</p>
+        <div class="mt-4 flex flex-wrap gap-3">
+         <button type="button" (click)="entrenarModeloTallas()" [disabled]="mlEntrenando()||mlAccionModelo()||mlCargando()||mlGuardando()!==null||fuente.registrosDisponibles<30"
+          class="min-h-11 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40">
+          {{mlEntrenando()?'Entrenando modelo…':'Entrenar modelo'}}
+         </button>
+         <button type="button" (click)="desactivarModeloTallas()" [disabled]="mlAccionModelo()||mlEntrenando()||!modelosTallasMl().length"
+          class="min-h-11 rounded-xl border border-zinc-300 bg-white px-5 py-3 text-sm font-semibold disabled:opacity-40">
+          Volver a recomendaciones por reglas
+         </button>
+        </div>
+        <p class="mt-2 text-xs text-amber-800" *ngIf="fuente.registrosDisponibles<30">Se necesitan al menos 30 registros y cinco por cada clase para entrenar.</p>
+        <p class="mt-2 text-xs text-zinc-500">Entrenar solo genera un candidato. Debes activar el modelo que quieras utilizar; los datos sintéticos no demuestran precisión con personas reales.</p>
+        <section class="mt-5 space-y-3" aria-label="Modelos de tallas entrenados">
+          <h4 class="text-sm font-bold text-zinc-900">Versiones y métricas</h4>
+          <p *ngIf="!modelosTallasMl().length" class="text-sm text-zinc-500">Todavía no hay modelos supervisados guardados.</p>
+          <article *ngFor="let modelo of modelosTallasMl()" class="rounded-xl border border-zinc-200 bg-white p-4">
+           <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="min-w-0">
+             <p class="text-sm font-bold">Modelo #{{modelo.idModelo}} · {{modelo.algoritmo==='knn'?'KNN':'Árbol de decisión'}}</p>
+             <p class="mt-1 text-xs text-zinc-600">{{modelo.fuente==='PRUEBA'?'SINTÉTICO · solo experimento':'DATOS REALES · validación pendiente'}}</p>
+            </div>
+            <span *ngIf="modelo.activo" class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-900">ACTIVO</span>
+           </div>
+           <div class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+            <div><p class="text-xs text-zinc-500">Registros</p><strong>{{modelo.metricas?.rows??'—'}}</strong></div>
+            <div><p class="text-xs text-zinc-500">Accuracy prueba</p><strong>{{modelo.metricas?.test?.accuracy==null?'—':(modelo.metricas?.test?.accuracy | percent:'1.1-1')}}</strong></div>
+            <div><p class="text-xs text-zinc-500">Macro-F1 prueba</p><strong>{{modelo.metricas?.test?.macro_f1==null?'—':(modelo.metricas?.test?.macro_f1 | number:'1.3-3')}}</strong></div>
+           </div>
+           <div class="mt-3" *ngIf="modelo.metricas?.test?.confusion_matrix as matriz">
+            <p class="text-xs font-semibold text-zinc-700">Matriz de confusión (Pequeña, Bien, Grande)</p>
+            <div class="mt-2 grid grid-cols-3 gap-1 text-center text-xs max-w-52">
+             <ng-container *ngFor="let fila of matriz">
+              <span *ngFor="let valor of fila" class="rounded bg-zinc-100 p-2">{{valor}}</span>
+             </ng-container>
+            </div>
+           </div>
+           <button type="button" *ngIf="!modelo.activo" (click)="activarModeloTallas(modelo.idModelo)" [disabled]="mlAccionModelo()||mlEntrenando()"
+            class="mt-4 min-h-11 rounded-xl border border-zinc-900 px-4 py-2 text-sm font-semibold disabled:opacity-40">
+            Activar versión experimental
+           </button>
+          </article>
+        </section>
        </div>
       </article>
      </div>
