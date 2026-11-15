@@ -53,6 +53,17 @@ export class PedidosClienteApi {
     ));
   }
 
+  listarValoraciones(): Promise<Array<{idDetalle:number;ajuste:string}>> {
+    return firstValueFrom(this.http.get<Array<{idDetalle:number;ajuste:string}>>(
+      this.api.base + '/pedidos/valoraciones-talla', {headers:this.api.headers()}));
+  }
+
+  valorarTalla(idDetalle:number, ajuste:'PEQUENA'|'BIEN'|'GRANDE'): Promise<{idDetalle:number;ajuste:string}> {
+    return firstValueFrom(this.http.post<{idDetalle:number;ajuste:string}>(
+      this.api.base + '/pedidos/valoraciones-talla',
+      {idDetalle,ajuste,consentimientoMl:true}, {headers:this.api.headers()}));
+  }
+
   listar(): Promise<MiPedido[]> {
     return firstValueFrom(this.http.get<MiPedido[]>(
       this.api.base + '/pedidos/mis-pedidos',
