@@ -99,34 +99,72 @@
       <p *ngIf="message() && !added()" class="mt-3 text-sm text-red-700" role="alert">{{message()}}</p>
     </div>
   </div>
-  <section *ngIf="product()" class="mt-10 rounded-2xl border border-zinc-200 bg-white p-5 sm:p-7" aria-label="Complementos por compras conjuntas">
-    <div class="flex flex-wrap items-center justify-between gap-3">
+  <section *ngIf="product()" class="mt-10 rounded-3xl border border-zinc-200 bg-white p-4 sm:p-7" aria-label="Prendas complementarias">
+    <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <p class="text-xs font-bold uppercase tracking-wide text-zinc-500">Recomendaciones de prendas complementarias</p>
-        <h2 class="mt-2 text-xl font-semibold">Combínalo con estas prendas</h2>
+        <p class="text-xs font-semibold uppercase tracking-[.17em] text-zinc-500">Inspiración para tu estilo</p>
+        <h2 class="heading mt-2 text-2xl font-semibold text-zinc-900 sm:text-3xl">Completa tu look</h2>
+        <p class="mt-2 max-w-2xl text-sm text-zinc-600">
+          Descubre prendas para acompañar tu elección, elige su talla y agrégalas a la bolsa.
+        </p>
       </div>
-      <span *ngIf="fuenteComplementos()==='PRUEBA'" class="rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900">DEMOSTRACIÓN · COMPRAS SIMULADAS</span>
-      <span *ngIf="fuenteComplementos()==='REALES'" class="rounded-full border border-zinc-300 bg-zinc-50 px-3 py-1 text-xs font-semibold">Historial real</span>
+      <span *ngIf="fuenteComplementos()==='PRUEBA'"
+        class="rounded-full bg-zinc-100 px-3 py-1.5 text-xs text-zinc-600">Combinaciones ilustrativas</span>
     </div>
-    <p class="mt-2 text-sm text-zinc-600">
-      Sugerencias obtenidas por patrones de productos adquiridos juntos (confianza y lift).
-      Son asociaciones, no garantías de que las prendas combinen visualmente.
+    <p *ngIf="cargandoComplementos()" class="mt-5 text-sm text-zinc-500" role="status">Buscando prendas para tu look…</p>
+    <p *ngIf="!cargandoComplementos() && !complementos().length" class="mt-5 text-sm text-zinc-500">
+      Por ahora no hay complementos sugeridos para esta prenda.
+      <a routerLink="/outfits" class="font-semibold underline underline-offset-4">Explora nuestro armador de looks</a>.
     </p>
-    <p *ngIf="cargandoComplementos()" class="mt-4 text-sm text-zinc-500">Analizando combinaciones…</p>
-    <p *ngIf="!cargandoComplementos() && !complementos().length" class="mt-4 text-sm text-zinc-500">{{mensajeComplementos()||'Aún no tenemos asociaciones para esta prenda.'}}</p>
-    <div *ngIf="complementos().length" class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <a *ngFor="let complemento of complementos()" [routerLink]="['/producto',complemento.idProducto]"
-        class="rounded-xl border border-zinc-200 p-4 hover:border-zinc-800 focus:outline-2 focus:outline-offset-2 focus:outline-zinc-900">
-        <p class="font-semibold text-sm leading-snug">{{complemento.nombre}}</p>
-        <p class="mt-2 text-sm text-zinc-600">Desde S/ {{complemento.precioDesde | number:'1.2-2'}}</p>
-        <p class="mt-2 text-xs text-zinc-500">{{(complemento.confianza*100) | number:'1.0-0'}} % de las cestas con esta prenda incluyeron el complemento.</p>
-        <p class="mt-1 text-xs text-zinc-500">Lift: {{complemento.lift | number:'1.2-2'}}</p>
-        <p class="mt-3 text-xs font-bold underline underline-offset-4">Ver producto y elegir talla</p>
+    <div *ngIf="complementos().length" class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <article *ngFor="let complemento of complementos()" class="flex min-w-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white transition-shadow hover:shadow-md">
+        <ng-container *ngIf="productoComplemento(complemento.idProducto) as item">
+          <a [routerLink]="['/producto',complemento.idProducto]" class="group block aspect-[4/5] overflow-hidden bg-zinc-100"
+             [attr.aria-label]="'Ver '+complemento.nombre">
+            <img [src]="item.imagen||fallback" [alt]="complemento.nombre" loading="lazy"
+              class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.035]"/>
+          </a>
+          <div class="flex flex-1 flex-col gap-2 p-4">
+            <p class="text-xs font-medium uppercase tracking-wide text-zinc-500">{{item.categoria}}</p>
+            <h3 class="line-clamp-2 text-base font-semibold leading-snug text-zinc-900">{{complemento.nombre}}</h3>
+            <p class="text-base font-bold">Desde S/ {{complemento.precioDesde | number:'1.2-2'}}</p>
+            <div class="mt-auto pt-2">
+              <label [attr.for]="'complemento-talla-'+complemento.idProducto"
+                class="block text-xs font-semibold text-zinc-700">Elige talla y color</label>
+              <select [id]="'complemento-talla-'+complemento.idProducto"
+                [ngModel]="tallasComplemento()[complemento.idProducto]||0"
+                (ngModelChange)="elegirComplemento(complemento.idProducto,$event)"
+                class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm">
+                <option [ngValue]="0">Selecciona una variante</option>
+                <option *ngFor="let v of variantesComplemento(complemento.idProducto)" [ngValue]="v.idVariante">
+                  {{v.talla}} · {{v.color}} · S/ {{v.precio|number:'1.2-2'}}
+                </option>
+              </select>
+              <div class="mt-3 grid grid-cols-2 gap-2">
+                <a [routerLink]="['/producto',complemento.idProducto]"
+                  class="inline-flex min-h-11 items-center justify-center rounded-lg border border-zinc-300 px-2 py-2 text-center text-xs font-semibold hover:bg-zinc-50">Ver producto</a>
+                <button type="button" (click)="agregarComplemento(complemento.idProducto)"
+                  [disabled]="!tallasComplemento()[complemento.idProducto]"
+                  class="min-h-11 rounded-lg bg-zinc-900 px-2 py-2 text-xs font-bold text-white disabled:opacity-40">
+                  Añadir a la bolsa
+                </button>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </article>
+    </div>
+    <p *ngIf="mensajeAgregadoComplemento()" role="status"
+      class="mt-4 rounded-xl bg-zinc-100 p-3 text-sm font-medium text-zinc-900">
+      {{mensajeAgregadoComplemento()}}
+      <a routerLink="/carrito" class="ml-2 font-bold underline underline-offset-4">Ver bolsa</a>
+    </p>
+    <div class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-5">
+      <p class="text-sm text-zinc-600">¿Buscas un conjunto completo con un presupuesto?</p>
+      <a routerLink="/outfits" class="inline-flex min-h-11 items-center rounded-xl border border-zinc-900 px-5 py-2 text-sm font-semibold hover:bg-zinc-50">
+        Arma tu outfit
       </a>
     </div>
-    <p *ngIf="fuenteComplementos()==='PRUEBA'" class="mt-4 text-xs text-amber-900">
-      Modo académico: las 100 cestas son ficticias. No son compras reales ni recomendaciones validadas con clientes.
-    </p>
   </section>
   <div *ngIf="added()" class="fixed bottom-5 left-4 right-4 z-50 mx-auto flex max-w-md items-center gap-3 rounded-xl border border-emerald-200 bg-white p-4 shadow-xl sm:left-auto sm:right-6"
        role="alert" aria-live="assertive">
