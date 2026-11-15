@@ -27,6 +27,11 @@ export class Api {
     return firstValueFrom(this.http.get<Producto>(this.base + '/productos/' + id));
   }
 
+  recomendarTalla(idProducto:number): Promise<{disponible:boolean;idVariante?:number;talla?:string;holgurasCm?:Record<string,number>;metodo?:string;motivo?:string}> {
+    return firstValueFrom(this.http.get<{disponible:boolean;idVariante?:number;talla?:string;holgurasCm?:Record<string,number>;metodo?:string;motivo?:string}>(
+      this.base + '/perfil/tallas/' + idProducto, {headers:this.headers()}));
+  }
+
   metodos(): Promise<MetodoPago[]> {
     return firstValueFrom(this.http.get<MetodoPago[]>(this.base + '/metodos-pago', { headers: this.headers() }));
   }
