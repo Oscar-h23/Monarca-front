@@ -5,6 +5,7 @@ import { adminGuard, authGuard } from './core/guards/access.guards';
 export const routes: Routes = [
   { path: '', title: 'Inicio | Nayeli’s moda', loadComponent: () => import('./features/home/home.page').then(m => m.HomeComponent) },
   { path: 'catalogo/:categoria', title: 'Catálogo | Nayeli’s moda', loadComponent: () => import('./features/catalog/catalog.page').then(m => m.CatalogComponent) },
+  { path: 'outfits', title: 'Arma tu look | Nayeli’s moda', loadComponent: () => import('./features/outfits/outfits.page').then(m => m.OutfitsPage) },
   { path: 'producto/:id', title: 'Producto | Nayeli’s moda', loadComponent: () => import('./features/product/product.page').then(m => m.ProductComponent) },
   { path: 'carrito', title: 'Mi bolsa | Nayeli’s moda', loadComponent: () => import('./features/cart/cart.page').then(m => m.CartComponent) },
   { path: 'checkout', title: 'Finalizar compra | Nayeli’s moda', canActivate: [authGuard], loadComponent: () => import('./features/checkout/checkout.page').then(m => m.CheckoutComponent) },
