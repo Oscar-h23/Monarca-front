@@ -46,6 +46,10 @@ export class ProductComponent implements OnInit {
           this.recomendacion.set(recomendarTalla(producto,perfil));
           try {
             const remota=await this.api.recomendarTalla(id);
+            if(remota.experimental && !remota.disponible) {
+              // No sustituir una negativa del ML por una falsa predicción heurística.
+              this.recomendacion.set(null);
+            }
             if(remota.disponible && remota.idVariante) {
               const variante=producto.variantes?.find(v=>v.idVariante===remota.idVariante && v.stock>0);
               if(variante && remota.holgurasCm) {
