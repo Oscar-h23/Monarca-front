@@ -17,9 +17,10 @@
     </div>
   </div>
   <nav class="hidden border-t border-zinc-100 lg:block" aria-label="Categorías de la tienda">
-    <div class="mx-auto flex max-w-[1480px] items-center justify-center gap-7 px-7 py-3.5 xl:gap-11">
+    <div class="mx-auto flex max-w-[1480px] items-center justify-center gap-4 px-5 py-3.5 xl:gap-7">
       <a routerLink="/" class="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-zinc-700">Inicio</a>
       <a *ngFor="let c of categories" [routerLink]="['/catalogo',c.toLowerCase()]" class="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-zinc-700">{{c}}</a>
+      <a routerLink="/outfits" class="whitespace-nowrap rounded-full border border-zinc-900 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-zinc-900 hover:bg-zinc-900 hover:text-white">Arma tu look</a>
       <a routerLink="/contacto" class="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-zinc-700">Contacto</a>
       <a routerLink="/nosotros" class="whitespace-nowrap text-xs font-semibold uppercase tracking-widest text-zinc-700">Nosotros</a>
     </div>
@@ -27,6 +28,7 @@
   <nav *ngIf="menu()" id="nayelis-mobile-nav" class="flex max-h-[calc(100dvh-64px)] flex-col gap-1 overflow-y-auto overscroll-contain border-t border-zinc-100 bg-white px-4 py-3 shadow-lg lg:hidden" aria-label="Menú móvil">
     <a routerLink="/" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm font-medium hover:bg-zinc-50">Inicio</a>
     <a *ngFor="let c of categories" [routerLink]="['/catalogo',c.toLowerCase()]" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm hover:bg-zinc-50">{{c}}</a>
+    <a routerLink="/outfits" (click)="menu.set(false)" class="rounded-lg bg-zinc-100 px-3 py-3 text-sm font-bold hover:bg-zinc-200">Arma tu look</a>
     <a routerLink="/contacto" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm hover:bg-zinc-50">Contacto</a>
     <a routerLink="/nosotros" (click)="menu.set(false)" class="rounded-lg px-3 py-2 text-sm hover:bg-zinc-50">Nosotros</a>
     <div class="my-2 border-t border-zinc-100"></div>
