@@ -12,7 +12,7 @@ export interface RecomendacionTalla {
   medidasComparadas: string[];
   holguraPromedioCm: number;
   detalle: ComparacionMedida[];
-  tipo: 'REGLAS';
+  tipo: 'REGLAS' | 'SUPERVISADO';
 }
 
 const REQUERIDAS:Record<string,Array<'pecho'|'cintura'|'cadera'>>={
