@@ -42,6 +42,18 @@ export class Api {
     }>(this.base+'/productos/'+idProducto+'/complementos'));
   }
 
+  outfitsPresupuesto(presupuesto:number): Promise<{
+    fuente:'CATALOGO';presupuestoSoles?:number;factibles:number;mensaje:string;
+    aEstrella?:{combinacion:{id_variantes:number[];precio_soles:number;superior:string;inferior:string};puntuacion:number};
+    hillClimbing?:{combinacion:{id_variantes:number[];precio_soles:number;superior:string;inferior:string};puntuacion:number};
+  }> {
+    return firstValueFrom(this.http.get<{
+      fuente:'CATALOGO';presupuestoSoles?:number;factibles:number;mensaje:string;
+      aEstrella?:{combinacion:{id_variantes:number[];precio_soles:number;superior:string;inferior:string};puntuacion:number};
+      hillClimbing?:{combinacion:{id_variantes:number[];precio_soles:number;superior:string;inferior:string};puntuacion:number};
+    }>(this.base+'/outfits/recomendar?presupuesto='+encodeURIComponent(String(presupuesto))));
+  }
+
   metodos(): Promise<MetodoPago[]> {
     return firstValueFrom(this.http.get<MetodoPago[]>(this.base + '/metodos-pago', { headers: this.headers() }));
   }
