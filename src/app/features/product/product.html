@@ -18,8 +18,22 @@
         <ng-container *ngIf="recomendacion() as rec">
           <p class="mt-3 text-sm">Te sugerimos <strong class="text-lg">{{rec.variante.talla}}</strong>
             en color {{rec.variante.color}}.</p>
-          <p class="mt-2 text-sm text-zinc-600">Comparación: {{rec.medidasComparadas.join(', ')}}.
-            Consideramos una holgura mínima de 2 cm en las medidas disponibles.</p>
+          <p class="mt-2 text-sm text-zinc-600">Comparamos las medidas necesarias de esta prenda y comprobamos una holgura mínima de 2 cm.</p>
+          <div class="mt-3 overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+            <table class="w-full min-w-[280px] text-left text-xs sm:text-sm">
+              <thead class="bg-zinc-100 text-zinc-600"><tr>
+                <th class="p-2">Medida</th><th class="p-2">Tu cuerpo</th><th class="p-2">Prenda</th><th class="p-2">Holgura</th>
+              </tr></thead>
+              <tbody>
+                <tr *ngFor="let medida of rec.detalle" class="border-t border-zinc-100">
+                  <td class="p-2 capitalize">{{medida.nombre}}</td>
+                  <td class="p-2">{{medida.cuerpoCm}} cm</td>
+                  <td class="p-2">{{medida.prendaCm}} cm</td>
+                  <td class="p-2">{{medida.holguraCm}} cm</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
           <p class="mt-2 text-xs text-zinc-500">Orientativa: el corte, el tejido y tus preferencias de ajuste también influyen.</p>
           <button type="button" class="mt-3 min-h-11 rounded-lg border border-zinc-900 px-4 py-2 text-sm font-semibold"
                   (click)="seleccionarRecomendada()">Seleccionar talla {{rec.variante.talla}}</button>
@@ -30,7 +44,7 @@
             <a routerLink="/login" class="underline font-semibold inline-block mt-2">Iniciar sesión</a>
           </ng-container>
           <ng-container *ngIf="session.isAuthenticated()&&!hasBodyMeasurements()">
-            <p>Agrega tus medidas de busto, cintura y cadera para recibir una sugerencia.</p>
+            <p>Completa las medidas necesarias para esta categoría: busto y cintura en Tops, cintura y cadera en Bottoms, o las tres en Vestidos.</p>
             <a routerLink="/perfil" class="underline font-semibold inline-block mt-2">Completar mis medidas</a>
           </ng-container>
           <ng-container *ngIf="session.isAuthenticated()&&hasBodyMeasurements()&&!hasGarmentMeasurements(p)">
