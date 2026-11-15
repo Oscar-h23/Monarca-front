@@ -183,6 +183,14 @@
           <div *ngIf="valoraciones()[item.idDetalle] as guardada" class="mt-3 text-sm font-semibold text-emerald-700" role="status">
             Valoración registrada: {{guardada==='BIEN'?'Me quedó bien':guardada==='PEQUENA'?'Me quedó pequeña':'Me quedó grande'}}
           </div>
+          <div *ngIf="!valoraciones()[item.idDetalle] && requisitosMedidas() === null" class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900" role="status">
+            No pudimos verificar tus medidas. Pulsa «Actualizar estados» para volver a intentarlo antes de valorar.
+          </div>
+          <div *ngIf="!valoraciones()[item.idDetalle] && faltantesTalla(item.idDetalle).length" class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900" role="alert">
+            Para valorar esta prenda primero registra: <strong>{{faltantesTalla(item.idDetalle).join(', ')}}</strong>.
+            <a routerLink="/perfil" class="ml-1 font-semibold underline underline-offset-2">Ir a mi perfil</a>
+            y después pulsa «Actualizar estados».
+          </div>
           <ng-container *ngIf="!valoraciones()[item.idDetalle]">
             <label [attr.for]="'ajuste-' + item.idDetalle" class="mt-3 block text-sm font-medium">¿Cómo te quedó?</label>
             <select [id]="'ajuste-' + item.idDetalle" class="mt-2 min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm sm:max-w-sm"
@@ -200,7 +208,7 @@
             <p *ngIf="tallaErrorId()===item.idDetalle" role="alert" class="mt-2 text-sm text-red-700">{{tallaError()}}</p>
             <p *ngIf="tallaMensajeId()===item.idDetalle" role="status" class="mt-2 text-sm text-emerald-700">{{tallaMensaje()}}</p>
             <button type="button" (click)="guardarValoracion(item.idDetalle)"
-                    [disabled]="!consentimientoTalla()[item.idDetalle] || guardandoTalla()!==null"
+                    [disabled]="!consentimientoTalla()[item.idDetalle] || guardandoTalla()!==null || !tallaHabilitada(item.idDetalle)"
                     class="mt-3 min-h-11 w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40 sm:w-auto">
               {{guardandoTalla()===item.idDetalle?'Guardando…':'Enviar valoración'}}
             </button>
