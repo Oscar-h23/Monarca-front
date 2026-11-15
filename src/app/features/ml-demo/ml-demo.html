@@ -1,0 +1,120 @@
+<main class="mx-auto max-w-6xl px-4 py-8 sm:py-12">
+ <div class="flex flex-wrap items-center justify-between gap-3">
+  <a routerLink="/admin" class="text-sm font-semibold underline underline-offset-4">← Volver a administración</a>
+  <button type="button" (click)="cargar()" [disabled]="cargando()||!!trabajando()" class="rounded-xl border border-zinc-300 px-4 py-2 text-sm font-semibold">Actualizar datos</button>
+ </div>
+ <div class="mt-7">
+  <p class="text-xs font-bold uppercase tracking-[.2em] text-zinc-500">Nayeli's Moda · Laboratorio académico</p>
+  <h1 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900">Demostración interactiva de Machine Learning</h1>
+  <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-600">Esta página conecta el catálogo con los módulos del proyecto. Puedes ejecutar los algoritmos, interpretar sus resultados y navegar a productos reales sin registrar compras ficticias.</p>
+ </div>
+ <div class="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm text-amber-950">
+   <strong>Demostración académica:</strong> cuando el módulo está en «Prueba», los datos son sintéticos. Las métricas no representan precisión en clientes reales. Las fuentes se configuran en <a routerLink="/admin" class="font-bold underline">Administración → Machine Learning</a>.
+ </div>
+ <p *ngIf="cargando()" class="mt-5 text-sm text-zinc-500">Cargando información del catálogo y los modelos…</p>
+ <p *ngIf="error()" role="alert" class="mt-5 rounded-lg bg-red-50 p-4 text-sm text-red-800">{{error()}}</p>
+ <div class="mt-7 grid gap-5">
+  <section class="rounded-2xl border border-zinc-200 p-5 sm:p-7" aria-label="Recomendación de tallas">
+   <div class="flex flex-wrap items-center justify-between gap-2">
+    <h2 class="text-xl font-bold">1. Clasificación: recomendación de tallas</h2>
+    <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs">KNN · Árbol de decisión</span>
+   </div>
+   <p class="mt-2 text-sm text-zinc-600">En una ficha de producto, inicia sesión con un perfil que tenga medidas y compara las tallas mediante el modelo de tallas activo o el respaldo por reglas.</p>
+   <div class="mt-4 flex flex-wrap gap-2">
+    <a *ngFor="let p of productos().slice(0,3)" [routerLink]="['/producto',p.idProducto]"
+      class="min-h-11 rounded-xl border border-zinc-300 px-4 py-3 text-sm font-semibold hover:bg-zinc-50">Probar con {{p.nombre}}</a>
+   </div>
+   <p class="mt-3 text-xs text-zinc-500">El modelo de tallas experimental no se activa automáticamente en esta demostración.</p>
+  </section>
+
+  <section class="rounded-2xl border border-zinc-200 p-5 sm:p-7" aria-label="Compras conjuntas">
+   <div class="flex flex-wrap items-center justify-between gap-2">
+    <h2 class="text-xl font-bold">2. Productos que otros complementan al comprar</h2>
+    <span class="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900" *ngIf="fuenteComplementos()==='PRUEBA'">100 cestas simuladas</span>
+   </div>
+   <p class="mt-2 text-sm text-zinc-600">El recomendador aprende asociaciones de productos comprados en una misma cesta. Calcula soporte, confianza y lift; no predice compatibilidad estética.</p>
+   <div class="mt-4 flex flex-wrap items-end gap-3">
+    <label class="min-w-0 flex-1 text-sm font-semibold">Elige una prenda
+     <select class="mt-2 w-full rounded-xl border border-zinc-300 bg-white px-3 py-3" [(ngModel)]="seleccionado">
+      <option *ngFor="let p of productos()" [ngValue]="p.idProducto">{{p.nombre}}</option>
+     </select>
+    </label>
+    <button type="button" (click)="consultarComplementos()" [disabled]="!!trabajando()||cargando()"
+      class="min-h-11 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50">{{trabajando()==='COCOMPRA'?'Buscando…':'Recomendar complementos'}}</button>
+   </div>
+   <p class="mt-3 text-xs text-zinc-500">Cestas consultadas: {{cestas()}} · Fuente: {{fuenteComplementos()||'Sin consultar'}}</p>
+   <p *ngIf="mensaje()" class="mt-2 text-sm text-zinc-600">{{mensaje()}}</p>
+   <div class="mt-4 grid gap-3 sm:grid-cols-2" *ngIf="complementos().length">
+    <a *ngFor="let r of complementos()" [routerLink]="['/producto',r.idProducto]"
+     class="rounded-xl border border-zinc-200 p-4 hover:border-zinc-900">
+     <strong class="text-sm">{{r.nombre}}</strong>
+     <p class="mt-2 text-sm">Desde S/ {{r.precioDesde|number:'1.2-2'}}</p>
+     <p class="mt-2 text-xs text-zinc-600">Confianza: {{r.confianza|percent:'1.0-0'}} · Lift: {{r.lift|number:'1.2-2'}}</p>
+     <p class="mt-3 text-xs font-bold underline">Ver y elegir variante</p>
+    </a>
+   </div>
+  </section>
+
+  <section class="rounded-2xl border border-zinc-200 p-5 sm:p-7" aria-label="Segmentación de clientes">
+   <h2 class="text-xl font-bold">3. Segmentación de clientes</h2>
+   <p class="mt-2 text-sm text-zinc-600">K-Means y DBSCAN agrupan perfiles por frecuencia de compra, gasto, recencia y visitas. El administrador puede utilizarlo para analizar segmentos.</p>
+   <p class="mt-2 text-xs text-zinc-500">Fuente configurada: {{fuente('CLUSTERING')?.fuente}} · {{fuente('CLUSTERING')?.registrosDisponibles??0}} registros</p>
+   <button type="button" class="mt-4 min-h-11 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+    [disabled]="!!trabajando()||!fuente('CLUSTERING')?.datasetImplementado" (click)="ejecutar('CLUSTERING')">
+     {{trabajando()==='CLUSTERING'?'Calculando…':'Ejecutar segmentación'}}
+   </button>
+   <div *ngIf="resultado('CLUSTERING') as r" class="mt-4 rounded-xl bg-zinc-50 p-4">
+    <p class="text-xs font-bold text-zinc-600">{{r.registros}} registros · {{r.fuente==='PRUEBA'?'SIMULADOS':'REALES'}}</p>
+    <p class="mt-2 text-sm">K-Means: {{r.resultado.algoritmos?.['kmeans']?.grupos}} segmentos · Silhouette: {{r.resultado.algoritmos?.['kmeans']?.silhouette??'No calculable'}}</p>
+    <div class="mt-3 grid gap-2 sm:grid-cols-2">
+     <div *ngFor="let s of r.resultado.segmentos" class="rounded-lg border border-zinc-200 bg-white p-3 text-sm">
+       <strong>Segmento {{s.segmento}}: {{s.clientes}} perfiles</strong>
+       <p class="mt-1 text-xs text-zinc-600">Compras promedio {{s.compras_promedio}} · Gasto S/ {{s.gasto_promedio_soles|number:'1.2-2'}}</p>
+     </div>
+    </div>
+   </div>
+  </section>
+
+  <section class="rounded-2xl border border-zinc-200 p-5 sm:p-7" aria-label="Regresión de demanda">
+   <h2 class="text-xl font-bold">4. Demanda e inventario</h2>
+   <p class="mt-2 text-sm text-zinc-600">La regresión lineal compara ventas semanales simuladas con precios, promociones y visitas. Permite demostrar cómo se evaluaría una futura función de apoyo a la reposición.</p>
+   <p class="mt-2 text-xs text-zinc-500">Fuente: {{fuente('DEMANDA')?.fuente}} · {{fuente('DEMANDA')?.registrosDisponibles??0}} registros</p>
+   <button type="button" class="mt-4 min-h-11 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+    [disabled]="!!trabajando()||!fuente('DEMANDA')?.datasetImplementado" (click)="ejecutar('DEMANDA')">
+    {{trabajando()==='DEMANDA'?'Entrenando…':'Entrenar regresión'}}
+   </button>
+   <div *ngIf="resultado('DEMANDA') as r" class="mt-4 grid gap-3 rounded-xl bg-zinc-50 p-4 sm:grid-cols-3">
+    <div><p class="text-xs text-zinc-500">MAE (unidades)</p><strong class="text-lg">{{r.resultado.mae_unidades??'—'}}</strong></div>
+    <div><p class="text-xs text-zinc-500">MAE base</p><strong class="text-lg">{{r.resultado.mae_baseline_unidades??'—'}}</strong></div>
+    <div><p class="text-xs text-zinc-500">R² de prueba</p><strong class="text-lg">{{r.resultado.r2_prueba??'—'}}</strong></div>
+    <p class="text-xs text-amber-900 sm:col-span-3">Datos sintéticos y variables contemporáneas: no es un pronóstico comercial validado.</p>
+   </div>
+  </section>
+
+  <section class="rounded-2xl border border-zinc-200 p-5 sm:p-7" aria-label="Combinador de outfits">
+   <h2 class="text-xl font-bold">5. Arma tu outfit con un presupuesto</h2>
+   <p class="mt-2 text-sm text-zinc-600">Búsqueda heurística con A* y Hill Climbing. Encuentra una blusa y un pantalón dentro del presupuesto; después puedes abrir los productos y elegir sus tallas.</p>
+   <p class="mt-2 text-xs text-zinc-500">Fuente: {{fuente('OUTFITS')?.fuente}} · {{fuente('OUTFITS')?.registrosDisponibles??0}} combinaciones</p>
+   <div class="mt-4 flex flex-wrap items-end gap-3">
+    <label class="text-sm font-semibold">Presupuesto S/
+     <input type="number" min="20" max="2000" step="10" [(ngModel)]="presupuesto"
+      class="mt-2 block w-36 rounded-xl border border-zinc-300 px-3 py-3"/>
+    </label>
+    <button type="button" class="min-h-11 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+     [disabled]="!!trabajando()||!fuente('OUTFITS')?.datasetImplementado||presupuesto<20||presupuesto>2000" (click)="ejecutar('OUTFITS')">
+     {{trabajando()==='OUTFITS'?'Buscando…':'Buscar outfit'}}
+    </button>
+   </div>
+   <div *ngIf="resultado('OUTFITS') as r" class="mt-4 rounded-xl bg-zinc-50 p-4">
+    <p class="text-sm">{{r.resultado.factibles}} combinaciones factibles para S/ {{r.resultado.presupuesto_soles}}</p>
+    <div *ngIf="r.resultado.a_estrella?.combinacion as outfit" class="mt-3 rounded-xl border border-zinc-200 bg-white p-4">
+     <p class="text-xs font-bold text-zinc-500">RESULTADO A*</p>
+     <p class="mt-2 text-sm font-semibold">{{outfit.superior}} + {{outfit.inferior}}</p>
+     <p class="mt-1 text-sm">Total: S/ {{outfit.precio_soles|number:'1.2-2'}}</p>
+     <p class="mt-2 text-xs text-zinc-600">Busca las dos prendas en el catálogo, elige sus tallas y agrégalas a tu bolsa. No se añaden automáticamente.</p>
+     <a routerLink="/" class="mt-3 inline-block text-sm font-bold underline underline-offset-4">Ir al catálogo</a>
+    </div>
+   </div>
+  </section>
+ </div>
+</main>
