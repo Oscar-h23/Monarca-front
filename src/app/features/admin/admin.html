@@ -26,6 +26,8 @@
       class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Métodos de pago</button>
     <button type="button" (click)="abrirAdministradores()" [class.bg-zinc-900]="tab()==='administradores'" [class.text-white]="tab()==='administradores'"
       class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Administradores</button>
+    <button type="button" (click)="abrirMl()" [class.bg-zinc-900]="tab()==='ml'" [class.text-white]="tab()==='ml'"
+      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Machine Learning</button>
    </nav>
    <div class="mt-5 hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-5 lg:block">
     <p class="text-xs font-bold text-zinc-700">Existencias totales</p>
@@ -39,6 +41,71 @@
    <p *ngIf="error()" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{error()}}</p>
    <app-admin-dashboard *ngIf="tab()==='resumen'" [products]="products()"></app-admin-dashboard>
    <app-admin-payments *ngIf="tab()==='pagos'"></app-admin-payments>
+
+   <section *ngIf="tab()==='ml'" class="space-y-5" aria-label="Configuración de Machine Learning">
+    <div class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-7">
+     <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+       <p class="text-xs font-semibold uppercase tracking-[.18em] text-zinc-500">Administración · Inteligencia artificial</p>
+       <h2 class="mt-2 text-xl font-bold text-zinc-900">Fuente de datos para ML</h2>
+       <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600">Elige si cada dataset utiliza valoraciones reales o ejemplos de prueba. No modifica pedidos, inventario ni valoraciones reales.</p>
+      </div>
+      <button type="button" (click)="cargarFuentesMl()" [disabled]="mlCargando()||mlGuardando()!==null"
+        class="min-h-11 rounded-xl border border-zinc-300 px-4 py-2 text-sm font-semibold disabled:opacity-50">{{mlCargando()?'Cargando…':'Actualizar'}}</button>
+     </div>
+     <p *ngIf="mlError()" role="alert" class="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-800">{{mlError()}}</p>
+     <p *ngIf="mlMensaje()" role="status" class="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800">{{mlMensaje()}}</p>
+     <p *ngIf="mlCargando() && !fuentesMl().length" class="mt-5 text-sm text-zinc-500">Consultando configuración…</p>
+     <div class="mt-6 grid gap-4">
+      <article *ngFor="let fuente of fuentesMl()" class="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
+       <div class="flex flex-wrap items-start justify-between gap-3">
+        <div class="min-w-0">
+         <h3 class="text-base font-bold text-zinc-900">{{nombresModuloMl[fuente.modulo]}}</h3>
+         <p class="mt-1 text-xs leading-relaxed text-zinc-600">{{fuente.descripcion}}</p>
+        </div>
+        <span class="rounded-full border px-3 py-1 text-xs font-bold"
+          [class.border-amber-300]="fuente.fuente==='PRUEBA'" [class.bg-amber-50]="fuente.fuente==='PRUEBA'"
+          [class.text-amber-800]="fuente.fuente==='PRUEBA'"
+          [class.border-emerald-300]="fuente.fuente==='REALES'"
+          [class.bg-emerald-50]="fuente.fuente==='REALES'"
+          [class.text-emerald-800]="fuente.fuente==='REALES'">
+          {{fuente.fuente==='PRUEBA'?'DATOS DE PRUEBA':'DATOS REALES'}}
+        </span>
+       </div>
+       <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="inline-flex rounded-xl border border-zinc-200 bg-white p-1" role="group"
+             [attr.aria-label]="'Fuente de datos para '+nombresModuloMl[fuente.modulo]">
+         <button type="button" (click)="cambiarFuenteMl(fuente.modulo,'REALES')"
+          [attr.aria-pressed]="fuente.fuente==='REALES'"
+          [disabled]="mlGuardando()!==null || mlCargando()"
+          [class.bg-zinc-900]="fuente.fuente==='REALES'" [class.text-white]="fuente.fuente==='REALES'"
+          class="min-h-11 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50">Reales</button>
+         <button type="button" (click)="cambiarFuenteMl(fuente.modulo,'PRUEBA')"
+          [attr.aria-pressed]="fuente.fuente==='PRUEBA'"
+          [disabled]="mlGuardando()!==null || mlCargando()"
+          [class.bg-zinc-900]="fuente.fuente==='PRUEBA'" [class.text-white]="fuente.fuente==='PRUEBA'"
+          class="min-h-11 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50">Prueba</button>
+        </div>
+        <p class="text-sm text-zinc-700" *ngIf="fuente.datasetImplementado">
+         <strong>{{fuente.registrosDisponibles}}</strong> ejemplos disponibles
+        </p>
+        <p class="text-xs font-semibold text-amber-800" *ngIf="!fuente.datasetImplementado">Dataset pendiente de integrar</p>
+       </div>
+       <div *ngIf="fuente.modulo==='TALLAS'" class="mt-4 border-t border-zinc-200 pt-4">
+        <button type="button" (click)="descargarDatasetTallas()" [disabled]="mlDescargando()||mlGuardando()!==null"
+         class="min-h-11 rounded-xl border border-zinc-900 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-100 disabled:opacity-50">
+         {{mlDescargando()?'Descargando…':'Descargar CSV de la fuente seleccionada'}}
+        </button>
+        <p class="mt-2 text-xs text-zinc-500">El CSV sirve para entrenamiento. Cambiar la fuente no entrena ni reemplaza automáticamente el modelo de recomendaciones para clientes.</p>
+       </div>
+      </article>
+     </div>
+    </div>
+    <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950">
+     <strong>Uso académico:</strong> los datos de prueba son sintéticos y no representan compras reales. Outfits y patrones tienen el selector preparado, pero aún no sus datasets conectados.
+    </div>
+   </section>
+
    <section *ngIf="tab()==='administradores'" class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-7" aria-label="Gestión de administradores">
     <h2 class="text-xl font-bold text-zinc-900">Administradores</h2>
     <p class="mt-2 text-sm leading-relaxed text-zinc-600">Asigna permisos de administración a una cuenta existente mediante su correo. Esta acción concede acceso a pedidos, inventario, pagos y configuración.</p>
