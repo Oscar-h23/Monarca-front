@@ -173,6 +173,41 @@
         </p>
       </div>
 
+
+      <section *ngIf="puedeValorarTalla(pedido)" class="border-t border-zinc-200 px-5 py-5 sm:px-6" aria-label="Valoración de tallas">
+        <h3 class="text-base font-semibold text-zinc-900">¿Cómo te quedaron tus prendas?</h3>
+        <p class="mt-1 text-sm text-zinc-600">Valora cada prenda recibida. Nos ayuda a mejorar las recomendaciones de tallas.</p>
+        <div *ngFor="let item of pedido.productos" class="mt-4 rounded-xl border border-zinc-200 p-4">
+          <p class="font-semibold text-sm">{{item.nombreProducto}}</p>
+          <p class="mt-1 text-xs text-zinc-500">Talla {{item.talla || 'única'}} · {{item.color}}</p>
+          <div *ngIf="valoraciones()[item.idDetalle] as guardada" class="mt-3 text-sm font-semibold text-emerald-700" role="status">
+            Valoración registrada: {{guardada==='BIEN'?'Me quedó bien':guardada==='PEQUENA'?'Me quedó pequeña':'Me quedó grande'}}
+          </div>
+          <ng-container *ngIf="!valoraciones()[item.idDetalle]">
+            <label [attr.for]="'ajuste-' + item.idDetalle" class="mt-3 block text-sm font-medium">¿Cómo te quedó?</label>
+            <select [id]="'ajuste-' + item.idDetalle" class="mt-2 min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm sm:max-w-sm"
+                    [value]="ajusteSeleccionado()[item.idDetalle] || 'BIEN'"
+                    (change)="seleccionarAjuste(item.idDetalle, $any($event.target).value)">
+              <option value="PEQUENA">Me quedó pequeña</option>
+              <option value="BIEN">Me quedó bien</option>
+              <option value="GRANDE">Me quedó grande</option>
+            </select>
+            <label class="mt-3 flex items-start gap-2 text-xs leading-relaxed text-zinc-600">
+              <input type="checkbox" class="mt-0.5 h-4 w-4 shrink-0" [checked]="!!consentimientoTalla()[item.idDetalle]"
+                     (change)="cambiarConsentimiento(item.idDetalle,$event)">
+              <span>Autorizo el uso de esta valoración y de mis medidas de talla actuales para mejorar las recomendaciones mediante análisis estadístico y aprendizaje automático.</span>
+            </label>
+            <p *ngIf="tallaErrorId()===item.idDetalle" role="alert" class="mt-2 text-sm text-red-700">{{tallaError()}}</p>
+            <p *ngIf="tallaMensajeId()===item.idDetalle" role="status" class="mt-2 text-sm text-emerald-700">{{tallaMensaje()}}</p>
+            <button type="button" (click)="guardarValoracion(item.idDetalle)"
+                    [disabled]="!consentimientoTalla()[item.idDetalle] || guardandoTalla()!==null"
+                    class="mt-3 min-h-11 w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40 sm:w-auto">
+              {{guardandoTalla()===item.idDetalle?'Guardando…':'Enviar valoración'}}
+            </button>
+          </ng-container>
+        </div>
+      </section>
+
       <details class="border-t border-zinc-200">
         <summary class="cursor-pointer px-5 py-4 text-sm font-semibold text-zinc-900 hover:bg-zinc-50 sm:px-6">
           Ver productos ({{pedido.productos.length}}) y desglose del pedido
