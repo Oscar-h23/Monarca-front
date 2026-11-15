@@ -45,8 +45,8 @@ export interface EjecucionAcademica {
     prueba?:number;
     presupuesto_soles?:number;
     factibles?:number;
-    a_estrella?:{combinacion:{superior:string;inferior:string;precio_soles:number};puntuacion:number};
-    hill_climbing?:{combinacion:{superior:string;inferior:string;precio_soles:number};puntuacion:number};
+    a_estrella?:{combinacion:{superior:string;inferior:string;precio_soles:number;id_variantes:number[]};puntuacion:number};
+    hill_climbing?:{combinacion:{superior:string;inferior:string;precio_soles:number;id_variantes:number[]};puntuacion:number};
     advertencia?:string;
     nota?:string;
     [key:string]:unknown;
