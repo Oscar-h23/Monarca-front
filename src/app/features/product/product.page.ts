@@ -42,7 +42,31 @@ export class ProductComponent implements OnInit {
         try{
           const perfil=await this.perfilApi.obtener();
           this.perfil.set(perfil);
+          // Respaldo local transparente cuando ML aún no esté desplegado.
           this.recomendacion.set(recomendarTalla(producto,perfil));
+          try {
+            const remota=await this.api.recomendarTalla(id);
+            if(remota.disponible && remota.idVariante) {
+              const variante=producto.variantes?.find(v=>v.idVariante===remota.idVariante && v.stock>0);
+              if(variante && remota.holgurasCm) {
+                const dimensiones=Object.keys(remota.holgurasCm);
+                const cuerpo:Record<string,number|null>={pecho:perfil.bustoCm,cintura:perfil.cinturaCm,cadera:perfil.caderaCm};
+                const prenda:Record<string,number|null|undefined>={pecho:variante.pechoCm,cintura:variante.cinturaCm,cadera:variante.caderaCm};
+                const detalle=dimensiones.map(nombre=>({
+                  nombre,cuerpoCm:cuerpo[nombre]??0,prendaCm:prenda[nombre]??0,
+                  holguraCm:remota.holgurasCm![nombre]
+                }));
+                if(detalle.length && detalle.every(x=>x.cuerpoCm>0 && x.prendaCm>0 && x.holguraCm>=2)) {
+                  this.recomendacion.set({
+                    variante,medidasComparadas:dimensiones,detalle,tipo:'REGLAS',
+                    holguraPromedioCm:detalle.reduce((n,x)=>n+x.holguraCm,0)/detalle.length
+                  });
+                }
+              }
+            }
+          } catch {
+            // Si Railway ML no responde, conservar la recomendación local.
+          }
         }catch{
           // Mostrar catálogo aunque la sesión haya expirado o el perfil no esté disponible.
         }
