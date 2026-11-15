@@ -20,7 +20,7 @@ export interface Pedido {
 }
 
 export type FuenteMl = 'REALES' | 'PRUEBA';
-export type ModuloMl = 'TALLAS' | 'OUTFITS' | 'PATRONES' | 'CLUSTERING' | 'DEMANDA';
+export type ModuloMl = 'TALLAS' | 'OUTFITS' | 'PATRONES' | 'CLUSTERING' | 'DEMANDA' | 'COCOMPRA';
 export interface FuenteMlInfo {
   modulo:ModuloMl;
   fuente:FuenteMl;
