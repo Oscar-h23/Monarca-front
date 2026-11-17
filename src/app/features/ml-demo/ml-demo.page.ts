@@ -6,11 +6,12 @@ import {Api} from '../../core/services/api.service';
 import {Cart} from '../../core/services/cart.service';
 import {AdminApi, EjecucionAcademica, FuenteMlInfo, ModuloMl} from '../admin/data-access/admin-api.service';
 import {Producto} from '../../core/models/shop.models';
+import {CampanasDemoComponent} from '../admin/campanas-demo/campanas-demo.component';
 
 type Complemento={idProducto:number;nombre:string;precioDesde:number;confianza:number;lift:number};
 @Component({
  standalone:true,selector:'app-ml-demo',
- imports:[CommonModule,FormsModule,RouterLink],
+ imports:[CommonModule,FormsModule,RouterLink,CampanasDemoComponent],
  templateUrl:'./ml-demo.html'
 })
 export class MlDemoPage implements OnInit {
