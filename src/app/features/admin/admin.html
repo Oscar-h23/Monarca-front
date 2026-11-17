@@ -134,6 +134,7 @@
                </div>
               </div>
             </ng-container>
+            <app-campanas-demo *ngIf="ejecucion.modulo==='CLUSTERING'" [ejecucion]="ejecucion"></app-campanas-demo>
             <ng-container *ngIf="ejecucion.modulo==='DEMANDA'">
               <div class="grid gap-3 text-sm sm:grid-cols-3">
                 <div><p class="text-xs text-zinc-500">MAE (unidades)</p><strong>{{ejecucion.resultado.mae_unidades??'—'}}</strong></div>
