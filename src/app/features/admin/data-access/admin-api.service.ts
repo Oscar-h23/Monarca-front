@@ -29,6 +29,31 @@ export interface FuenteMlInfo {
   descripcion:string;
 }
 
+export interface EjemploDemanda {
+  producto: string;
+  fecha?: string;
+  real: number;
+  estimado: number;
+}
+export interface EscenarioProductoDemanda {
+  idProducto: number;
+  visitasSupuestas: number;
+  descuentoSupuesto: number;
+  unidadesEscenario: number;
+  precioReferencia: number;
+}
+export interface ParametrosSimulacionDemanda {
+  idProducto: number;
+  precioSoles: number;
+  descuentoPorcentaje: number;
+  visitasSemana: number;
+}
+export interface ResultadoSimulacionDemanda extends ParametrosSimulacionDemanda {
+  visitasSupuestas: number;
+  unidadesEscenario: number;
+  advertencia: string;
+}
+
 export interface EjecucionAcademica {
   idEjecucion: number;
   modulo: 'CLUSTERING' | 'DEMANDA' | 'OUTFITS';
@@ -38,7 +63,9 @@ export interface EjecucionAcademica {
   resultado: {
     algoritmos?: Record<string,{grupos?:number;ruido?:number;silhouette?:number|null}>;
     segmentos?: Array<{segmento:number;clientes:number;compras_promedio:number;gasto_promedio_soles:number;dias_desde_ultima_compra_promedio?:number}>;
-    escenarios_producto?:Array<{idProducto:number;visitasSupuestas:number;descuentoSupuesto:number;unidadesEscenario:number;precioReferencia:number}>;
+    escenarios_producto?:EscenarioProductoDemanda[];
+    ejemplos?:EjemploDemanda[];
+    escenario_personalizado?:ResultadoSimulacionDemanda|null;
     mae_unidades?:number;
     mae_baseline_unidades?:number;
     r2_prueba?:number;
@@ -188,6 +215,12 @@ export class AdminApi {
     return firstValueFrom(this.http.post<EjecucionAcademica>(
       this.api.base+'/admin/ml/modulos/'+modulo+'/ejecutar',
       presupuestoSoles==null?{}:{presupuestoSoles},{headers:this.api.headers()}));
+  }
+
+  simularDemanda(datos: ParametrosSimulacionDemanda): Promise<{resultado: ResultadoSimulacionDemanda}> {
+    return firstValueFrom(this.http.post<{resultado: ResultadoSimulacionDemanda}>(
+      this.api.base + '/admin/ml/demanda/simular', datos,
+      {headers: this.api.headers()}));
   }
 
   modelosTallasMl():Promise<ModeloTallaMl[]> {
