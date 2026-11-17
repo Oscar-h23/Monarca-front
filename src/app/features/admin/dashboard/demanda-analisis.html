@@ -1,0 +1,218 @@
+<article class="min-w-0 rounded-2xl border border-zinc-200 bg-white p-4 sm:p-6" aria-label="Análisis de demanda y cobertura del inventario">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">Regresión lineal · Análisis académico</p>
+      <h3 class="mt-1 text-xl font-bold text-zinc-900">Demanda y cobertura del stock</h3>
+      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-600">
+        Compara estimaciones con existencias actuales y explora cómo cambiarían bajo diferentes
+        precios, descuentos y visitas semanales supuestas.
+      </p>
+    </div>
+    <span class="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-900">
+      {{ejecucion?.fuente==='PRUEBA'?'SIMULACIÓN · NO PRONÓSTICO':'EVALUACIÓN SIN ESCENARIO'}}
+    </span>
+  </div>
+
+  <ng-container *ngIf="ejecucion as e; else sinDemanda">
+    <p class="mt-3 text-xs text-zinc-500">
+      Ejecución #{{e.idEjecucion}} · {{e.registros}} observaciones ·
+      {{e.fecha | date:'dd/MM/yyyy HH:mm':'':'es-PE'}}
+    </p>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-xl bg-zinc-50 p-4">
+        <p class="text-xs font-medium text-zinc-500">MAE del modelo</p>
+        <p class="mt-1 text-2xl font-bold text-zinc-900">{{mae === null?'—':(mae | number:'1.2-3')}}</p>
+        <p class="mt-1 text-xs leading-relaxed text-zinc-600">Error absoluto promedio en unidades vendidas de prueba. Más bajo es mejor.</p>
+      </div>
+      <div class="rounded-xl bg-zinc-50 p-4">
+        <p class="text-xs font-medium text-zinc-500">MAE de referencia</p>
+        <p class="mt-1 text-2xl font-bold text-zinc-900">{{maeBase === null?'—':(maeBase | number:'1.2-3')}}</p>
+        <p class="mt-1 text-xs leading-relaxed text-zinc-600">Error de usar siempre el promedio de ventas del entrenamiento.</p>
+      </div>
+      <div class="rounded-xl bg-zinc-50 p-4">
+        <p class="text-xs font-medium text-zinc-500">Menor MAE frente a referencia</p>
+        <p class="mt-1 text-2xl font-bold" [class.text-emerald-700]="(mejoraMae??0)>=0"
+          [class.text-amber-700]="(mejoraMae??0)<0">
+          {{mejoraMae === null?'—':((mejoraMae | number:'1.1-1')+' %')}}
+        </p>
+        <p class="mt-1 text-xs leading-relaxed text-zinc-600">Reducción relativa de error en esta evaluación sintética.</p>
+      </div>
+      <div class="rounded-xl bg-zinc-50 p-4">
+        <p class="text-xs font-medium text-zinc-500">R² de prueba</p>
+        <p class="mt-1 text-2xl font-bold text-zinc-900">
+          {{e.resultado.r2_prueba == null?'—':(e.resultado.r2_prueba | number:'1.2-4')}}
+        </p>
+        <p class="mt-1 text-xs leading-relaxed text-zinc-600">Variabilidad explicada en prueba; no es un porcentaje de aciertos.</p>
+      </div>
+    </div>
+
+    <div class="mt-5 grid gap-5 xl:grid-cols-2">
+      <section class="min-w-0 rounded-xl border border-zinc-200 p-4" aria-label="Gráfico de unidades observadas versus estimadas">
+        <h4 class="text-base font-bold text-zinc-900">Observado vs. estimado</h4>
+        <p class="mt-1 text-xs leading-relaxed text-zinc-600">
+          Primeras {{ejemplos.length}} observaciones del conjunto de prueba.
+          Los valores observados son <strong>datos sintéticos</strong>.
+        </p>
+        <div class="mt-3 flex flex-wrap gap-4 text-xs text-zinc-600" aria-hidden="true">
+          <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded bg-zinc-800"></span> Observado simulado</span>
+          <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded bg-sky-500"></span> Estimado por regresión</span>
+        </div>
+        <div *ngIf="ejemplos.length" class="mt-4 overflow-x-auto pb-2">
+          <div class="flex h-44 min-w-max items-end gap-3 border-b border-zinc-300 pb-0.5">
+            <div *ngFor="let punto of ejemplos; let i=index"
+              class="flex h-full min-w-10 flex-col justify-end gap-1" [title]="'Observación '+(i+1)+', real '+punto.real+', estimado '+punto.estimado">
+              <div class="flex h-[126px] items-end justify-center gap-1">
+                <div class="w-4 min-h-[2px] rounded-t bg-zinc-800" [style.height.%]="altura(punto.real)"></div>
+                <div class="w-4 min-h-[2px] rounded-t bg-sky-500" [style.height.%]="altura(punto.estimado)"></div>
+              </div>
+              <span class="text-center text-[10px] text-zinc-500">{{i+1}}</span>
+            </div>
+          </div>
+          <p class="mt-2 text-[11px] text-zinc-500">Eje horizontal: número de observación · Altura: unidades semanales (escala máxima {{maxEjemplo | number:'1.0-1'}}).</p>
+        </div>
+        <p *ngIf="!ejemplos.length" class="mt-4 rounded-lg bg-zinc-50 p-3 text-xs text-zinc-600">
+          Esta ejecución no guardó ejemplos para el gráfico. Pulsa «Actualizar análisis» para regenerar el conjunto de prueba.
+        </p>
+        <details *ngIf="ejemplos.length" class="mt-3 text-xs text-zinc-600">
+          <summary class="cursor-pointer font-semibold text-zinc-800">Ver valores numéricos del gráfico</summary>
+          <div class="mt-2 max-h-44 overflow-auto">
+            <table class="w-full text-left">
+              <thead><tr class="border-b border-zinc-200"><th class="py-1">#</th><th>Real simulado</th><th>Estimado</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let punto of ejemplos; let i=index" class="border-b border-zinc-100">
+                  <td class="py-1">{{i+1}}</td><td>{{punto.real | number:'1.1-2'}}</td><td>{{punto.estimado | number:'1.1-2'}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+
+      <section class="min-w-0 rounded-xl border border-zinc-200 p-4" aria-label="Simulador de demanda semanal">
+        <h4 class="text-base font-bold text-zinc-900">Simulador de escenarios</h4>
+        <p class="mt-1 text-xs leading-relaxed text-zinc-600">
+          Modifica los supuestos y consulta nuevamente la regresión. No modifica productos,
+          pedidos ni existencias.
+        </p>
+        <div *ngIf="e.fuente==='PRUEBA' && escenarios.length; else noSimulador" class="mt-4 space-y-3">
+          <label class="block text-xs font-semibold text-zinc-700">Producto del conjunto de prueba
+            <select class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+              [ngModel]="idProducto" (ngModelChange)="seleccionarProducto($event)">
+              <option *ngFor="let item of escenarios" [ngValue]="item.idProducto">
+                Producto simulado #{{item.idProducto}}
+              </option>
+            </select>
+          </label>
+          <div class="grid gap-3 sm:grid-cols-3">
+            <label class="block text-xs font-semibold text-zinc-700">Precio supuesto (S/)
+              <input type="number" min="0.01" max="10000" step="0.5" [(ngModel)]="precioSoles"
+                (ngModelChange)="invalidar()" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"/>
+            </label>
+            <label class="block text-xs font-semibold text-zinc-700">Descuento supuesto (%)
+              <input type="number" min="0" max="100" step="1" [(ngModel)]="descuentoPorcentaje"
+                (ngModelChange)="invalidar()" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"/>
+            </label>
+            <label class="block text-xs font-semibold text-zinc-700">Visitas hipotéticas por semana
+              <input type="number" min="0" max="100000" step="1" [(ngModel)]="visitasSemana"
+                (ngModelChange)="invalidar()" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"/>
+            </label>
+          </div>
+          <button type="button" (click)="simular()" [disabled]="procesando||ejecutando"
+            class="min-h-11 w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">
+            {{procesando?'Calculando escenario…':'Calcular escenario hipotético'}}
+          </button>
+          <div *ngIf="resultadoPersonalizado as respuesta" class="rounded-xl bg-sky-50 p-4">
+            <p class="text-xs font-semibold text-sky-900">Resultado del modelo bajo tus supuestos</p>
+            <p class="mt-2 text-2xl font-bold text-sky-950">{{respuesta.unidadesEscenario | number:'1.1-2'}} <span class="text-sm font-normal">unidades</span></p>
+            <p class="mt-1 text-xs text-sky-800">Es un escenario matemático, no una venta futura confirmada.</p>
+          </div>
+          <p *ngIf="mensaje" role="status" class="rounded-lg bg-emerald-50 p-3 text-xs text-emerald-800">{{mensaje}}</p>
+          <p *ngIf="error" role="alert" class="rounded-lg bg-red-50 p-3 text-xs text-red-800">{{error}}</p>
+        </div>
+        <ng-template #noSimulador>
+          <p class="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
+            Este simulador solo está disponible con fuente PRUEBA y escenarios calculados.
+          </p>
+        </ng-template>
+      </section>
+    </div>
+
+    <section class="mt-5 min-w-0 rounded-xl border border-zinc-200 p-4" aria-label="Tabla de cobertura entre stock y demanda hipotética">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h4 class="text-base font-bold text-zinc-900">Comparación con el inventario</h4>
+          <p class="mt-1 text-xs leading-relaxed text-zinc-600">
+            Se compara un escenario semanal simulado con la suma del stock actual de todas las variantes del producto.
+            No se garantiza cobertura por talla o color.
+          </p>
+        </div>
+        <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700">
+          {{tabla.length}} escenarios · {{hayCorrespondencia?'Con coincidencias de catálogo':'Sin IDs coincidentes'}}
+        </span>
+      </div>
+      <div *ngIf="tabla.length; else faltaEscenarios" class="mt-4 overflow-x-auto">
+        <table class="w-full min-w-[620px] text-left text-sm">
+          <thead class="border-b border-zinc-200 bg-zinc-50 text-xs text-zinc-600">
+            <tr>
+              <th scope="col" class="px-3 py-3 font-semibold">Producto</th>
+              <th scope="col" class="px-3 py-3 text-right font-semibold">Stock actual</th>
+              <th scope="col" class="px-3 py-3 text-right font-semibold">Demanda supuesta</th>
+              <th scope="col" class="px-3 py-3 text-right font-semibold">Brecha hipotética</th>
+              <th scope="col" class="px-3 py-3 font-semibold">Lectura</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of tabla" class="border-b border-zinc-100 align-middle">
+              <td class="px-3 py-3">
+                <p class="font-semibold text-zinc-900">{{item.nombre}}</p>
+                <p class="mt-1 text-[11px] text-zinc-500">ID {{item.idProducto}} · {{item.visitas}} visitas supuestas
+                  <span *ngIf="item.personalizada" class="font-semibold text-sky-800">· Escenario personalizado</span>
+                </p>
+              </td>
+              <td class="px-3 py-3 text-right">{{item.stock===null?'No disponible':(item.stock | number:'1.0-0')}}</td>
+              <td class="px-3 py-3 text-right">{{item.unidades | number:'1.1-2'}} un.</td>
+              <td class="px-3 py-3 text-right font-semibold">
+                {{item.falta===null?'—':(item.falta | number:'1.0-0')}}
+              </td>
+              <td class="px-3 py-3 text-xs">
+                <span *ngIf="item.stock===null" class="text-amber-800">Sin producto real equivalente</span>
+                <span *ngIf="item.stock!==null && item.falta!==null && item.falta>0" class="text-amber-800">Faltante supuesto</span>
+                <span *ngIf="item.stock!==null && item.falta===0" class="text-emerald-800">Cobertura hipotética suficiente</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #faltaEscenarios>
+        <p class="mt-3 rounded-lg bg-zinc-50 p-3 text-sm text-zinc-600">
+          No se guardaron escenarios por producto. Vuelve a ejecutar el análisis.
+        </p>
+      </ng-template>
+      <p *ngIf="tabla.length && !hayCorrespondencia" class="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
+        Los IDs de productos de prueba no coinciden con el catálogo. Se muestran las estimaciones académicas,
+        pero no se calculan brechas frente al stock real para evitar resultados engañosos.
+      </p>
+    </section>
+
+    <p class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
+      <strong>Limitación:</strong> los datos de ventas y visitas empleados para evaluar el modelo son sintéticos;
+      las visitas del escenario son hipotéticas. El MAE y R² no representan precisión comercial real.
+      No utilizar estos resultados para reposición automática.
+    </p>
+  </ng-container>
+  <ng-template #sinDemanda>
+    <p class="mt-5 rounded-lg bg-zinc-50 p-4 text-sm text-zinc-600">
+      Aún no existe un análisis de demanda. Ejecútalo para ver las métricas, el gráfico y los escenarios de inventario.
+    </p>
+  </ng-template>
+  <div class="mt-5 flex flex-wrap gap-2">
+    <button type="button" (click)="actualizar.emit()" [disabled]="ejecutando||!fuenteDisponible"
+      class="min-h-11 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">
+      {{ejecutando?'Calculando…':'Actualizar análisis'}}
+    </button>
+    <button type="button" (click)="verInventario.emit()"
+      class="min-h-11 rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800">
+      Ver inventario
+    </button>
+  </div>
+</article>
