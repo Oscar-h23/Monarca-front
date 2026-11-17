@@ -1,0 +1,144 @@
+<section *ngIf="habilitado" class="mt-5 space-y-5 rounded-2xl border border-rose-200 bg-white p-4 sm:p-6" aria-label="Recomendaciones de campañas simuladas">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-[.16em] text-rose-700">K-Means / Campañas</p>
+      <h3 class="mt-1 text-xl font-bold text-zinc-900">Recomendaciones de campañas</h3>
+      <p class="mt-2 max-w-2xl text-sm text-zinc-600">
+        Ideas basadas en compras promedio, gasto y días desde la última compra de cada segmento.
+        Son reglas orientativas aplicadas a datos sintéticos, no predicciones de conversión.
+      </p>
+    </div>
+    <span class="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-900">SOLO DEMOSTRACIÓN · SIN ENVÍOS</span>
+  </div>
+
+  <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
+    Los perfiles no representan clientes reales. No se cargan correos ni teléfonos, no se llama a Resend y no existe ninguna opción para enviar mensajes desde este módulo.
+  </div>
+
+  <div class="grid gap-3 md:grid-cols-2">
+    <article *ngFor="let propuesta of recomendaciones" class="flex min-w-0 flex-col justify-between rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+      <div>
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs font-semibold text-zinc-500">Grupo {{propuesta.segmento.segmento}} · {{propuesta.segmento.clientes}} perfiles ficticios</p>
+            <h4 class="mt-1 text-base font-bold text-zinc-900">{{propuesta.nombre}}</h4>
+          </div>
+          <span class="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
+            [ngClass]="propuesta.prioridad==='Alta'?'bg-rose-100 text-rose-800':'bg-zinc-200 text-zinc-700'">
+            {{propuesta.prioridad}}
+          </span>
+        </div>
+        <div class="mt-3 grid gap-2 text-xs text-zinc-600 sm:grid-cols-3">
+          <div><span class="block text-zinc-500">Compras</span><strong class="text-sm text-zinc-900">{{propuesta.segmento.compras_promedio | number:'1.1-1'}}</strong></div>
+          <div><span class="block text-zinc-500">Gasto medio</span><strong class="text-sm text-zinc-900">S/ {{propuesta.segmento.gasto_promedio_soles | number:'1.2-2'}}</strong></div>
+          <div><span class="block text-zinc-500">Recencia</span><strong class="text-sm text-zinc-900">{{propuesta.segmento.dias_desde_ultima_compra_promedio | number:'1.0-0'}} días</strong></div>
+        </div>
+        <p class="mt-3 text-xs leading-relaxed text-zinc-600">{{propuesta.motivo}}</p>
+        <p class="mt-2 text-xs font-semibold text-zinc-800">Sugerencia: {{propuesta.accion}}</p>
+      </div>
+      <button type="button" (click)="elegirSegmento(propuesta.segmento.segmento)"
+        class="mt-4 min-h-10 w-full rounded-lg bg-rose-700 px-3 py-2 text-sm font-semibold text-white hover:bg-rose-800">
+        Crear campaña de prueba
+      </button>
+    </article>
+  </div>
+
+  <div *ngIf="mostrarEditor" class="grid gap-5 rounded-xl border border-zinc-200 bg-white p-4 lg:grid-cols-2" aria-label="Editor de campaña de demostración">
+    <div class="space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <h4 class="text-lg font-bold text-zinc-900">Campaña de prueba</h4>
+        <span class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">{{seleccion?.segmento?.clientes || 0}} perfiles simulados</span>
+      </div>
+      <label class="block text-xs font-semibold text-zinc-700">Nombre de la campaña
+        <input type="text" maxlength="100" [(ngModel)]="nombre"
+          class="mt-1 min-h-10 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm" placeholder="Campaña de reactivación"/>
+      </label>
+      <label class="block text-xs font-semibold text-zinc-700">Objetivo
+        <select [ngModel]="tipo" (ngModelChange)="elegirTipo($event)"
+          class="mt-1 min-h-10 w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm">
+          <option *ngFor="let opcion of tipos" [ngValue]="opcion.valor">{{opcion.etiqueta}}</option>
+        </select>
+      </label>
+      <label class="block text-xs font-semibold text-zinc-700">Asunto de correo (vista previa)
+        <input type="text" maxlength="150" [(ngModel)]="asunto"
+          class="mt-1 min-h-10 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"/>
+      </label>
+      <label class="block text-xs font-semibold text-zinc-700">Contenido (solo demostración)
+        <textarea rows="5" maxlength="1500" [(ngModel)]="mensaje"
+          class="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm leading-relaxed"></textarea>
+      </label>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" (click)="mostrarPrevia=!mostrarPrevia"
+          class="min-h-10 rounded-lg border border-zinc-300 px-4 py-2 text-xs font-semibold text-zinc-800">
+          {{mostrarPrevia?'Ocultar vista previa':'Ver correo'}}
+        </button>
+        <button type="button" (click)="guardarBorrador()"
+          class="min-h-10 rounded-lg border border-rose-700 px-4 py-2 text-xs font-semibold text-rose-800">
+          Guardar borrador local
+        </button>
+      </div>
+      <p *ngIf="error" role="alert" class="rounded-lg bg-red-50 p-3 text-xs text-red-800">{{error}}</p>
+      <p *ngIf="estadoMensaje" role="status" class="rounded-lg bg-green-50 p-3 text-xs text-green-800">{{estadoMensaje}}</p>
+    </div>
+
+    <div class="space-y-3">
+      <div *ngIf="mostrarPrevia" class="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+        <p class="text-xs font-bold uppercase tracking-[.13em] text-zinc-500">Vista previa · No enviado</p>
+        <p class="mt-3 text-xs text-zinc-500">Asunto: <strong class="text-zinc-900">{{asunto}}</strong></p>
+        <div class="mt-3 whitespace-pre-line rounded-lg border border-zinc-200 bg-white p-4 text-sm leading-relaxed text-zinc-800">{{vistaPrevia}}</div>
+      </div>
+
+      <div class="rounded-xl border border-zinc-200 p-4">
+        <h5 class="text-sm font-bold text-zinc-900">Simular resultados</h5>
+        <p class="mt-1 text-xs text-zinc-500">Ajusta hipótesis matemáticas, no tasas de rendimiento real.</p>
+        <div class="mt-3 grid gap-3 sm:grid-cols-3">
+          <label class="text-xs font-semibold text-zinc-600">Entregas hipotéticas %
+            <input type="number" [(ngModel)]="entregaHipotetica" min="0" max="100" step="1"
+              class="mt-1 min-h-10 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"/>
+          </label>
+          <label class="text-xs font-semibold text-zinc-600">Aperturas sobre entregas %
+            <input type="number" [(ngModel)]="aperturaHipotetica" min="0" max="100" step="1"
+              class="mt-1 min-h-10 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"/>
+          </label>
+          <label class="text-xs font-semibold text-zinc-600">Clics sobre aperturas %
+            <input type="number" [(ngModel)]="clicHipotetico" min="0" max="100" step="1"
+              class="mt-1 min-h-10 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"/>
+          </label>
+        </div>
+        <button type="button" (click)="simular()"
+          class="mt-4 min-h-11 w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800">
+          Simular y registrar (sin enviar)
+        </button>
+        <p class="mt-2 text-xs text-zinc-500">Cálculo: contactos × tasa de entrega; entregas × apertura; aperturas × clics. No se envía ningún correo.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="rounded-xl border border-zinc-200 p-4">
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <h4 class="text-base font-bold text-zinc-900">Historial de demostración</h4>
+      <span class="text-xs text-zinc-500">Solo este navegador · {{historial.length}} registros</span>
+    </div>
+    <p *ngIf="!historial.length" class="mt-3 text-sm text-zinc-500">Todavía no hay borradores ni simulaciones. Selecciona un grupo y crea la primera campaña.</p>
+    <div *ngFor="let item of historial" class="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p class="text-sm font-bold text-zinc-900">{{item.nombre}}</p>
+          <p class="mt-1 text-xs text-zinc-500">Grupo {{item.segmentoId}} · {{item.perfilesSimulados}} perfiles ficticios · {{item.fecha | date:'dd/MM/yyyy HH:mm'}}</p>
+        </div>
+        <span class="rounded-full bg-white px-2 py-1 text-xs font-bold text-zinc-700">{{item.estado==='SIMULADA'?'SIMULACIÓN':'BORRADOR'}}</span>
+      </div>
+      <div *ngIf="item.resultado as r" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <p class="rounded-lg bg-white p-2 text-xs">Perfiles<br/><strong class="text-base">{{r.audienciaHipotetica}}</strong></p>
+        <p class="rounded-lg bg-white p-2 text-xs">Entregas potenciales<br/><strong class="text-base">{{r.entregasPotenciales}}</strong></p>
+        <p class="rounded-lg bg-white p-2 text-xs">Aperturas potenciales<br/><strong class="text-base">{{r.aperturasPotenciales}}</strong></p>
+        <p class="rounded-lg bg-white p-2 text-xs">Clics potenciales<br/><strong class="text-base">{{r.clicsPotenciales}}</strong></p>
+      </div>
+      <p *ngIf="item.resultado" class="mt-2 text-xs font-semibold text-amber-800">Cifras exclusivamente hipotéticas; 0 envíos reales.</p>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <button type="button" (click)="editar(item)" class="min-h-9 rounded-lg border border-zinc-300 bg-white px-3 py-1.5 text-xs font-semibold">Reutilizar</button>
+        <button type="button" (click)="eliminar(item.id)" class="min-h-9 rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700">Eliminar registro</button>
+      </div>
+    </div>
+  </div>
+</section>
