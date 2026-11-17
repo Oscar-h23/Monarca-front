@@ -101,19 +101,19 @@ export class DemandaAnalisisComponent implements OnChanges {
       const stock = producto
         ? (producto.variantes ?? []).reduce((sum, v) => sum + Math.max(0, Number(v.stock) || 0), 0)
         : null;
-      const personalizada = resultado?.idProducto === e.idProducto;
-      const unidades = Number(personalizada ? resultado.unidadesEscenario : e.unidadesEscenario);
+      const personalizado = resultado?.idProducto === e.idProducto ? resultado : null;
+      const unidades = Number(personalizado?.unidadesEscenario ?? e.unidadesEscenario);
       return {
         idProducto: e.idProducto,
         nombre: producto?.nombre || 'Producto simulado #' + e.idProducto,
         imagen: producto?.imagen || '',
         stock,
         unidades: Number.isFinite(unidades) ? Math.max(0, unidades) : 0,
-        visitas: personalizada ? resultado.visitasSupuestas : Number(e.visitasSupuestas),
-        descuento: personalizada ? resultado.descuentoPorcentaje : Number(e.descuentoSupuesto),
-        precio: personalizada ? resultado.precioSoles : Number(e.precioReferencia),
+        visitas: Number(personalizado?.visitasSupuestas ?? e.visitasSupuestas),
+        descuento: Number(personalizado?.descuentoPorcentaje ?? e.descuentoSupuesto),
+        precio: Number(personalizado?.precioSoles ?? e.precioReferencia),
         falta: stock === null ? null : Math.max(0, Math.ceil(unidades) - stock),
-        personalizada: !!personalizada
+        personalizada: !!personalizado
       };
     }).sort((a,b) => (b.falta ?? -1) - (a.falta ?? -1) || b.unidades - a.unidades);
   }
