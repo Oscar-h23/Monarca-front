@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular
 import { FormsModule } from '@angular/forms';
 import { Producto } from '../../../core/models/shop.models';
 import { AdminApi, PeriodoVentas, EjecucionAcademica, FuenteMlInfo } from '../data-access/admin-api.service';
+import { DemandaAnalisisComponent } from './demanda-analisis.component';
 
 type Barra = { etiqueta:string; importe:number; pedidos:number; porcentaje:number };
 const COLORES = ['#18181b','#9f806e','#64748b','#9274b1','#b5a084','#6b8f84'];
@@ -15,7 +16,7 @@ function fechaLima(haceDias=0): string {
 @Component({
   standalone:true,
   selector:'app-admin-dashboard',
-  imports:[CommonModule,FormsModule],
+  imports:[CommonModule,FormsModule,DemandaAnalisisComponent],
   templateUrl:'./admin-dashboard.html'
 })
 export class AdminDashboardComponent implements OnInit {
