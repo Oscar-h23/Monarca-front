@@ -50,7 +50,7 @@ export function puntosVentas(dias:VentaDia[], previos:VentaDia[], mensual:boolea
   });
 }
 
-const COLORES = ['#22d3ee','#f472b6','#a78bfa','#fbbf24','#34d399','#60a5fa'];
+const COLORES = ['#18181b','#9f806e','#d6c2b8','#71717a','#b89b8a','#52525b'];
 
 function fechaLima(haceDias=0): string {
   const momento = new Date(Date.now()-haceDias*86400000-5*3600000);
@@ -169,7 +169,7 @@ export class AdminDashboardComponent implements OnInit {
   graficoCircular():string{
     const medios=this.reporte?.mediosPago||[];
     const total=this.totalMedios();
-    if(total<=0)return 'conic-gradient(#334155 0% 100%)';
+    if(total<=0)return 'conic-gradient(#e4e4e7 0% 100%)';
     let acumulado=0;
     const partes=medios.map((x,i)=>{
       const hasta=acumulado+100*Number(x.importe)/total;
