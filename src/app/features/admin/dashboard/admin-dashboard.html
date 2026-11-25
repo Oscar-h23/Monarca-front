@@ -36,54 +36,58 @@
 
 
  <ng-container *ngIf="reporte as r">
-  <div class="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
-   <div class="min-[360px]:col-span-2 min-w-0 rounded-2xl border border-zinc-200 bg-zinc-900 p-4 text-white sm:p-5 lg:col-span-1 2xl:col-span-2">
-    <p class="text-xs uppercase tracking-widest text-zinc-300">Ventas confirmadas</p>
-    <p class="mt-3 break-words text-2xl font-bold tracking-tight sm:text-3xl">{{dinero(r.kpis.ventasConfirmadas)}}</p>
-    <p class="mt-2 text-xs text-zinc-300">Incluye pagos confirmados manualmente.</p>
+  <section class="space-y-3" aria-label="Rentabilidad de ventas confirmadas">
+   <div class="flex flex-wrap items-baseline justify-between gap-2">
+    <h3 class="text-sm font-bold text-zinc-900">Resumen financiero</h3>
+    <p class="text-xs text-zinc-500">Importes del período seleccionado</p>
    </div>
-   <div class="rounded-2xl border border-zinc-200 bg-white p-5">
-    <p class="text-xs font-semibold text-zinc-500">Pedidos pagados</p>
-    <p class="mt-3 text-3xl font-bold">{{r.kpis.pedidosConfirmados}}</p>
+   <div class="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+    <article class="min-w-0 rounded-xl border border-zinc-900 bg-zinc-900 p-4 text-white sm:p-5">
+      <p class="text-xs font-semibold text-zinc-300">Ingresos por ventas confirmadas</p>
+      <p class="mt-2 break-words text-2xl font-bold tracking-tight tabular-nums">{{dinero(r.kpis.ventasConfirmadas)}}</p>
+      <p class="mt-2 text-xs leading-relaxed text-zinc-300">Incluye pagos confirmados manualmente.</p>
+    </article>
+    <article class="min-w-0 rounded-xl border border-zinc-200 bg-white p-4 sm:p-5">
+      <p class="text-xs font-semibold text-zinc-600">Costo de mercadería vendida</p>
+      <p class="mt-2 break-words text-2xl font-bold tracking-tight tabular-nums">{{dinero(r.kpis.costoMercaderia)}}</p>
+      <p class="mt-2 text-xs leading-relaxed text-zinc-500">Costo estimado de las unidades vendidas.</p>
+    </article>
+    <article class="min-w-0 rounded-xl border border-[#d6c2b8] bg-crema p-4 sm:p-5">
+      <p class="text-xs font-semibold text-[#795b4b]">Ganancia bruta estimada</p>
+      <p class="mt-2 break-words text-2xl font-bold tracking-tight tabular-nums text-zinc-900" *ngIf="r.kpis.gananciaVentaMenosCompra !== null">{{dinero(r.kpis.gananciaVentaMenosCompra)}}</p>
+      <p class="mt-2 text-lg font-bold text-zinc-900" *ngIf="r.kpis.gananciaVentaMenosCompra === null">No disponible</p>
+      <p class="mt-2 text-xs leading-relaxed text-zinc-600">Ingresos menos costo de compra. No es ganancia neta.</p>
+    </article>
    </div>
-   <div class="rounded-2xl border border-zinc-200 bg-white p-5">
-    <p class="text-xs font-semibold text-zinc-500">Pedidos creados</p>
-    <p class="mt-3 text-3xl font-bold">{{r.kpis.pedidosRegistrados}}</p>
+   <p *ngIf="r.kpis.partidasSinCosto > 0" role="status" class="rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
+     Hay {{r.kpis.partidasSinCosto}} líneas de venta sin costo registrado. Completa sus costos en Inventario para calcular la ganancia.
+   </p>
+   <details class="rounded-lg border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-600">
+    <summary class="cursor-pointer font-semibold">Sobre el cálculo de rentabilidad</summary>
+    <p class="mt-2 leading-relaxed">Los costos precargados son estimaciones y se consultan con su valor actual: si modificas un costo, puede variar la rentabilidad histórica. Para una ganancia neta contable se deben registrar también gastos de operación, impuestos y otros costos. El costo mostrado corresponde a las unidades vendidas, no al stock disponible.</p>
+   </details>
+  </section>
+  <section class="space-y-3" aria-label="Actividad comercial">
+   <h3 class="text-sm font-bold text-zinc-900">Actividad de pedidos</h3>
+   <div class="grid min-w-0 grid-cols-2 gap-3 md:grid-cols-4">
+    <article class="min-w-0 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4">
+     <p class="text-xs font-semibold text-zinc-600">Pedidos creados</p>
+     <p class="mt-2 break-words text-2xl font-bold tabular-nums">{{r.kpis.pedidosRegistrados}}</p>
+    </article>
+    <article class="min-w-0 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4">
+     <p class="text-xs font-semibold text-zinc-600">Pedidos pagados</p>
+     <p class="mt-2 break-words text-2xl font-bold tabular-nums">{{r.kpis.pedidosConfirmados}}</p>
+    </article>
+    <article class="min-w-0 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4">
+     <p class="text-xs font-semibold text-zinc-600">Por verificar</p>
+     <p class="mt-2 break-words text-2xl font-bold tabular-nums text-amber-700">{{r.kpis.pagosEnRevision}}</p>
+    </article>
+    <article class="min-w-0 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4">
+     <p class="text-xs font-semibold text-zinc-600">Ticket promedio</p>
+     <p class="mt-2 break-words text-xl font-bold tabular-nums sm:text-2xl">{{dinero(r.kpis.ticketPromedio)}}</p>
+     <p class="mt-1 text-xs text-zinc-500">{{r.kpis.unidadesVendidas}} unidades vendidas</p>
+    </article>
    </div>
-   <div class="rounded-2xl border border-zinc-200 bg-white p-5">
-    <p class="text-xs font-semibold text-zinc-500">Por verificar</p>
-    <p class="mt-3 text-3xl font-bold text-amber-700">{{r.kpis.pagosEnRevision}}</p>
-   </div>
-   <div class="rounded-2xl border border-zinc-200 bg-white p-5">
-    <p class="text-xs font-semibold text-zinc-500">Ticket promedio</p>
-    <p class="mt-3 text-2xl font-bold">{{dinero(r.kpis.ticketPromedio)}}</p>
-    <p class="mt-2 text-xs text-zinc-500">{{r.kpis.unidadesVendidas}} unidades vendidas</p>
-   </div>
-  </div>
-  <section class="grid gap-3 md:grid-cols-3" aria-label="Rentabilidad de ventas confirmadas">
-    <div class="rounded-2xl border border-zinc-200 bg-white p-5">
-      <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Ingreso total por ventas</p>
-      <p class="mt-3 text-2xl font-bold tabular-nums">{{dinero(r.kpis.ventasConfirmadas)}}</p>
-      <p class="mt-2 text-xs text-zinc-500">Pedidos con pago aprobado en el período.</p>
-    </div>
-    <div class="rounded-2xl border border-zinc-200 bg-white p-5">
-      <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Costo de compra de lo vendido</p>
-      <p class="mt-3 text-2xl font-bold tabular-nums">{{dinero(r.kpis.costoMercaderia)}}</p>
-      <p class="mt-2 text-xs text-zinc-500">Costo estimado de las unidades vendidas, no del stock disponible.</p>
-    </div>
-    <div class="rounded-2xl border border-zinc-300 bg-zinc-900 p-5 text-white">
-      <p class="text-xs font-semibold uppercase tracking-wide text-zinc-300">Ganancia por ventas − compras</p>
-      <p class="mt-3 text-2xl font-bold tabular-nums" *ngIf="r.kpis.gananciaVentaMenosCompra !== null">{{dinero(r.kpis.gananciaVentaMenosCompra)}}</p>
-      <p class="mt-3 text-xl font-bold" *ngIf="r.kpis.gananciaVentaMenosCompra === null">No disponible</p>
-      <p class="mt-2 text-xs text-zinc-300">Ganancia bruta estimada. No es ganancia neta: faltan otros gastos e impuestos.</p>
-    </div>
-    <p *ngIf="r.kpis.partidasSinCosto > 0" role="status"
-       class="rounded-xl bg-amber-50 p-3 text-xs text-amber-900 md:col-span-3">
-      Hay {{r.kpis.partidasSinCosto}} líneas de venta sin costo registrado. Completa sus costos en Inventario para calcular la ganancia.
-    </p>
-    <p class="text-xs leading-relaxed text-zinc-500 md:col-span-3">
-      Los costos precargados son estimaciones y se consultan con su valor actual: si modificas un costo, puede variar la rentabilidad histórica. Para una ganancia neta contable se deben registrar también gastos de operación y otros costos.
-    </p>
   </section>
   <div class="grid gap-5 2xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
    <section class="min-w-0 rounded-2xl border border-zinc-200 bg-white p-4 text-zinc-900 shadow-sm sm:p-6">
