@@ -36,3 +36,48 @@ img, video { max-width:100%; }
 @media (max-width:359px) {
   .admin-responsive .admin-nav { grid-template-columns:minmax(0,1fr); }
 }
+
+/* Nayeli's Moda — shared feedback and content placeholders. */
+.nm-notice {
+  --nm-tone:#795b4b; --nm-tint:#faf7f2; --nm-border:#d6c2b8;
+  position:relative; min-width:0; border:1px solid var(--nm-border);
+  border-left:3px solid var(--nm-tone); border-radius:.75rem;
+  background:var(--nm-tint); color:#27272a; padding:.85rem 1rem .85rem 3rem;
+  font-size:.875rem; line-height:1.5; overflow-wrap:anywhere;
+}
+.nm-notice--success,.nm-toast--success { --nm-tone:#36704f; --nm-tint:#f4f8f4; --nm-border:#cbded0; }
+.nm-notice--error { --nm-tone:#a33d42; --nm-tint:#fdf5f4; --nm-border:#ead0cf; }
+.nm-notice--warning { --nm-tone:#936322; --nm-tint:#fcf8ef; --nm-border:#eadbbd; }
+.nm-notice--info { --nm-tone:#795b4b; --nm-tint:#faf7f2; --nm-border:#d6c2b8; }
+.nm-notice::before {
+  content:"i"; position:absolute; left:.9rem; top:.9rem;
+  display:grid; place-items:center; width:1.35rem; height:1.35rem;
+  border-radius:50%; border:1px solid var(--nm-tone); color:var(--nm-tone);
+  font-size:.8rem; font-weight:700; line-height:1;
+}
+.nm-notice--success::before { content:"✓"; }
+.nm-notice--error::before,.nm-notice--warning::before { content:"!"; }
+.nm-toast {
+  --nm-tone:#36704f; --nm-tint:#f4f8f4; --nm-border:#cbded0;
+  position:fixed; bottom:max(1rem,env(safe-area-inset-bottom)); left:1rem; right:1rem;
+  max-width:27rem; margin-left:auto; z-index:60;
+  display:flex; align-items:flex-start; gap:.75rem; padding:1rem;
+  background:white; border:1px solid var(--nm-border); border-left:3px solid var(--nm-tone);
+  border-radius:.85rem; box-shadow:0 8px 28px #18181b18; color:#27272a;
+}
+.nm-toast > span:first-child { background:var(--nm-tint); color:var(--nm-tone); }
+.nm-toast button { min-height:44px; min-width:44px; }
+.nm-skeleton {
+  min-width:0; border-radius:.6rem; background:#ece8e3;
+  background-image:linear-gradient(100deg,#ece8e3 20%,#f8f5f0 48%,#ece8e3 76%);
+  background-size:220% 100%; animation:nm-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes nm-shimmer { from {background-position:110% 0;} to {background-position:-110% 0;} }
+.nm-skeleton-line { height:.8rem; }
+.nm-skeleton-title { height:1.35rem; }
+.nm-skeleton-field { height:2.8rem; }
+.nm-skeleton-image { aspect-ratio:3/4; width:100%; }
+.nm-skeleton-card { min-width:0; border:1px solid #e4e4e7; background:white; border-radius:.85rem; padding:1rem; }
+.nm-skeleton-chart { height:13rem; }
+.nm-loading { min-width:0; }
+@media(prefers-reduced-motion:reduce){ .nm-skeleton { animation:none; } }

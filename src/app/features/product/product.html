@@ -1,6 +1,7 @@
 <main class="mx-auto max-w-6xl px-4 py-7 sm:px-5 sm:py-14">
   <a routerLink="/" class="text-zinc-500 text-sm">← Volver a la tienda</a>
-  <p *ngIf="error()" class="text-red-700 mt-10">{{error()}}</p>
+  <p *ngIf="error()" class="nm-notice nm-notice--error text-red-700 mt-10" role="alert">{{error()}}</p>
+  <div *ngIf="!product() && !error()" role="status" aria-busy="true" class="nm-loading mt-6"><span class="sr-only">Cargando detalles del producto</span><div aria-hidden="true" class="grid gap-6 md:grid-cols-2"><div class="nm-skeleton nm-skeleton-image"></div><div class="space-y-5 py-4"><div class="nm-skeleton nm-skeleton-line w-1/3"></div><div class="nm-skeleton nm-skeleton-title w-4/5"></div><div class="nm-skeleton nm-skeleton-title w-1/3"></div><div class="nm-skeleton nm-skeleton-line w-full"></div><div class="nm-skeleton nm-skeleton-line w-4/5"></div><div class="nm-skeleton nm-skeleton-field w-full"></div><div class="nm-skeleton nm-skeleton-field w-2/3"></div></div></div></div>
   <div *ngIf="product() as p" class="mt-6 grid min-w-0 gap-6 sm:gap-10 md:mt-8 md:grid-cols-2 md:gap-12">
     <img [src]="p.imagen||fallback" [alt]="p.nombre" class="aspect-[4/5] max-h-[600px] w-full rounded-xl bg-zinc-100 object-cover">
     <div class="min-w-0 pt-0 md:pt-8">
@@ -18,7 +19,7 @@
         <ng-container *ngIf="recomendacion() as rec">
           <p class="mt-3 text-sm">Te sugerimos <strong class="text-lg">{{rec.variante.talla}}</strong>
             en color {{rec.variante.color}}.</p>
-          <p *ngIf="rec.tipo==='SUPERVISADO'" class="mt-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Sugerencia de IA en evaluación; comprueba las medidas y el ajuste antes de comprar.</p>
+          <p *ngIf="rec.tipo==='SUPERVISADO'" class="nm-notice nm-notice--warning mt-2 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Sugerencia de IA en evaluación; comprueba las medidas y el ajuste antes de comprar.</p>
           <p *ngIf="rec.tipo==='REGLAS'" class="mt-2 text-sm text-zinc-600">Comparamos las medidas necesarias de esta prenda y comprobamos una holgura mínima de 2 cm.</p>
           <div class="mt-3 overflow-x-auto rounded-lg border border-zinc-200 bg-white">
             <table class="w-full min-w-[280px] text-left text-xs sm:text-sm">
@@ -96,7 +97,7 @@
          class="mt-3 block min-h-12 w-full rounded-xl border border-zinc-900 px-4 py-3 text-center text-sm font-semibold hover:bg-zinc-100 sm:px-5">
          PROBARME ESTA PRENDA
       </a>
-      <p *ngIf="message() && !added()" class="mt-3 text-sm text-red-700" role="alert">{{message()}}</p>
+      <p *ngIf="message() && !added()" class="nm-notice nm-notice--error mt-3 text-sm text-red-700" role="alert">{{message()}}</p>
     </div>
   </div>
   <section *ngIf="product()" class="mt-10 rounded-3xl border border-zinc-200 bg-white p-4 sm:p-7" aria-label="Prendas complementarias">
@@ -111,7 +112,7 @@
       <span *ngIf="fuenteComplementos()==='PRUEBA'"
         class="rounded-full bg-zinc-100 px-3 py-1.5 text-xs text-zinc-600">Combinaciones ilustrativas</span>
     </div>
-    <p *ngIf="cargandoComplementos()" class="mt-5 text-sm text-zinc-500" role="status">Buscando prendas para tu look…</p>
+    <div *ngIf="cargandoComplementos()" role="status" aria-busy="true" class="nm-loading mt-5 grid grid-cols-2 gap-4 md:grid-cols-3"><span class="sr-only">Buscando prendas complementarias</span><div *ngFor="let placeholder of [0,1,2]" aria-hidden="true" class="min-w-0 space-y-3"><div class="nm-skeleton nm-skeleton-image"></div><div class="nm-skeleton nm-skeleton-line w-3/4"></div><div class="nm-skeleton nm-skeleton-line w-1/2"></div></div></div>
     <p *ngIf="!cargandoComplementos() && !complementos().length" class="mt-5 text-sm text-zinc-500">
       Por ahora no hay complementos sugeridos para esta prenda.
       <a routerLink="/outfits" class="font-semibold underline underline-offset-4">Explora nuestro armador de looks</a>.
@@ -155,7 +156,7 @@
       </article>
     </div>
     <p *ngIf="mensajeAgregadoComplemento()" role="status"
-      class="mt-4 rounded-xl bg-zinc-100 p-3 text-sm font-medium text-zinc-900">
+      class="nm-notice nm-notice--info mt-4 rounded-xl bg-zinc-100 p-3 text-sm font-medium text-zinc-900">
       {{mensajeAgregadoComplemento()}}
       <a routerLink="/carrito" class="ml-2 font-bold underline underline-offset-4">Ver bolsa</a>
     </p>
@@ -166,8 +167,8 @@
       </a>
     </div>
   </section>
-  <div *ngIf="added()" class="fixed bottom-5 left-4 right-4 z-50 mx-auto flex max-w-md items-center gap-3 rounded-xl border border-emerald-200 bg-white p-4 shadow-xl sm:left-auto sm:right-6"
-       role="alert" aria-live="assertive">
+  <div *ngIf="added()" class="nm-toast nm-toast--success"
+       role="status" aria-live="polite">
     <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700" aria-hidden="true">✓</span>
     <div class="min-w-0 flex-1">
       <p class="font-semibold text-zinc-900">¡Producto agregado exitosamente!</p>

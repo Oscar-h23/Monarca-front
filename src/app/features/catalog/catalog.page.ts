@@ -20,6 +20,7 @@ export class CatalogComponent implements OnInit,OnDestroy {
   all:Producto[]=[];
   filtered=signal<Producto[]>([]);
   error=signal('');
+  loading=signal(true);
   filtersOpen=signal(false);
   search='';
   maxPrice:number|null=null;
@@ -52,6 +53,7 @@ export class CatalogComponent implements OnInit,OnDestroy {
       }
       this.category.set(nextCategory);
       this.error.set('');
+      this.loading.set(true);
       const currentRequest=++this.requestId;
       void this.api.productos().then(products=>{
         if(currentRequest!==this.requestId)return;
@@ -61,7 +63,7 @@ export class CatalogComponent implements OnInit,OnDestroy {
       }).catch(()=>{
         if(currentRequest!==this.requestId)return;
         this.error.set('No se pudo obtener los productos del servidor.');
-      });
+      }).finally(()=>{if(currentRequest===this.requestId)this.loading.set(false);});
     });
   }
 
