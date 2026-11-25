@@ -1,0 +1,25 @@
+/* Container-based layout also adapts when the orders view is embedded in Mi perfil. */
+.pedido-tracking { container-type:inline-size; min-width:0; }
+.tracking-milestones { position:relative; margin:1.25rem 0 .75rem; }
+.tracking-steps { display:grid; gap:0; margin:0; padding:0; list-style:none; }
+.tracking-step { position:relative; display:flex; align-items:flex-start; gap:.75rem; min-width:0; min-height:3.15rem; }
+.tracking-step:not(:last-child)::after { content:""; position:absolute; top:1.5rem; left:11px; width:2px; height:calc(100% - 1.5rem); background:#e4e4e7; }
+.tracking-step.tracking-done:not(:last-child)::after { background:#be123c; }
+.tracking-dot { position:relative; z-index:1; box-sizing:border-box; width:24px; height:24px; flex:0 0 24px; border:2px solid #d4d4d8; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; }
+.tracking-done .tracking-dot, .tracking-current .tracking-dot { border-color:#be123c; background:#be123c; }
+.tracking-current .tracking-dot { box-shadow:0 0 0 4px #ffe4e6; }
+.tracking-center { width:9px; height:9px; border-radius:50%; background:white; }
+.tracking-label { min-width:0; overflow-wrap:anywhere; padding-top:3px; font-size:.8rem; color:#71717a; }
+.tracking-done .tracking-label { color:#3f3f46; }
+.tracking-current .tracking-label { font-weight:700; color:#9f1239; }
+.tracking-small { display:block; font-size:.68rem; margin-top:2px; }
+.tracking-line { display:none; }
+@container (min-width:560px) {
+  .tracking-steps { grid-template-columns:repeat(6,minmax(0,1fr)); }
+  .tracking-step { flex-direction:column; align-items:center; text-align:center; gap:.65rem; min-height:0; }
+  .tracking-step:not(:last-child)::after { display:none; }
+  .tracking-line { display:block; position:absolute; top:11px; left:8.33333%; right:8.33333%; height:3px; border-radius:8px; background:#e4e4e7; overflow:hidden; }
+  .tracking-fill { height:100%; width:var(--tracking-progress,0%); background:#be123c; transition:width .4s ease; }
+  .tracking-label { padding:0 .2rem; font-size:.75rem; }
+}
+@media(prefers-reduced-motion:reduce) { .tracking-fill { transition:none; } }

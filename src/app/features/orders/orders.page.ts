@@ -33,13 +33,44 @@ const ESTADOS_LEGIBLES: Record<string, string> = {
   PENDIENTE_CONFIRMACION: 'Pago por verificar'
 };
 
+const ETAPAS_SEGUIMIENTO = [
+  {nombre:'Pedido registrado', detalle:'Tu pedido fue recibido.'},
+  {nombre:'Pago en revisión', detalle:'Estamos revisando el comprobante.'},
+  {nombre:'Pago confirmado', detalle:'El pago de tu pedido fue confirmado.'},
+  {nombre:'En preparación', detalle:'Estamos preparando tus prendas.'},
+  {nombre:'En camino', detalle:'Tu pedido está en proceso de entrega.'},
+  {nombre:'Finalizado', detalle:'La tienda ha marcado tu pedido como finalizado.'}
+] as const;
+const ETAPA_ESTADO: Record<string,number> = {
+  PENDIENTE:0, PENDIENTE_PAGO:0, PENDIENTE_CONFIRMACION:1,
+  PAGADO:2, CONFIRMADO:2, EN_PREPARACION:3, PREPARANDO:3,
+  EN_CAMINO:4, ENVIADO:4, FINALIZADO:5, ENTREGADO:5, COMPLETADO:5
+};
+
 @Component({
   standalone: true,
   selector: 'app-orders',
   imports: [CommonModule, RouterLink],
-  templateUrl: './orders.html'
+  templateUrl: './orders.html',
+  styleUrl: './orders.css'
 })
 export class OrdersPage implements OnInit {
+  readonly etapasSeguimiento = ETAPAS_SEGUIMIENTO;
+  seguimiento(p: MiPedido): {etapa:number; porcentaje:number; mensaje:string; detenido:boolean; estado:string} {
+    const estado=(p.estado||'').toUpperCase().trim();
+    const pago=(p.estadoPago||'').toUpperCase().trim();
+    const etapa=ETAPA_ESTADO[estado];
+    if(etapa === undefined) return {etapa:-1,porcentaje:0,mensaje:this.esAnterior(estado)?'El seguimiento ha terminado. Consulta el estado de tu pedido.':'La tienda aún no ha informado una etapa de seguimiento compatible.',detenido:true,estado:this.estadoVisible(estado)};
+    let actual=etapa;
+    if(etapa<=1 && pago==='EN_REVISION') actual=1;
+    if(etapa<=1 && pago==='RECHAZADO') actual=0;
+    const rechazado=etapa<=1 && pago==='RECHAZADO';
+    const mensaje=rechazado?'El comprobante fue rechazado. Revisa el motivo y envía uno nuevo.':
+      actual===0?'Tu pedido está registrado. Completa el pago para continuar.':
+      ETAPAS_SEGUIMIENTO[actual].detalle;
+    return {etapa:actual,porcentaje:actual*20,mensaje,detenido:false,estado:rechazado?'Pago rechazado':ETAPAS_SEGUIMIENTO[actual].nombre};
+  }
+
   @Input() embedded = false;
   private api = inject(PedidosClienteApi);
   private tiendaApi = inject(Api);

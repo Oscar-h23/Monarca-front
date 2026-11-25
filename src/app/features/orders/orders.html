@@ -50,7 +50,7 @@
     </div>
 
     <article *ngFor="let pedido of visibles()" class="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-      <div class="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+      <div class="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
         <div>
           <p class="text-xs font-semibold uppercase tracking-widest text-zinc-500">Pedido</p>
           <h2 class="mt-1 break-all text-lg font-semibold text-zinc-900">{{pedido.codigoPedido || ('#' + pedido.idPedido)}}</h2>
@@ -68,7 +68,35 @@
         </div>
       </div>
 
-      <div class="border-t border-zinc-200 bg-zinc-50/80 px-5 py-5 sm:px-6">
+      <section *ngIf="seguimiento(pedido) as progreso" class="pedido-tracking border-t border-zinc-200 px-4 py-5 sm:px-6" [attr.aria-label]="'Seguimiento del pedido ' + (pedido.codigoPedido || pedido.idPedido)">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="font-semibold text-zinc-900">Progreso de tu pedido</h3>
+          <span *ngIf="!progreso.detenido" class="rounded-full bg-rose-50 px-3 py-1 text-sm font-bold tabular-nums text-rose-800">{{progreso.porcentaje}} %</span>
+        </div>
+        <ng-container *ngIf="!progreso.detenido; else seguimientoDetenido">
+          <div class="tracking-milestones">
+            <div class="tracking-line" aria-hidden="true"><div class="tracking-fill" [style.--tracking-progress]="progreso.porcentaje + '%'"></div></div>
+            <ol class="tracking-steps" [attr.aria-label]="'Etapa '+(progreso.etapa+1)+' de '+etapasSeguimiento.length">
+              <li *ngFor="let paso of etapasSeguimiento; let i=index" class="tracking-step" [class.tracking-done]="i<progreso.etapa" [class.tracking-current]="i===progreso.etapa" [attr.aria-current]="i===progreso.etapa ? 'step' : null">
+                <span class="tracking-dot" aria-hidden="true">
+                  <svg *ngIf="i<progreso.etapa || progreso.etapa===5 && i===5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="size-4"><path stroke-linecap="round" stroke-linejoin="round" d="m5 12 4 4L19 6"/></svg>
+                  <span *ngIf="i===progreso.etapa && i!==5" class="tracking-center"></span>
+                </span>
+                <span class="tracking-label">{{paso.nombre}}<span class="tracking-small" *ngIf="i===progreso.etapa">Etapa actual</span></span>
+              </li>
+            </ol>
+          </div>
+          <p class="text-xs text-zinc-500">El porcentaje representa etapas del pedido, no la distancia del envío ni el tiempo restante.</p>
+        </ng-container>
+        <ng-template #seguimientoDetenido><p class="mt-4 text-sm font-semibold text-zinc-700">{{progreso.estado}}</p></ng-template>
+        <div class="mt-4 flex items-start gap-3 rounded-xl bg-zinc-50 p-3 sm:p-4">
+          <svg *ngIf="progreso.etapa===4 && !progreso.detenido; else iconoInfo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="mt-0.5 size-5 shrink-0 text-rose-700" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12v12H3zM15 9h4l3 4v4h-7M7 17a2 2 0 1 0 4 0m6 0a2 2 0 1 0 4 0"/></svg>
+          <ng-template #iconoInfo><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" class="mt-0.5 size-5 shrink-0 text-zinc-600" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 11v5m0-8h.01"/></svg></ng-template>
+          <div class="min-w-0"><p class="text-sm font-semibold text-zinc-900">{{progreso.estado}}</p><p class="mt-1 text-sm leading-relaxed text-zinc-600">{{progreso.mensaje}}</p></div>
+        </div>
+      </section>
+
+      <div class="border-t border-zinc-200 bg-zinc-50/80 px-4 py-5 sm:px-6">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h3 class="font-semibold text-zinc-900">Estado del pago</h3>
