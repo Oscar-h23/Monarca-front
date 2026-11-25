@@ -11,6 +11,7 @@ export const routes: Routes = [
   { path: 'checkout', title: 'Finalizar compra | Nayeli’s moda', canActivate: [authGuard], loadComponent: () => import('./features/checkout/checkout.page').then(m => m.CheckoutComponent) },
   { path: 'login', title: 'Mi cuenta | Nayeli’s moda', loadComponent: () => import('./features/auth/auth.page').then(m => m.AuthPage) },
   { path: 'mis-pedidos', title: 'Mis pedidos | Nayeli’s moda', canActivate: [authGuard], loadComponent: () => import('./features/orders/orders.page').then(m => m.OrdersPage) },
+  { path: 'favoritos', title: 'Mis favoritos | Nayeli’s moda', canActivate: [authGuard], loadComponent: () => import('./features/favoritos/favoritos.page').then(m => m.FavoritosPage) },
   { path: 'perfil', title: 'Mi perfil | Nayeli’s moda', canActivate: [authGuard], loadComponent: () => import('./features/profile/profile.page').then(m => m.ProfilePage) },
   { path: 'probador/:id', title: 'Probador virtual | Nayeli’s moda', canActivate: [authGuard], loadComponent: () => import('./features/tryon/tryon.page').then(m => m.TryonPage) },
   { path: 'demo-ml', title: 'Laboratorio ML | Nayeli’s moda', canActivate: [adminGuard], loadComponent: () => import('./features/ml-demo/ml-demo.page').then(m => m.MlDemoPage) },
