@@ -48,14 +48,12 @@
    <app-admin-payments *ngIf="tab()==='pagos'"></app-admin-payments>
 
    <section *ngIf="tab()==='ml'" class="space-y-5" aria-label="Configuración de Machine Learning">
-    <app-ml-automatico></app-ml-automatico>
     <div class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-7">
      <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
        <p class="text-xs font-semibold uppercase tracking-[.18em] text-zinc-500">Administración · Inteligencia artificial</p>
        <h2 class="mt-2 text-xl font-bold text-zinc-900">Centro de Machine Learning</h2>
-       <a routerLink="/demo-ml" class="mt-3 inline-flex min-h-11 items-center rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white">Abrir laboratorio interactivo</a>
-       <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600">Configura las fuentes de datos, consulta su disponibilidad y ejecuta los modelos desde un solo lugar. Cambiar la fuente no modifica pedidos ni inventario, ni entrena o activa automáticamente modelos.</p>
+
       </div>
       <button type="button" (click)="cargarFuentesMl()" [disabled]="mlOcupado()"
         class="min-h-11 rounded-xl border border-zinc-300 px-4 py-2 text-sm font-semibold disabled:opacity-50">{{mlCargando()?'Cargando…':'Actualizar'}}</button>
@@ -65,7 +63,7 @@
      <p *ngIf="mlCargando() && !fuentesMl().length" class="mt-5 text-sm text-zinc-500">Consultando configuración…</p>
      <div *ngIf="fuentesMl().length" class="mt-5 rounded-xl border border-[#d6c2b8] bg-crema p-4">
       <div class="flex flex-wrap items-start justify-between gap-3">
-       <div><h3 class="text-sm font-bold text-zinc-900">Fuente general de datos</h3><p class="mt-1 text-xs text-zinc-600">Aplica una fuente a todos los módulos visibles o configúralos por separado.</p></div>
+       <div><h3 class="text-sm font-bold text-zinc-900">Fuente general de datos</h3><p class="mt-1 text-xs text-zinc-600">Consulta la fuente activa y cámbiala para todos los módulos o individualmente.</p></div>
        <span class="rounded-full border border-[#d6c2b8] bg-white px-3 py-1 text-xs font-semibold">{{modoGeneralMl()==='MIXTO'?'Configuración mixta':modoGeneralMl()==='REALES'?'Datos reales':'Datos de prueba'}}</span>
       </div>
       <div class="mt-3 grid gap-2 sm:grid-cols-2">
@@ -77,9 +75,12 @@
        </button>
       </div>
       <p *ngIf="mlCambioGlobal()" role="status" class="mt-3 text-sm font-semibold text-zinc-700">Guardando fuentes de datos…</p>
-      <p class="mt-3 text-xs leading-relaxed text-zinc-600">Demanda y segmentación aún no tienen un dataset real integrado. Seleccionar Reales no crea registros ni garantiza que el modelo pueda ejecutarse.</p>
+      <p class="mt-3 text-xs leading-relaxed text-zinc-600">Demanda y segmentación aún no tienen un dataset real integrado. El entrenamiento automático de tallas siempre usa datos reales. Cambiar la fuente no entrena ni activa modelos, ni modifica pedidos o inventario.</p>
      </div>
-     <div *ngIf="fuentesMl().length" class="mt-5 flex flex-wrap items-center justify-between gap-2"><h3 class="text-sm font-bold">Configuración por módulo</h3><span class="text-xs text-zinc-500">Abre el detalle para entrenar o consultar métricas.</span></div>
+    </div>
+    <app-ml-automatico></app-ml-automatico>
+    <div class="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-6">
+     <div *ngIf="fuentesMl().length" class="flex flex-wrap items-center justify-between gap-2"><h3 class="text-sm font-bold">Configuración por módulo</h3><span class="text-xs text-zinc-500">Abre el detalle para entrenar o consultar métricas.</span></div>
      <div class="mt-3 grid gap-3">
       <article *ngFor="let fuente of fuentesMl()" class="min-w-0 rounded-xl border border-zinc-200 bg-white p-4">
        <div class="flex flex-wrap items-start justify-between gap-3">
@@ -123,7 +124,7 @@
        <ng-container *ngIf="mlDetalle()===fuente.modulo">
        <div *ngIf="fuente.modulo==='COCOMPRA'" class="mt-4 border-t border-zinc-200 pt-4">
         <p class="text-xs leading-relaxed text-zinc-600">Compara productos comprados juntos mediante reglas de asociación (soporte, confianza y lift). Las 100 cestas de prueba son simuladas. Las recomendaciones aparecen también en las fichas de productos, claramente etiquetadas.</p>
-        <a routerLink="/demo-ml" class="mt-3 inline-flex min-h-11 items-center rounded-xl border border-zinc-900 px-4 py-2 text-sm font-semibold">Probar prendas complementarias</a>
+
        </div>
        <div *ngIf="fuente.modulo==='CLUSTERING'||fuente.modulo==='DEMANDA'||fuente.modulo==='OUTFITS'"
           class="mt-4 border-t border-zinc-200 pt-4 space-y-3">
