@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { FavoritoButtonComponent } from '../../shared/favorito-button.component';
 import { FormsModule } from '@angular/forms';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -10,7 +11,7 @@ import { SessionService } from '../../core/services/session.service';
 import { PerfilApi, Perfil } from '../../core/services/perfil-api.service';
 import { RecomendacionTalla, recomendarTalla, tieneMedidas } from '../../core/utils/recomendar-talla';
 
-@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink],templateUrl:'./product.html'})
+@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink,FavoritoButtonComponent],templateUrl:'./product.html'})
 export class ProductComponent implements OnInit {
   api=inject(Api);
   cart=inject(Cart);

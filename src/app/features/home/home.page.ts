@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
+import { FavoritoButtonComponent } from '../../shared/favorito-button.component';
 import { AfterViewInit, Component, ElementRef, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Api } from '../../core/services/api.service';
 import { Producto } from '../../core/models/shop.models';
 import { asset } from '../../core/utils/assets';
 
-@Component({standalone:true,imports:[CommonModule,RouterLink],templateUrl:'./home.html'})
+@Component({standalone:true,imports:[CommonModule,RouterLink,FavoritoButtonComponent],templateUrl:'./home.html'})
 export class HomeComponent implements OnInit, AfterViewInit{
   @ViewChild('collectionVideo') collectionVideo?:ElementRef<HTMLVideoElement>;
   ngAfterViewInit(){this.startVideo();}

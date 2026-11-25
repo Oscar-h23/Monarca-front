@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { FavoritoButtonComponent } from '../../shared/favorito-button.component';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -12,7 +13,7 @@ const categories = ['Tops', 'Bottoms', 'Vestidos', 'Calzado', 'Accesorios'];
 const normalize = (value:string) =>
   value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
-@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink],templateUrl:'./catalog.html'})
+@Component({standalone:true,imports:[CommonModule,FormsModule,RouterLink,FavoritoButtonComponent],templateUrl:'./catalog.html'})
 export class CatalogComponent implements OnInit,OnDestroy {
   route=inject(ActivatedRoute);
   api=inject(Api);
