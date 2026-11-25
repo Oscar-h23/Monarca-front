@@ -28,6 +28,7 @@
       class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Administradores</button>
     <button type="button" (click)="abrirMl()" [class.bg-zinc-900]="tab()==='ml'" [class.text-white]="tab()==='ml'"
       class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Machine Learning</button>
+    <button type="button" (click)="tab.set('prediccion')" [class.bg-zinc-900]="tab()==='prediccion'" [class.text-white]="tab()==='prediccion'" class="min-h-11 shrink-0 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-zinc-100 lg:w-full">Predicción de ventas</button>
    </nav>
    <div class="mt-5 hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-5 lg:block">
     <p class="text-xs font-bold text-zinc-700">Existencias totales</p>
@@ -40,6 +41,7 @@
    <p *ngIf="message()" class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">{{message()}}</p>
    <p *ngIf="error()" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{error()}}</p>
    <app-admin-dashboard *ngIf="tab()==='resumen'" [products]="products()"></app-admin-dashboard>
+   <app-prediccion-ventas *ngIf="tab()==='prediccion'" [products]="products()"></app-prediccion-ventas>
    <app-admin-payments *ngIf="tab()==='pagos'"></app-admin-payments>
 
    <section *ngIf="tab()==='ml'" class="space-y-5" aria-label="Configuración de Machine Learning">
