@@ -50,7 +50,7 @@ export function puntosVentas(dias:VentaDia[], previos:VentaDia[], mensual:boolea
   });
 }
 
-const COLORES = ['#18181b','#9f806e','#64748b','#9274b1','#b5a084','#6b8f84'];
+const COLORES = ['#22d3ee','#f472b6','#a78bfa','#fbbf24','#34d399','#60a5fa'];
 
 function fechaLima(haceDias=0): string {
   const momento = new Date(Date.now()-haceDias*86400000-5*3600000);
@@ -77,6 +77,7 @@ export class AdminDashboardComponent implements OnInit {
   readonly hoy=fechaLima();
   puntos:PuntoVenta[]=[];
   mostrarMl=true;
+  puntoActivo:number|null=null;
   historialError=false;
   busy=false;
   error='';
@@ -120,7 +121,7 @@ export class AdminDashboardComponent implements OnInit {
     try{
       const desde=this.desde,hasta=this.hasta;
       const [reporte,previos]=await Promise.all([this.api.reportesVentas(desde,hasta),this.api.reportesVentas(moverDia(desde,-90),moverDia(desde,-1)).catch(()=>null)]);
-      this.reporte=reporte;this.historialError=!previos;
+      this.reporte=reporte;this.historialError=!previos;this.puntoActivo=null;
       this.puntos=puntosVentas(reporte.ventasDiarias,previos?.ventasDiarias??[],this.modo==='anio'||reporte.ventasDiarias.length>92);
     }
     catch{this.error='No se pudieron consultar los indicadores. Comprueba la conexión con el backend y los permisos de administrador.';}
@@ -137,12 +138,38 @@ export class AdminDashboardComponent implements OnInit {
     this.puntos.forEach((p,i)=>{const v=estimado?p.estimado:p.real;if(v===null){anterior=false;return;}d+=(anterior?' L':' M')+this.x(i)+' '+this.y(v);anterior=true;});
     return d;
   }
+  get puntoSeleccionado():PuntoVenta|null {
+    const i=this.puntoActivo??this.puntos.length-1;
+    return this.puntos[i]??null;
+  }
+  area(estimado:boolean):string {
+    const partes:string[]=[];
+    let inicio=-1, ultimo=-1, d='';
+    const cerrar=()=>{
+      if(inicio>=0&&ultimo>inicio) partes.push(d+' L'+this.x(ultimo)+' 196 L'+this.x(inicio)+' 196 Z');
+      inicio=-1;ultimo=-1;d='';
+    };
+    this.puntos.forEach((p,i)=>{
+      const valor=estimado?p.estimado:p.real;
+      if(valor===null){cerrar();return;}
+      if(inicio<0){inicio=i;d='M'+this.x(i)+' '+this.y(valor);}
+      else d+=' L'+this.x(i)+' '+this.y(valor);
+      ultimo=i;
+    });
+    cerrar();
+    return partes.join(' ');
+  }
+  porcentajeMedio(importe:number):number {return this.totalMedios()>0?100*importe/this.totalMedios():0;}
+  porcentajePagados():number|null {
+    const k=this.reporte?.kpis;
+    return k&&k.pedidosRegistrados>0?100*k.pedidosConfirmados/k.pedidosRegistrados:null;
+  }
   etiquetaEje(i:number):boolean {return i===0||i===this.puntos.length-1||i%Math.max(1,Math.ceil(this.puntos.length/8))===0;}
   totalMedios():number{return (this.reporte?.mediosPago||[]).reduce((s,x)=>s+Number(x.importe),0);}
   graficoCircular():string{
     const medios=this.reporte?.mediosPago||[];
     const total=this.totalMedios();
-    if(total<=0)return 'conic-gradient(#e4e4e7 0% 100%)';
+    if(total<=0)return 'conic-gradient(#334155 0% 100%)';
     let acumulado=0;
     const partes=medios.map((x,i)=>{
       const hasta=acumulado+100*Number(x.importe)/total;
