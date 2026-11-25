@@ -13,10 +13,17 @@
     <p *ngIf="!fuentePrueba && !cargando && !errorCarga" class="mt-3 text-sm text-zinc-600">Activa la fuente de prueba de demanda para generar estimaciones. Esto no altera las ventas ni el inventario.</p>
     <p *ngIf="ejecucion && coincidencias < products.length" class="nm-notice nm-notice--warning mt-3 text-xs text-amber-900">Algunos productos no tienen un identificador coincidente en el dataset sintético. No se inventan estimaciones para ellos.</p>
   </header>
+  <section *ngIf="!cargando" class="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5">
+    <h3 class="font-bold">Recomendaciones de reposición</h3><p class="mt-1 text-sm text-zinc-600">Sugerencia = demanda semanal redondeada + suma de mínimos − stock actual (sin valores negativos), con prioridad al déficit real por variante. Si no hay estimación, solo se usa el déficit real. No genera compras ni modifica el stock.</p>
+    <div class="mt-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl bg-crema p-4"><p class="text-xs text-zinc-600">Productos a reponer</p><p class="mt-2 text-2xl font-bold">{{requierenReposicion}}</p></div><div class="rounded-xl border border-zinc-200 p-4"><p class="text-xs text-zinc-600">Unidades sugeridas</p><p class="mt-2 text-2xl font-bold">{{unidadesSugeridas}}</p></div><div class="rounded-xl border border-zinc-200 p-4"><p class="text-xs text-zinc-600">Variantes en stock mínimo</p><p class="mt-2 text-2xl font-bold">{{alertasMinimo}}</p></div></div>
+    <p class="mt-3 text-xs text-zinc-500">La demanda ML es simulada. No se distribuye automáticamente por talla o color. Revisa las variantes antes de comprar.</p>
+    <button type="button" (click)="verInventario.emit()" class="mt-3 min-h-11 rounded-lg border border-zinc-300 px-4 text-sm font-semibold">Consultar inventario</button>
+  </section>
   <section class="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5">
     <label class="block text-sm font-semibold">Buscar producto
       <input [(ngModel)]="buscar" class="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2" placeholder="Nombre o categoría">
     </label>
+    <label class="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" [(ngModel)]="soloAlertas" class="accent-zinc-900"> Solo productos con alerta o reposición</label>
     <div *ngIf="cargando" role="status" aria-busy="true" class="nm-loading mt-4 grid gap-2"><span class="sr-only">Calculando demanda por producto</span><div *ngFor="let placeholder of [0,1,2,3]" aria-hidden="true" class="nm-skeleton-card flex items-center gap-4"><div class="nm-skeleton h-12 w-12 shrink-0"></div><div class="min-w-0 flex-1 space-y-3"><div class="nm-skeleton nm-skeleton-line w-3/4"></div><div class="nm-skeleton nm-skeleton-line w-1/2"></div></div></div></div><div *ngIf="!cargando" class="mt-4 space-y-3 md:hidden">
       <article *ngFor="let p of filtrados" class="rounded-xl border border-zinc-200 p-3">
         <p class="font-semibold text-zinc-900">{{p.nombre}}</p>
@@ -25,18 +32,20 @@
           <div><dt class="text-xs text-zinc-500">Stock actual</dt><dd class="font-semibold">{{stock(p) ?? 'Sin datos'}}</dd></div>
           <div><dt class="text-xs text-zinc-500">Demanda semanal</dt><dd class="font-semibold">{{resultados.has(p.idProducto) ? (resultados.get(p.idProducto) | number:'1.1-2') : (cargando ? 'Calculando…' : !fuentePrueba ? 'Activa prueba' : 'Sin escenario')}}</dd></div>
           <div class="col-span-2"><dt class="text-xs text-zinc-500">Stock restante / faltante</dt><dd class="font-semibold" [class.text-red-700]="(balance(p) ?? 0)<0" [class.text-emerald-700]="balance(p)!==null && (balance(p) ?? 0)>=0">{{balance(p)===null ? '—' : (balance(p) ?? 0)<0 ? 'Faltan '+ -(balance(p) ?? 0)+' un.' : 'Quedan '+balance(p)+' un.'}}</dd></div>
+          <div class="col-span-2 rounded-lg bg-crema p-3"><dt class="text-xs text-zinc-600">Recomendación</dt><dd class="font-semibold">{{reposicion(p).estado}} · {{reposicion(p).cantidad===null?'—':reposicion(p).cantidad+' un.'}}</dd><dd class="text-xs text-zinc-500">{{reposicion(p).alertas}} variantes en alerta</dd></div>
         </dl>
       </article>
       <p *ngIf="!filtrados.length" class="text-sm text-zinc-500">No hay productos que coincidan.</p>
     </div>
     <div *ngIf="!cargando" class="mt-4 hidden admin-scroll md:block" tabindex="0" aria-label="Tabla de predicciones desplazable">
-      <table class="w-full min-w-[520px] text-left text-sm">
-        <thead class="bg-zinc-50 text-xs text-zinc-600"><tr><th class="p-3">Producto</th><th class="p-3">Stock actual</th><th class="p-3">Demanda semanal simulada</th><th class="p-3">Stock restante / faltante</th></tr></thead>
+      <table class="w-full min-w-[760px] text-left text-sm">
+        <thead class="bg-zinc-50 text-xs text-zinc-600"><tr><th class="p-3">Producto</th><th class="p-3">Stock actual</th><th class="p-3">Demanda semanal simulada</th><th class="p-3">Stock restante / faltante</th><th class="p-3">Reposición sugerida</th></tr></thead>
         <tbody><tr *ngFor="let p of filtrados" class="border-b border-zinc-100">
           <td class="p-3"><p class="font-semibold">{{p.nombre}}</p><p class="text-xs text-zinc-500">{{p.categoria}}</p></td>
           <td class="p-3">{{stock(p) ?? 'Sin datos'}}</td>
           <td class="p-3">{{resultados.has(p.idProducto) ? (resultados.get(p.idProducto) | number:'1.1-2') : (cargando ? 'Calculando…' : !fuentePrueba ? 'Activa prueba' : 'Sin escenario')}}</td>
           <td class="p-3"><ng-container *ngIf="balance(p) !== null; else sinBalance"><span [class.text-red-700]="(balance(p) ?? 0)<0" [class.text-emerald-700]="(balance(p) ?? 0)>=0">{{(balance(p) ?? 0)<0 ? 'Faltan ' + -(balance(p) ?? 0) : 'Quedan ' + balance(p)}} un.</span></ng-container><ng-template #sinBalance>—</ng-template></td>
+          <td class="p-3"><p class="font-semibold">{{reposicion(p).estado}}</p><p class="text-xs text-zinc-600">{{reposicion(p).cantidad===null?'—':reposicion(p).cantidad+' un.'}} · {{reposicion(p).alertas}} variantes en alerta</p></td>
         </tr></tbody>
       </table>
       <p *ngIf="!filtrados.length" class="p-4 text-sm text-zinc-500">No hay productos que coincidan.</p>

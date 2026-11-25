@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { alertasStock } from '../../core/utils/stock-alertas';
 import { ConfirmDialogService } from '../../shared/confirm-dialog.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
@@ -31,6 +32,7 @@ function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): Pr
   templateUrl:'./admin.html'
 })
 export class AdminPage implements OnInit, OnDestroy {
+  alertasInventario=computed(()=>alertasStock(this.products()));
   private adminApi=inject(AdminApi);
   private readonly dialogs=inject(ConfirmDialogService);
   api=inject(Api);
@@ -313,7 +315,7 @@ export class AdminPage implements OnInit, OnDestroy {
     this.pending.set(true);this.error.set('');
     try{
       const [products,orders]=await Promise.allSettled([
-        this.api.productos(),
+        this.api.productos(true),
         this.adminApi.listOrders()
       ]);
       if(products.status==='fulfilled'){
@@ -494,8 +496,7 @@ export class AdminPage implements OnInit, OnDestroy {
     }
     this.uploadStep.set(true);
     try{
-      let compatible=file;
-      if(file.type==='image/webp')compatible=await this.convertWebpToJpg(file);
+      const compatible=await this.optimizarImagen(file);
       if(compatible.size>5_000_000)throw new Error('La imagen convertida supera 5 MB. Usa una de menor resolución.');
       const url=URL.createObjectURL(compatible);
       this.clearImageSelection();
@@ -506,11 +507,11 @@ export class AdminPage implements OnInit, OnDestroy {
     finally{this.uploadStep.set(false);}
   }
 
-  private async convertWebpToJpg(file:File):Promise<File>{
-    // El navegador admite WebP y evita depender de un lector WebP de Java.
+  private async optimizarImagen(file:File):Promise<File>{
+    // Normaliza todas las nuevas fotos a WebP; JPEG como respaldo del navegador.
     const bitmap=await createImageBitmap(file);
     try{
-      const maxSide=2048;
+      const maxSide=1600;
       const scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
       const width=Math.max(1,Math.round(bitmap.width*scale));
       const height=Math.max(1,Math.round(bitmap.height*scale));
@@ -522,11 +523,12 @@ export class AdminPage implements OnInit, OnDestroy {
       ctx.fillStyle='#ffffff';
       ctx.fillRect(0,0,width,height);
       ctx.drawImage(bitmap,0,0,width,height);
-      const blob=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(
-        output=>output?resolve(output):reject(new Error('No se pudo crear la imagen JPG.')),
-        'image/jpeg',0.9
-      ));
-      return new File([blob],file.name.replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'});
+      const encode=(mime:string,quality:number)=>new Promise<Blob>((resolve,reject)=>canvas.toBlob(output=>output?resolve(output):reject(new Error('No se pudo comprimir la imagen.')),mime,quality));
+      let blob=await encode('image/webp',0.82);
+      if(blob.type!=='image/webp')blob=await encode('image/jpeg',0.85);
+      if(blob.size>1_500_000)blob=await encode(blob.type,0.72);
+      const ext=blob.type==='image/webp'?'webp':'jpg';
+      return new File([blob],file.name.replace(/\.[^.]+$/,'')+'.'+ext,{type:blob.type});
     }finally{bitmap.close();}
   }
 

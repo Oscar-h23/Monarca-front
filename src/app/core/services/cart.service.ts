@@ -19,7 +19,7 @@ export class Cart {
  change(id:number,delta:number){const curr=this.items().find(x=>x.idVariante===id);if(!curr)return;const next=curr.cantidad+delta;if(next<=0){this.remove(id);return}if(next>curr.stockDisponible)return;this.save(this.items().map(x=>x.idVariante===id?{...x,cantidad:next}:x))}
  remove(id:number){this.save(this.items().filter(x=>x.idVariante!==id))}
  clear(){this.save([])}
- async refresh(api:Api){const products=await api.productos();const result:Item[]=[];let changed=false;
+ async refresh(api:Api){const products=await api.productos(true);const result:Item[]=[];let changed=false;
  for(const item of this.items()){const p=products.find(x=>x.idProducto===item.idProducto);const v=p?.variantes?.find(x=>x.idVariante===item.idVariante&&x.stock>0);if(!p||!v){changed=true;continue}const next={...item,nombre:p.nombre,precio:v.precio,stockDisponible:v.stock,cantidad:Math.min(item.cantidad,v.stock),imagen:p.imagen||''};if(next.precio!==item.precio||next.cantidad!==item.cantidad)changed=true;result.push(next)}
  this.save(result);return changed}
 }

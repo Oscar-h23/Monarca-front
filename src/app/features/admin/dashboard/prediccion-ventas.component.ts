@@ -3,6 +3,7 @@ import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular
 import { FormsModule } from '@angular/forms';
 import { DemandaAnalisisComponent } from './demanda-analisis.component';
 import { Producto } from '../../../core/models/shop.models';
+import { sugerirReposicion } from '../../../core/utils/stock-alertas';
 import { AdminApi, EscenarioProductoDemanda, EjecucionAcademica } from '../data-access/admin-api.service';
 
 @Component({
@@ -16,6 +17,11 @@ export class PrediccionVentasComponent implements OnInit {
   @Output() verInventario = new EventEmitter<void>();
   private api = inject(AdminApi);
   buscar = '';
+  soloAlertas=false;
+  reposicion(p:Producto){return sugerirReposicion(p,this.resultados.get(p.idProducto));}
+  get requierenReposicion(){return this.products.filter(p=>(this.reposicion(p).cantidad??0)>0).length;}
+  get unidadesSugeridas(){return this.products.reduce((s,p)=>s+(this.reposicion(p).cantidad??0),0);}
+  get alertasMinimo(){return this.products.reduce((s,p)=>s+this.reposicion(p).alertas,0);}
   producto: Producto | null = null;
   precio = 0;
   descuento = 0;
@@ -63,7 +69,7 @@ export class PrediccionVentasComponent implements OnInit {
   }
   get filtrados(): Producto[] {
     const q = this.buscar.trim().toLowerCase();
-    return this.products.filter(p => (p.nombre + ' ' + p.categoria).toLowerCase().includes(q));
+    return this.products.filter(p => (p.nombre + ' ' + p.categoria).toLowerCase().includes(q)&&(!this.soloAlertas||this.reposicion(p).alertas>0||(this.reposicion(p).cantidad??0)>0)).sort((a,b)=>(this.reposicion(b).cantidad??0)-(this.reposicion(a).cantidad??0));
   }
   stock(p: Producto): number | null {
     return p.variantes?.length ? p.variantes.reduce((s,v) => s + Math.max(0, Number(v.stock)||0),0) : null;

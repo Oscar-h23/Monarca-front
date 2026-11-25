@@ -19,8 +19,21 @@ export class Api {
     return new HttpHeaders({ Authorization: 'Bearer ' + this.token() });
   }
 
-  productos(): Promise<Producto[]> {
-    return firstValueFrom(this.http.get<Producto[]>(this.base + '/productos'));
+  private catalogoCache: {datos:Producto[];vence:number}|null=null;
+  private catalogoPendiente:Promise<Producto[]>|null=null;
+  private catalogoVersion=0;
+  invalidarCatalogo():void { this.catalogoVersion++;this.catalogoCache=null;this.catalogoPendiente=null; }
+  productos(forzar=false): Promise<Producto[]> {
+    if(forzar)this.invalidarCatalogo();
+    if(this.catalogoCache && this.catalogoCache.vence>Date.now())return Promise.resolve(structuredClone(this.catalogoCache.datos));
+    if(this.catalogoPendiente)return this.catalogoPendiente.then(datos=>structuredClone(datos));
+    const version=this.catalogoVersion;
+    const req=firstValueFrom(this.http.get<Producto[]>(this.base+'/productos')).then(datos=>{
+      if(version===this.catalogoVersion)this.catalogoCache={datos:structuredClone(datos),vence:Date.now()+60000};
+      return datos;
+    }).finally(()=>{if(this.catalogoPendiente===req)this.catalogoPendiente=null;});
+    this.catalogoPendiente=req;
+    return req.then(datos=>structuredClone(datos));
   }
 
   producto(id: number): Promise<Producto> {
@@ -63,6 +76,6 @@ export class Api {
   }
 
   pedido(body: unknown): Promise<PedidoResponse> {
-    return firstValueFrom(this.http.post<PedidoResponse>(this.base + '/pedidos/procesar', body, { headers: this.headers() }));
+    return firstValueFrom(this.http.post<PedidoResponse>(this.base + '/pedidos/procesar', body, { headers: this.headers() })).then(p=>{this.invalidarCatalogo();return p;});
   }
 }
