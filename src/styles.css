@@ -20,3 +20,19 @@ img, video { max-width:100%; }
   outline:2px solid #18181b;
   outline-offset:3px;
 }
+
+/* Backoffice: prevent intrinsic widths from expanding a responsive grid. */
+.admin-responsive { width:100%; max-width:1500px; overflow-wrap:anywhere; }
+.admin-responsive :where(section,article,header,aside,form,fieldset,div,nav,label) { min-width:0; }
+.admin-responsive :where(button,a,input,select,textarea) { max-width:100%; }
+.admin-responsive :where(app-admin-dashboard,app-admin-payments,app-prediccion-ventas,app-demanda-analisis,app-generador-campanas,app-campanas-demo) { display:block; min-width:0; max-width:100%; }
+.admin-scroll { max-width:100%; overflow-x:auto; overscroll-behavior-inline:contain; }
+.admin-scroll:focus-visible { outline:2px solid #52525b; outline-offset:2px; }
+@media (max-width:767px) {
+  .admin-responsive :where(input:not([type=checkbox]):not([type=radio]),select,textarea) { font-size:16px; }
+  .admin-responsive :where(button) { white-space:normal; }
+  .admin-responsive .admin-nav > button { min-height:44px; width:100%; white-space:normal; }
+}
+@media (max-width:359px) {
+  .admin-responsive .admin-nav { grid-template-columns:minmax(0,1fr); }
+}

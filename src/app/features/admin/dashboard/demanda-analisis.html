@@ -18,7 +18,7 @@
       Ejecución #{{e.idEjecucion}} · {{e.registros}} observaciones ·
       {{e.fecha | date:'dd/MM/yyyy HH:mm'}}
     </p>
-    <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="mt-4 grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
       <div class="rounded-xl bg-zinc-50 p-4">
         <p class="text-xs font-medium text-zinc-500">MAE del modelo</p>
         <p class="mt-1 text-2xl font-bold text-zinc-900">{{mae === null?'—':(mae | number:'1.2-3')}}</p>
@@ -46,7 +46,7 @@
       </div>
     </div>
 
-    <div class="mt-5 grid gap-5 xl:grid-cols-2">
+    <div class="mt-5 grid gap-5 2xl:grid-cols-2">
       <section class="min-w-0 rounded-xl border border-zinc-200 p-4" aria-label="Gráfico de unidades observadas versus estimadas">
         <h4 class="text-base font-bold text-zinc-900">Observado vs. estimado</h4>
         <p class="mt-1 text-xs leading-relaxed text-zinc-600">
@@ -57,7 +57,7 @@
           <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded bg-zinc-800"></span> Observado simulado</span>
           <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded bg-sky-500"></span> Estimado por regresión</span>
         </div>
-        <div *ngIf="ejemplos.length" class="mt-4 overflow-x-auto pb-2">
+        <div *ngIf="ejemplos.length" class="mt-4 admin-scroll pb-2" tabindex="0" aria-label="Desplazar gráfico de demanda">
           <div class="flex h-44 min-w-max items-end gap-3 border-b border-zinc-300 pb-0.5">
             <div *ngFor="let punto of ejemplos; let i=index"
               class="flex h-full min-w-10 flex-col justify-end gap-1" [title]="'Observación '+(i+1)+', real '+punto.real+', estimado '+punto.estimado">
@@ -103,7 +103,7 @@
               </option>
             </select>
           </label>
-          <div class="grid gap-3 sm:grid-cols-3">
+          <div class="grid gap-3 md:grid-cols-3">
             <label class="block text-xs font-semibold text-zinc-700">Precio supuesto (S/)
               <input type="number" min="0.01" max="10000" step="0.5" [(ngModel)]="precioSoles"
                 (ngModelChange)="invalidar()" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"/>
@@ -150,7 +150,7 @@
           {{tabla.length}} escenarios · {{hayCorrespondencia?'Con coincidencias de catálogo':'Sin IDs coincidentes'}}
         </span>
       </div>
-      <div *ngIf="tabla.length; else faltaEscenarios" class="mt-4 overflow-x-auto">
+      <div *ngIf="tabla.length; else faltaEscenarios" class="mt-4 admin-scroll" tabindex="0" aria-label="Desplazar tabla de cobertura">
         <table class="w-full min-w-[620px] text-left text-sm">
           <thead class="border-b border-zinc-200 bg-zinc-50 text-xs text-zinc-600">
             <tr>

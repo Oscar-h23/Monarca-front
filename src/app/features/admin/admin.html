@@ -1,4 +1,4 @@
-<main class="mx-auto min-h-[76vh] max-w-[1500px] min-w-0 px-3 py-6 min-[375px]:px-4 sm:px-7 sm:py-8 lg:px-9 lg:py-10">
+<main class="admin-responsive mx-auto min-h-[76vh] max-w-[1500px] min-w-0 px-3 py-6 min-[375px]:px-4 sm:px-7 sm:py-8 lg:px-9 lg:py-10">
  <header class="mb-6 flex min-w-0 flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
   <div>
    <p class="text-[11px] font-bold uppercase tracking-[.25em] text-zinc-500">Nayeli’s Moda · Backoffice</p>
@@ -13,25 +13,25 @@
   </div>
  </header>
 
- <div class="grid min-w-0 gap-5 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-8">
-  <aside class="lg:self-start lg:sticky lg:top-36" aria-label="Secciones del panel">
-   <nav class="flex min-w-0 snap-x gap-2 overflow-x-auto overscroll-x-contain rounded-2xl border border-zinc-200 bg-white p-2 lg:flex-col">
+ <div class="grid min-w-0 gap-5 xl:grid-cols-[220px_minmax(0,1fr)] xl:gap-6">
+  <aside class="xl:self-start xl:sticky xl:top-40 xl:max-h-[calc(100dvh-11rem)] xl:overflow-y-auto" aria-label="Secciones del panel">
+   <nav class="admin-nav grid min-w-0 grid-cols-2 gap-2 rounded-2xl border border-zinc-200 bg-white p-2 md:grid-cols-4 xl:flex xl:flex-col">
     <button type="button" (click)="tab.set('resumen')" [class.bg-zinc-900]="tab()==='resumen'" [class.text-white]="tab()==='resumen'"
-      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Resumen de ventas</button>
+      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 xl:w-full">Resumen de ventas</button>
     <button type="button" (click)="tab.set('pedidos')" [class.bg-zinc-900]="tab()==='pedidos'" [class.text-white]="tab()==='pedidos'"
-      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Pedidos <span class="ml-1 text-xs opacity-70">({{orders().length}})</span></button>
+      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 xl:w-full">Pedidos <span class="ml-1 text-xs opacity-70">({{orders().length}})</span></button>
     <button type="button" (click)="tab.set('productos')" [class.bg-zinc-900]="tab()==='productos'" [class.text-white]="tab()==='productos'"
-      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Inventario <span class="ml-1 text-xs opacity-70">({{products().length}})</span></button>
+      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 xl:w-full">Inventario <span class="ml-1 text-xs opacity-70">({{products().length}})</span></button>
     <button type="button" (click)="tab.set('pagos')" [class.bg-zinc-900]="tab()==='pagos'" [class.text-white]="tab()==='pagos'"
-      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Métodos de pago</button>
+      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 xl:w-full">Métodos de pago</button>
     <button type="button" (click)="abrirAdministradores()" [class.bg-zinc-900]="tab()==='administradores'" [class.text-white]="tab()==='administradores'"
-      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Administradores</button>
+      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 xl:w-full">Administradores</button>
     <button type="button" (click)="abrirMl()" [class.bg-zinc-900]="tab()==='ml'" [class.text-white]="tab()==='ml'"
-      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Machine Learning</button>
-    <button type="button" (click)="tab.set('prediccion')" [class.bg-zinc-900]="tab()==='prediccion'" [class.text-white]="tab()==='prediccion'" class="min-h-11 shrink-0 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-zinc-100 lg:w-full">Predicción de ventas</button>
-    <button type="button" (click)="tab.set('campanas')" [class.bg-zinc-900]="tab()==='campanas'" [class.text-white]="tab()==='campanas'" class="min-h-11 shrink-0 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-zinc-100 lg:w-full">Generador de campañas</button>
+      class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 xl:w-full">Machine Learning</button>
+    <button type="button" (click)="tab.set('prediccion')" [class.bg-zinc-900]="tab()==='prediccion'" [class.text-white]="tab()==='prediccion'" class="min-h-11 shrink-0 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-zinc-100 xl:w-full">Predicción de ventas</button>
+    <button type="button" (click)="tab.set('campanas')" [class.bg-zinc-900]="tab()==='campanas'" [class.text-white]="tab()==='campanas'" class="min-h-11 shrink-0 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-zinc-100 xl:w-full">Generador de campañas</button>
    </nav>
-   <div class="mt-5 hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-5 lg:block">
+   <div class="mt-5 hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-5 xl:block">
     <p class="text-xs font-bold text-zinc-700">Existencias totales</p>
     <p class="mt-2 text-2xl font-bold">{{stock() | number:'1.0-0'}} <span class="text-sm font-normal text-zinc-500">unidades</span></p>
     <p class="mt-2 text-xs leading-relaxed text-zinc-500">Gestiona los mínimos de cada talla desde Inventario.</p>
@@ -267,7 +267,7 @@
      <p class="mt-4 text-xs text-zinc-500">{{filtered().length}} producto(s) encontrados · Página {{productPage()}} de {{productTotalPages()}}</p>
     </div>
     <!-- En pantallas pequeñas, tarjetas legibles en lugar de una tabla de 740 px. -->
-    <div class="space-y-3 md:hidden">
+    <div class="space-y-3 lg:hidden">
       <article *ngFor="let p of visibleProducts()" class="rounded-2xl border border-zinc-200 bg-white p-4">
         <div class="flex min-w-0 gap-3">
           <img [src]="p.imagen||fallback" [alt]="p.nombre" class="h-24 w-20 shrink-0 rounded-lg bg-zinc-100 object-cover">
@@ -295,7 +295,7 @@
       </article>
       <p *ngIf="!filtered().length" class="rounded-xl bg-zinc-50 p-7 text-center text-sm text-zinc-600">No hay productos con esos filtros.</p>
     </div>
-    <div class="hidden overflow-x-auto rounded-2xl border border-zinc-200 bg-white md:block">
+    <div class="hidden admin-scroll rounded-2xl border border-zinc-200 bg-white lg:block">
      <table class="w-full min-w-[740px] text-left">
       <thead class="bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-500"><tr>
        <th class="px-5 py-4">Producto</th><th class="px-4 py-4">Categoría</th><th class="px-4 py-4">Precio de venta</th>
@@ -351,7 +351,7 @@
      <p class="mt-4 text-xs text-zinc-500">{{filteredOrders().length}} pedido(s) · Página {{orderPage()}} de {{orderTotalPages()}}</p>
     </div>
     <!-- Móvil: cada pedido mantiene sus estados y acción en una tarjeta. -->
-    <div class="space-y-3 md:hidden">
+    <div class="space-y-3 lg:hidden">
       <article *ngFor="let p of visibleOrders()" class="min-w-0 rounded-2xl border border-zinc-200 bg-white p-4">
         <div class="flex min-w-0 items-start justify-between gap-2">
           <div class="min-w-0 flex-1">
@@ -378,7 +378,7 @@
       </article>
       <p *ngIf="!filteredOrders().length" class="rounded-xl bg-zinc-50 p-7 text-center text-sm text-zinc-600">No se encontraron pedidos con esos filtros.</p>
     </div>
-    <div class="hidden overflow-x-auto rounded-2xl border border-zinc-200 bg-white md:block">
+    <div class="hidden overflow-x-auto rounded-2xl border border-zinc-200 bg-white lg:block">
      <table class="w-full min-w-[800px] text-left">
       <thead class="bg-zinc-50 text-[11px] uppercase tracking-wide text-zinc-500"><tr>
        <th class="px-5 py-4">Pedido</th><th class="px-4 py-4">Fecha</th><th class="px-4 py-4">Cliente</th>
@@ -387,7 +387,7 @@
       <tbody><tr *ngFor="let p of visibleOrders()" class="border-t border-zinc-100 hover:bg-zinc-50/50">
        <td class="px-5 py-4 text-xs font-bold">{{p.codigoPedido||p.idPedido}}</td>
        <td class="px-4 py-4 whitespace-nowrap text-xs text-zinc-600">{{p.fechaPedido ? (p.fechaPedido | date:'dd/MM/yyyy HH:mm'):'—'}}</td>
-       <td class="max-w-[190px] truncate px-4 py-4 text-xs text-zinc-700" [title]="p.cliente">{{p.cliente}}</td>
+       <td class="max-w-[190px] break-words px-4 py-4 text-xs text-zinc-700" [title]="p.cliente">{{p.cliente}}</td>
        <td class="px-4 py-4 whitespace-nowrap text-xs">{{etiquetaEstado(p.estado)}}</td>
        <td class="px-4 py-4"><span class="whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold"
         [class.bg-amber-50]="p.estadoPago==='EN_REVISION'" [class.text-amber-800]="p.estadoPago==='EN_REVISION'"
