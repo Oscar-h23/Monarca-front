@@ -16,15 +16,26 @@
    <p class="mt-2 text-sm text-zinc-600">Necesitas una fotografía en tu perfil. El sistema enviará una copia de tu foto y de la prenda a {{proveedor()}} únicamente cuando confirmes la prueba.</p>
    <p *ngIf="!hasPhoto()" class="text-amber-800 mt-4">Aún no has registrado una foto. <a class="underline font-semibold" routerLink="/perfil">Subir foto en Mi perfil</a></p>
    <label class="flex items-start gap-3 mt-6 text-sm">
-    <input type="checkbox" class="mt-1" [checked]="consent()" (change)="consent.set(!consent())">
+    <input type="checkbox" class="mt-1" [checked]="consent()" [disabled]="busy()" (change)="consent.set(!consent())">
     <span>Autorizo enviar mi fotografía personal y la imagen de la prenda a {{proveedor()}} para generar esta prueba. Entiendo que es un servicio externo y que consume créditos de prueba.</span>
    </label>
    <button class="btn-dark mt-5 min-h-12 w-full rounded-lg text-sm sm:text-base" type="button" (click)="probar()" [disabled]="busy()||!hasPhoto()||!consent()||!p.imagen||!proveedor()">
-    {{busy()?'Generando imagen… (puede tardar)':'Generar mi prueba virtual'}}
+    {{busy()?'Generando tu imagen…':'Generar mi prueba virtual'}}
    </button>
+   <div *ngIf="busy()" class="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
+    <div role="status" aria-live="polite" class="flex items-start gap-3">
+     <span aria-hidden="true" class="mt-0.5 size-5 shrink-0 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900 motion-reduce:animate-none"></span>
+     <div class="min-w-0">
+      <p class="font-semibold text-zinc-900">Estamos generando tu prueba virtual</p>
+      <p class="mt-1 text-sm leading-relaxed text-zinc-600">La inteligencia artificial está procesando tu foto y la prenda. Mantén esta página abierta hasta que aparezca el resultado.</p>
+     </div>
+    </div>
+    <progress aria-label="Generación de la imagen en curso" class="mt-4 block h-2.5 w-full accent-zinc-900"></progress>
+    <p class="mt-2 text-xs text-zinc-500">Procesando imagen…</p>
+   </div>
    <p *ngIf="error()" role="alert" class="text-red-700 text-sm mt-4">{{error()}}</p>
    <div *ngIf="result()" class="mt-6">
-    <h3 class="font-semibold mb-3">Resultado generado</h3>
+    <h3 class="font-semibold mb-3 text-emerald-800" role="status">¡Tu prueba virtual está lista!</h3>
     <img [src]="result()" class="w-full rounded-lg bg-zinc-100" alt="Resultado de la prueba virtual">
     <p class="mt-2 text-sm text-zinc-500">La imagen se mantiene en esta sesión. No se guarda en tu perfil ni se publica en Nayeli’s moda.</p>
    </div>
