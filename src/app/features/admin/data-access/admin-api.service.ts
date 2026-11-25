@@ -19,6 +19,11 @@ export interface Pedido {
   boletaDisponible: boolean;
 }
 
+export interface AjustesMlAutomatico { habilitado:boolean; horas:number; hora:number; minNuevos:number; }
+export interface ConfigMlAutomatico extends AjustesMlAutomatico { proxima:string|null; enCurso:boolean; ultimoTotal:number; }
+export interface EventoMlAutomatico { id:number; inicio:string; fin:string|null; estado:'EN_CURSO'|'COMPLETADO'|'OMITIDO'|'ERROR'; registros:number; nuevos:number; idModelo:number|null; detalle:string; algoritmo:string|null; accuracy:string|null; macroF1:string|null; }
+export interface EstadoMlAutomatico { config:ConfigMlAutomatico; historial:EventoMlAutomatico[]; }
+
 export type FuenteMl = 'REALES' | 'PRUEBA';
 export type ModuloMl = 'TALLAS' | 'OUTFITS' | 'PATRONES' | 'CLUSTERING' | 'DEMANDA' | 'COCOMPRA';
 export interface FuenteMlInfo {
@@ -193,6 +198,13 @@ export type NewProductForm = ProductForm & { variantes: ProductVariantForm[] };
 export class AdminApi {
   private readonly http = inject(HttpClient);
   private readonly api = inject(Api);
+
+  estadoMlAutomatico():Promise<EstadoMlAutomatico> {
+    return firstValueFrom(this.http.get<EstadoMlAutomatico>(this.api.base+'/admin/ml/automatico',{headers:this.api.headers()}));
+  }
+  guardarMlAutomatico(ajustes:AjustesMlAutomatico):Promise<ConfigMlAutomatico> {
+    return firstValueFrom(this.http.put<ConfigMlAutomatico>(this.api.base+'/admin/ml/automatico',ajustes,{headers:this.api.headers()}));
+  }
 
   fuentesMl():Promise<FuenteMlInfo[]> {
     return firstValueFrom(this.http.get<FuenteMlInfo[]>(

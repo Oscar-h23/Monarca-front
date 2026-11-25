@@ -8,6 +8,7 @@ import { Producto, Variante } from '../../core/models/shop.models';
 import { asset } from '../../core/utils/assets';
 import { SessionService } from '../../core/services/session.service';
 import { AdminApi, AdministradorCuenta, Pedido, ProductForm, ProductVariantForm, FuenteMl, FuenteMlInfo, ModuloMl, ModeloTallaMl, EjecucionAcademica } from './data-access/admin-api.service';
+import { MlAutomaticoComponent } from './ml-automatico/ml-automatico.component';
 import { PrediccionVentasComponent } from './dashboard/prediccion-ventas.component';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.page';
 import { AdminPaymentsComponent } from './payments/admin-payments.page';
@@ -25,7 +26,7 @@ function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): Pr
 
 @Component({
   standalone:true, selector:'app-admin',
-  imports:[CommonModule,FormsModule,RouterLink,AdminDashboardComponent,AdminPaymentsComponent,GeneradorCampanasComponent,PrediccionVentasComponent],
+  imports:[CommonModule,FormsModule,RouterLink,AdminDashboardComponent,AdminPaymentsComponent,GeneradorCampanasComponent,PrediccionVentasComponent,MlAutomaticoComponent],
   templateUrl:'./admin.html'
 })
 export class AdminPage implements OnInit, OnDestroy {

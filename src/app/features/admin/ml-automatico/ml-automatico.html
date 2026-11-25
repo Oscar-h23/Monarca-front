@@ -1,0 +1,54 @@
+<section class="min-w-0 rounded-2xl border border-zinc-200 bg-white p-4 sm:p-6" aria-label="Entrenamiento automático">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="min-w-0"><p class="text-xs font-semibold uppercase tracking-widest text-zinc-500">Automatización · Machine Learning</p><h2 class="mt-1 text-xl font-bold text-zinc-900">Entrenamiento automático</h2><p class="mt-2 text-sm text-zinc-600">Deja que el sistema revise nuevas valoraciones de talla y entrene cuando haya suficientes datos reales. No necesitas mantener abierta esta página.</p></div>
+    <button type="button" (click)="cargar()" [disabled]="cargando||guardando" class="min-h-11 rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold disabled:opacity-50">{{cargando?'Consultando…':'Actualizar estado'}}</button>
+  </div>
+  <p *ngIf="error" role="alert" class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{error}}</p>
+  <p *ngIf="mensaje" role="status" class="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{{mensaje}}</p>
+  <p *ngIf="cargando&&!config" role="status" class="mt-4 text-sm text-zinc-500">Cargando programación…</p>
+  <ng-container *ngIf="config as c">
+    <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <article class="rounded-xl border border-zinc-200 bg-zinc-50 p-3"><p class="text-xs text-zinc-600">Estado actual</p><p class="mt-1 font-bold">{{c.enCurso?'Entrenando…':c.habilitado?'Automático activado':'Desactivado'}}</p><p class="mt-1 text-xs text-zinc-500">{{c.habilitado?frecuenciaTexto:'Sin revisiones programadas'}}</p></article>
+      <article class="rounded-xl border border-zinc-200 bg-zinc-50 p-3"><p class="text-xs text-zinc-600">Próxima revisión (Perú)</p><p class="mt-1 font-bold">{{c.proxima?(c.proxima | date:'dd/MM/yyyy HH:mm':'-0500'):'Sin programar'}}</p><p class="mt-1 text-xs text-zinc-500">Sujeta a disponibilidad del servidor</p></article>
+      <article class="rounded-xl border border-zinc-200 bg-zinc-50 p-3"><p class="text-xs text-zinc-600">Último entrenamiento automático exitoso</p><p class="mt-1 font-bold">{{ultimoEntrenamiento?(ultimoEntrenamiento.inicio | date:'dd/MM/yyyy HH:mm':'-0500'):'Sin ejecución exitosa visible'}}</p><p class="mt-1 text-xs text-zinc-500">{{c.ultimoTotal}} registros en el último entrenamiento automático</p></article>
+    </div>
+    <div class="mt-4 rounded-xl border border-[#d6c2b8] bg-crema p-4">
+      <label class="flex cursor-pointer items-start justify-between gap-3"><span><span class="block text-sm font-bold">Habilitar entrenamiento automático de tallas</span><span class="mt-1 block text-xs text-zinc-600">KNN y árbol de decisión · Datos reales de Supabase</span></span><input type="checkbox" [(ngModel)]="ajustes.habilitado" [disabled]="guardando||cargando||c.enCurso" class="mt-1 size-5 shrink-0 accent-zinc-900"></label>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <label class="min-w-0 text-xs font-semibold">¿Cada cuánto revisar?
+          <select [(ngModel)]="ajustes.horas" [disabled]="!ajustes.habilitado||guardando||cargando||c.enCurso" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 bg-white p-2 text-sm disabled:opacity-60"><option *ngFor="let f of frecuencias" [ngValue]="f.valor">{{f.texto}}</option></select>
+        </label>
+        <label class="min-w-0 text-xs font-semibold">Hora de inicio (Perú)
+          <select [(ngModel)]="ajustes.hora" [disabled]="!ajustes.habilitado||guardando||cargando||c.enCurso" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 bg-white p-2 text-sm disabled:opacity-60"><option *ngFor="let h of horas" [ngValue]="h">{{horaTexto(h)}}</option></select>
+        </label>
+        <label class="min-w-0 text-xs font-semibold">Mínimo de registros adicionales
+          <input type="number" [(ngModel)]="ajustes.minNuevos" min="1" max="1000" step="1" [disabled]="!ajustes.habilitado||guardando||cargando||c.enCurso" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 bg-white p-2 text-sm disabled:opacity-60">
+        </label>
+      </div>
+      <p class="mt-3 text-xs leading-relaxed text-zinc-600">Siempre se requieren 30 valoraciones válidas como mínimo y suficientes ejemplos de cada clase. Solo se consideran datos con consentimiento. El mínimo adicional compara la cantidad de registros válidos con la última ejecución automática exitosa. Si no hay datos suficientes, se omite el entrenamiento.</p>
+      <p class="mt-2 text-xs leading-relaxed text-zinc-600">El modelo candidato se guarda para evaluación. No reemplaza automáticamente la versión activa para clientes. La fuente automática siempre es real, independiente de la fuente de prueba seleccionada para ejecuciones manuales.</p>
+      <div class="mt-4 flex flex-wrap items-center gap-3"><button type="button" (click)="guardar()" [disabled]="!cambios||!valido||cargando||guardando||c.enCurso" class="min-h-11 w-full rounded-lg bg-zinc-900 px-5 py-2 text-sm font-semibold text-white disabled:opacity-40 sm:w-auto">{{guardando?'Guardando…':'Guardar configuración'}}</button><span *ngIf="cambios" class="text-xs text-zinc-600">Cambios pendientes de guardar</span></div>
+    </div>
+    <details class="mt-4 rounded-xl border border-zinc-200 p-4">
+      <summary class="cursor-pointer text-sm font-bold">¿Qué otros módulos se pueden automatizar?</summary>
+      <div class="mt-3 space-y-3 text-xs text-zinc-600">
+        <p><strong class="text-zinc-900">Predicción de demanda y segmentación:</strong> pendientes de integrar sus datasets reales; no se entrenan automáticamente.</p>
+        <p><strong class="text-zinc-900">Prendas complementarias:</strong> se calculan al consultar las asociaciones; no requiere un entrenamiento programado independiente.</p>
+        <p><strong class="text-zinc-900">Outfits por presupuesto:</strong> A* y Hill Climbing ejecutan búsquedas bajo demanda, sin entrenamiento periódico.</p>
+        <p><strong class="text-zinc-900">Regresión de ingresos:</strong> se recalcula al consultar el resumen de ventas.</p>
+      </div>
+    </details>
+    <div class="mt-5">
+      <h3 class="text-sm font-bold">Historial de revisiones automáticas</h3><p class="mt-1 text-xs text-zinc-500">Últimas 30 ejecuciones. Incluye omisiones, errores y versiones entrenadas.</p>
+      <p *ngIf="!historial.length" class="mt-3 rounded-lg bg-zinc-50 p-3 text-sm text-zinc-600">Todavía no hay revisiones automáticas registradas.</p>
+      <div class="mt-3 space-y-2">
+        <article *ngFor="let e of historial" class="rounded-lg border border-zinc-200 p-3">
+          <div class="flex flex-wrap items-center justify-between gap-2"><span class="text-sm font-semibold">{{e.inicio | date:'dd/MM/yyyy HH:mm':'-0500'}}</span><span class="rounded-full px-2 py-1 text-xs font-semibold" [ngClass]="e.estado==='COMPLETADO'?'bg-green-50 text-green-800':e.estado==='ERROR'?'bg-red-50 text-red-800':'bg-zinc-100 text-zinc-700'">{{etiqueta(e.estado)}}</span></div>
+          <p class="mt-1 text-xs text-zinc-600">{{e.registros}} registros · {{e.nuevos}} adicionales · {{duracion(e)}}</p>
+          <p class="mt-2 text-sm text-zinc-700">{{e.detalle}}</p>
+          <p *ngIf="e.idModelo" class="mt-2 text-xs font-semibold text-zinc-700">Modelo #{{e.idModelo}} · {{e.algoritmo==='knn'?'KNN':'Árbol de decisión'}} · Accuracy: {{e.accuracy??'—'}} · Macro-F1: {{e.macroF1??'—'}}</p>
+        </article>
+      </div>
+    </div>
+  </ng-container>
+</section>
