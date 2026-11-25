@@ -2,8 +2,8 @@
   <div class="flex flex-wrap items-start justify-between gap-3">
     <div>
       <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">Regresión lineal · Análisis académico</p>
-      <h3 class="mt-1 text-xl font-bold text-zinc-900">Demanda y cobertura del stock</h3>
-      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-600">
+      <h3 class="mt-1 text-xl font-bold text-zinc-900">{{soloMetricas?'Evaluación del modelo de demanda':'Demanda y cobertura del stock'}}</h3>
+      <p *ngIf="!soloMetricas" class="mt-2 max-w-3xl text-sm leading-relaxed text-zinc-600">
         Compara estimaciones con existencias actuales y explora cómo cambiarían bajo diferentes
         precios, descuentos y visitas semanales supuestas.
       </p>
@@ -46,7 +46,7 @@
       </div>
     </div>
 
-    <div class="mt-5 grid gap-5 2xl:grid-cols-2">
+    <div class="mt-5 grid gap-5" [ngClass]="soloMetricas?'grid-cols-1':'2xl:grid-cols-2'">
       <section class="min-w-0 rounded-xl border border-zinc-200 p-4" aria-label="Gráfico de unidades observadas versus estimadas">
         <h4 class="text-base font-bold text-zinc-900">Observado vs. estimado</h4>
         <p class="mt-1 text-xs leading-relaxed text-zinc-600">
@@ -55,7 +55,7 @@
         </p>
         <div class="mt-3 flex flex-wrap gap-4 text-xs text-zinc-600" aria-hidden="true">
           <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded bg-zinc-800"></span> Observado simulado</span>
-          <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded bg-sky-500"></span> Estimado por regresión</span>
+          <span class="inline-flex items-center gap-2"><span class="h-3 w-3 rounded bg-[#9f806e]"></span> Estimado por regresión</span>
         </div>
         <div *ngIf="ejemplos.length" class="mt-4 admin-scroll pb-2" tabindex="0" aria-label="Desplazar gráfico de demanda">
           <div class="flex h-44 min-w-max items-end gap-3 border-b border-zinc-300 pb-0.5">
@@ -63,7 +63,7 @@
               class="flex h-full min-w-10 flex-col justify-end gap-1" [title]="'Observación '+(i+1)+', real '+punto.real+', estimado '+punto.estimado">
               <div class="flex h-[126px] items-end justify-center gap-1">
                 <div class="w-4 min-h-[2px] rounded-t bg-zinc-800" [style.height.%]="altura(punto.real)"></div>
-                <div class="w-4 min-h-[2px] rounded-t bg-sky-500" [style.height.%]="altura(punto.estimado)"></div>
+                <div class="w-4 min-h-[2px] rounded-t bg-[#9f806e]" [style.height.%]="altura(punto.estimado)"></div>
               </div>
               <span class="text-center text-[10px] text-zinc-500">{{i+1}}</span>
             </div>
@@ -88,7 +88,7 @@
         </details>
       </section>
 
-      <section class="min-w-0 rounded-xl border border-zinc-200 p-4" aria-label="Simulador de demanda semanal">
+      <section *ngIf="!soloMetricas" class="min-w-0 rounded-xl border border-zinc-200 p-4" aria-label="Simulador de demanda semanal">
         <h4 class="text-base font-bold text-zinc-900">Simulador de escenarios</h4>
         <p class="mt-1 text-xs leading-relaxed text-zinc-600">
           Modifica los supuestos y consulta nuevamente la regresión. No modifica productos,
@@ -121,10 +121,10 @@
             class="min-h-11 w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">
             {{procesando?'Calculando escenario…':'Calcular escenario hipotético'}}
           </button>
-          <div *ngIf="resultadoPersonalizado as respuesta" class="rounded-xl bg-sky-50 p-4">
-            <p class="text-xs font-semibold text-sky-900">Resultado del modelo bajo tus supuestos</p>
-            <p class="mt-2 text-2xl font-bold text-sky-950">{{respuesta.unidadesEscenario | number:'1.1-2'}} <span class="text-sm font-normal">unidades</span></p>
-            <p class="mt-1 text-xs text-sky-800">Es un escenario matemático, no una venta futura confirmada.</p>
+          <div *ngIf="resultadoPersonalizado as respuesta" class="rounded-xl bg-crema p-4">
+            <p class="text-xs font-semibold text-[#795b4b]">Resultado del modelo bajo tus supuestos</p>
+            <p class="mt-2 text-2xl font-bold text-zinc-900">{{respuesta.unidadesEscenario | number:'1.1-2'}} <span class="text-sm font-normal">unidades</span></p>
+            <p class="mt-1 text-xs text-[#795b4b]">Es un escenario matemático, no una venta futura confirmada.</p>
           </div>
           <p *ngIf="mensaje" role="status" class="nm-notice nm-notice--success rounded-lg bg-emerald-50 p-3 text-xs text-emerald-800">{{mensaje}}</p>
           <p *ngIf="error" role="alert" class="nm-notice nm-notice--error rounded-lg bg-red-50 p-3 text-xs text-red-800">{{error}}</p>
@@ -137,7 +137,7 @@
       </section>
     </div>
 
-    <section class="mt-5 min-w-0 rounded-xl border border-zinc-200 p-4" aria-label="Tabla de cobertura entre stock y demanda hipotética">
+    <section *ngIf="!soloMetricas" class="mt-5 min-w-0 rounded-xl border border-zinc-200 p-4" aria-label="Tabla de cobertura entre stock y demanda hipotética">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h4 class="text-base font-bold text-zinc-900">Comparación con el inventario</h4>
@@ -166,7 +166,7 @@
               <td class="px-3 py-3">
                 <p class="font-semibold text-zinc-900">{{item.nombre}}</p>
                 <p class="mt-1 text-[11px] text-zinc-500">ID {{item.idProducto}} · {{item.visitas}} visitas supuestas
-                  <span *ngIf="item.personalizada" class="font-semibold text-sky-800">· Escenario personalizado</span>
+                  <span *ngIf="item.personalizada" class="font-semibold text-[#795b4b]">· Escenario personalizado</span>
                 </p>
               </td>
               <td class="px-3 py-3 text-right">{{item.stock===null?'No disponible':(item.stock | number:'1.0-0')}}</td>
@@ -205,7 +205,7 @@
       Aún no existe un análisis de demanda. Ejecútalo para ver las métricas, el gráfico y los escenarios de inventario.
     </p>
   </ng-template>
-  <div class="mt-5 flex flex-wrap gap-2">
+  <div *ngIf="!soloMetricas" class="mt-5 flex flex-wrap gap-2">
     <button type="button" (click)="actualizar.emit()" [disabled]="ejecutando||!fuenteDisponible"
       class="min-h-11 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">
       {{ejecutando?'Calculando…':'Actualizar análisis'}}

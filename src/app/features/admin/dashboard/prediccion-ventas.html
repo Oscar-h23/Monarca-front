@@ -1,62 +1,73 @@
-<section class="space-y-5" aria-label="Predicción de ventas por producto">
-  <header class="rounded-2xl border border-zinc-200 bg-white p-5">
-    <p class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Inventario · Machine Learning</p>
-    <h2 class="mt-2 text-2xl font-bold">Predicción de ventas por producto</h2>
-    <p class="mt-2 text-sm text-zinc-600">Explora cuántas unidades podría demandar cada prenda durante una semana y compara el escenario con su stock actual.</p>
-    <p class="nm-notice nm-notice--warning mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">Simulación con datos de prueba. No constituye un pronóstico validado de ventas reales ni modifica el inventario.</p>
-    <div class="mt-4 flex flex-wrap items-center gap-3">
-      <button type="button" (click)="cargar(true)" [disabled]="cargando || ocupado || !fuentePrueba" class="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{{cargando ? 'Consultando modelo…' : 'Actualizar todas las predicciones'}}</button>
-      <button *ngIf="!fuentePrueba && !cargando" type="button" (click)="cargar(true,true)" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold">Activar datos de prueba y calcular</button>
-      <span *ngIf="ejecucion" class="text-sm text-zinc-600">{{coincidencias}} de {{products.length}} productos con estimación · {{ejecucion.registros}} registros de prueba</span>
+<section class="min-w-0 space-y-4" aria-label="Predicción de ventas por producto">
+  <header class="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-6">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div class="min-w-0 flex-1"><p class="text-xs font-semibold uppercase tracking-wider text-[#795b4b]">Inventario · Machine Learning</p><h2 class="mt-1 text-xl font-bold sm:text-2xl">Predicción de ventas por producto</h2><p class="mt-2 text-sm text-zinc-600">Consulta existencias, demanda semanal y reposición recomendada en un solo lugar.</p></div>
+      <button type="button" (click)="cargar(true)" [disabled]="cargando||ocupado||!fuentePrueba" class="min-h-11 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{{cargando?'Calculando…':'Actualizar predicciones'}}</button>
     </div>
-    <p *ngIf="errorCarga" role="alert" class="nm-notice nm-notice--error mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{errorCarga}}</p>
-    <p *ngIf="!fuentePrueba && !cargando && !errorCarga" class="mt-3 text-sm text-zinc-600">Activa la fuente de prueba de demanda para generar estimaciones. Esto no altera las ventas ni el inventario.</p>
-    <p *ngIf="ejecucion && coincidencias < products.length" class="nm-notice nm-notice--warning mt-3 text-xs text-amber-900">Algunos productos no tienen un identificador coincidente en el dataset sintético. No se inventan estimaciones para ellos.</p>
+    <div class="mt-4 flex flex-wrap items-center gap-2 text-xs">
+      <span class="rounded-full bg-crema px-3 py-1.5 font-semibold text-[#795b4b]">{{cargando?'Consultando fuente':fuentePrueba?'Datos de prueba · Simulación semanal':'Sin modelo de demanda real disponible'}}</span>
+      <span *ngIf="ejecucion" class="text-zinc-500">{{coincidencias}} de {{products.length}} productos con estimación · {{ejecucion.fecha | date:'dd/MM/yyyy HH:mm':'-0500'}}</span>
+      <button *ngIf="!fuentePrueba&&!cargando" type="button" (click)="cargar(true,true)" class="min-h-11 rounded-lg border border-zinc-300 px-3 font-semibold">Activar datos de prueba y calcular</button>
+    </div>
+    <p *ngIf="errorCarga" role="alert" class="nm-notice nm-notice--error mt-3">{{errorCarga}}</p>
+    <p *ngIf="!cargando" class="nm-notice nm-notice--info mt-3">Stock real del catálogo. Las predicciones son simuladas, no ventas futuras confirmadas. Sin escenario coincidente solo se muestran existencias y alertas reales.</p>
   </header>
-  <section *ngIf="!cargando" class="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5">
-    <h3 class="font-bold">Recomendaciones de reposición</h3><p class="mt-1 text-sm text-zinc-600">Sugerencia = demanda semanal redondeada + suma de mínimos − stock actual (sin valores negativos), con prioridad al déficit real por variante. Si no hay estimación, solo se usa el déficit real. No genera compras ni modifica el stock.</p>
-    <div class="mt-4 grid gap-3 sm:grid-cols-3"><div class="rounded-xl bg-crema p-4"><p class="text-xs text-zinc-600">Productos a reponer</p><p class="mt-2 text-2xl font-bold">{{requierenReposicion}}</p></div><div class="rounded-xl border border-zinc-200 p-4"><p class="text-xs text-zinc-600">Unidades sugeridas</p><p class="mt-2 text-2xl font-bold">{{unidadesSugeridas}}</p></div><div class="rounded-xl border border-zinc-200 p-4"><p class="text-xs text-zinc-600">Variantes en stock mínimo</p><p class="mt-2 text-2xl font-bold">{{alertasMinimo}}</p></div></div>
-    <p class="mt-3 text-xs text-zinc-500">La demanda ML es simulada. No se distribuye automáticamente por talla o color. Revisa las variantes antes de comprar.</p>
-    <button type="button" (click)="verInventario.emit()" class="mt-3 min-h-11 rounded-lg border border-zinc-300 px-4 text-sm font-semibold">Consultar inventario</button>
-  </section>
-  <section class="rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5">
-    <label class="block text-sm font-semibold">Buscar producto
-      <input [(ngModel)]="buscar" class="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2" placeholder="Nombre o categoría">
-    </label>
-    <label class="mt-3 flex items-center gap-2 text-sm"><input type="checkbox" [(ngModel)]="soloAlertas" class="accent-zinc-900"> Solo productos con alerta o reposición</label>
-    <div *ngIf="cargando" role="status" aria-busy="true" class="nm-loading mt-4 grid gap-2"><span class="sr-only">Calculando demanda por producto</span><div *ngFor="let placeholder of [0,1,2,3]" aria-hidden="true" class="nm-skeleton-card flex items-center gap-4"><div class="nm-skeleton h-12 w-12 shrink-0"></div><div class="min-w-0 flex-1 space-y-3"><div class="nm-skeleton nm-skeleton-line w-3/4"></div><div class="nm-skeleton nm-skeleton-line w-1/2"></div></div></div></div><div *ngIf="!cargando" class="mt-4 space-y-3 md:hidden">
-      <article *ngFor="let p of filtrados" class="rounded-xl border border-zinc-200 p-3">
-        <p class="font-semibold text-zinc-900">{{p.nombre}}</p>
-        <p class="text-xs text-zinc-500">{{p.categoria}}</p>
-        <dl class="mt-3 grid grid-cols-2 gap-3 text-sm">
-          <div><dt class="text-xs text-zinc-500">Stock actual</dt><dd class="font-semibold">{{stock(p) ?? 'Sin datos'}}</dd></div>
-          <div><dt class="text-xs text-zinc-500">Demanda semanal</dt><dd class="font-semibold">{{resultados.has(p.idProducto) ? (resultados.get(p.idProducto) | number:'1.1-2') : (cargando ? 'Calculando…' : !fuentePrueba ? 'Activa prueba' : 'Sin escenario')}}</dd></div>
-          <div class="col-span-2"><dt class="text-xs text-zinc-500">Stock restante / faltante</dt><dd class="font-semibold" [class.text-red-700]="(balance(p) ?? 0)<0" [class.text-emerald-700]="balance(p)!==null && (balance(p) ?? 0)>=0">{{balance(p)===null ? '—' : (balance(p) ?? 0)<0 ? 'Faltan '+ -(balance(p) ?? 0)+' un.' : 'Quedan '+balance(p)+' un.'}}</dd></div>
-          <div class="col-span-2 rounded-lg bg-crema p-3"><dt class="text-xs text-zinc-600">Recomendación</dt><dd class="font-semibold">{{reposicion(p).estado}} · {{reposicion(p).cantidad===null?'—':reposicion(p).cantidad+' un.'}}</dd><dd class="text-xs text-zinc-500">{{reposicion(p).alertas}} variantes en alerta</dd></div>
-        </dl>
-      </article>
-      <p *ngIf="!filtrados.length" class="text-sm text-zinc-500">No hay productos que coincidan.</p>
+  <div *ngIf="!cargando" class="grid min-w-0 grid-cols-2 gap-3 xl:grid-cols-4">
+    <article class="min-w-0 rounded-xl bg-zinc-900 p-3 text-white sm:p-4"><p class="text-xs text-zinc-300">Stock actual total</p><p class="mt-2 text-2xl font-bold tabular-nums">{{stockTotal | number:'1.0-0'}} <span class="text-xs font-normal">un.</span></p><p class="mt-1 text-xs text-zinc-300">{{products.length}} productos</p></article>
+    <article class="min-w-0 rounded-xl border border-[#d6c2b8] bg-crema p-3 sm:p-4"><p class="text-xs text-[#795b4b]">Demanda semanal simulada</p><p class="mt-2 text-2xl font-bold tabular-nums">{{coincidencias?(demandaTotal | number:'1.0-1'):'—'}} <span *ngIf="coincidencias" class="text-xs font-normal">un.</span></p><p class="mt-1 text-xs text-zinc-600">{{coincidencias}} productos estimados</p></article>
+    <article class="min-w-0 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4"><p class="text-xs text-zinc-600">Productos a reponer</p><p class="mt-2 text-2xl font-bold">{{requierenReposicion}}</p><p class="mt-1 text-xs text-zinc-600">{{unidadesSugeridas}} un. sugeridas</p></article>
+    <article class="min-w-0 rounded-xl border border-zinc-200 bg-white p-3 sm:p-4"><p class="text-xs text-zinc-600">Variantes en alerta real</p><p class="mt-2 text-2xl font-bold" [class.text-amber-800]="alertasMinimo>0">{{alertasMinimo}}</p><p class="mt-1 text-xs text-zinc-600">En el mínimo o por debajo</p></article>
+  </div>
+  <section class="min-w-0 rounded-2xl border border-zinc-200 bg-white p-3 sm:p-5" aria-label="Listado único de productos">
+    <div class="flex flex-wrap items-center justify-between gap-3"><div><h3 class="font-bold">Inventario y proyección semanal</h3><p class="mt-1 text-xs text-zinc-500">Una ficha por producto · Cantidades en unidades</p></div><button type="button" (click)="verInventario.emit()" class="min-h-11 rounded-lg border border-zinc-300 px-3 text-xs font-semibold">Ver inventario</button></div>
+    <div class="mt-4 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)]">
+      <label class="min-w-0 text-xs font-semibold text-zinc-600">Buscar producto<input [(ngModel)]="buscar" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-3 text-sm" placeholder="Nombre o categoría"></label>
+      <label class="min-w-0 text-xs font-semibold text-zinc-600">Categoría<select [(ngModel)]="categoria" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm"><option value="">Todas</option><option *ngFor="let c of categorias" [value]="c">{{c}}</option></select></label>
+      <label class="min-w-0 text-xs font-semibold text-zinc-600">Ordenar por<select [(ngModel)]="orden" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm"><option value="reposicion">Prioridad de reposición</option><option value="demanda">Mayor demanda</option><option value="stock">Menor stock</option><option value="nombre">Nombre A–Z</option></select></label>
     </div>
-    <div *ngIf="!cargando" class="mt-4 hidden admin-scroll md:block" tabindex="0" aria-label="Tabla de predicciones desplazable">
-      <table class="w-full min-w-[760px] text-left text-sm">
-        <thead class="bg-zinc-50 text-xs text-zinc-600"><tr><th class="p-3">Producto</th><th class="p-3">Stock actual</th><th class="p-3">Demanda semanal simulada</th><th class="p-3">Stock restante / faltante</th><th class="p-3">Reposición sugerida</th></tr></thead>
-        <tbody><tr *ngFor="let p of filtrados" class="border-b border-zinc-100">
-          <td class="p-3"><p class="font-semibold">{{p.nombre}}</p><p class="text-xs text-zinc-500">{{p.categoria}}</p></td>
-          <td class="p-3">{{stock(p) ?? 'Sin datos'}}</td>
-          <td class="p-3">{{resultados.has(p.idProducto) ? (resultados.get(p.idProducto) | number:'1.1-2') : (cargando ? 'Calculando…' : !fuentePrueba ? 'Activa prueba' : 'Sin escenario')}}</td>
-          <td class="p-3"><ng-container *ngIf="balance(p) !== null; else sinBalance"><span [class.text-red-700]="(balance(p) ?? 0)<0" [class.text-emerald-700]="(balance(p) ?? 0)>=0">{{(balance(p) ?? 0)<0 ? 'Faltan ' + -(balance(p) ?? 0) : 'Quedan ' + balance(p)}} un.</span></ng-container><ng-template #sinBalance>—</ng-template></td>
-          <td class="p-3"><p class="font-semibold">{{reposicion(p).estado}}</p><p class="text-xs text-zinc-600">{{reposicion(p).cantidad===null?'—':reposicion(p).cantidad+' un.'}} · {{reposicion(p).alertas}} variantes en alerta</p></td>
-        </tr></tbody>
-      </table>
-      <p *ngIf="!filtrados.length" class="p-4 text-sm text-zinc-500">No hay productos que coincidan.</p>
-    </div>
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-2"><label class="flex items-center gap-2 text-xs font-semibold"><input type="checkbox" [(ngModel)]="soloAlertas" class="accent-zinc-900"> Solo alertas y reposición</label><span *ngIf="!cargando" class="text-xs text-zinc-500">{{filtrados.length}} de {{products.length}} productos</span></div>
+    <div *ngIf="cargando" role="status" aria-busy="true" class="nm-loading mt-4 space-y-3"><span class="sr-only">Calculando demanda por producto</span><div *ngFor="let placeholder of [0,1,2,3]" aria-hidden="true" class="nm-skeleton-card flex items-center gap-4"><div class="nm-skeleton h-20 w-16 shrink-0"></div><div class="min-w-0 flex-1 space-y-3"><div class="nm-skeleton nm-skeleton-line w-3/4"></div><div class="nm-skeleton nm-skeleton-field w-full"></div><div class="nm-skeleton nm-skeleton-line w-1/2"></div></div></div></div>
+    <ng-container *ngIf="!cargando">
+      <div class="mt-4 space-y-3">
+        <article *ngFor="let p of filtrados" class="min-w-0 rounded-xl border border-zinc-200 p-3 sm:p-4">
+          <div class="grid min-w-0 gap-4 2xl:grid-cols-[minmax(0,1.05fr)_minmax(0,2fr)] 2xl:items-center">
+            <div class="flex min-w-0 items-center gap-3">
+              <img [src]="p.imagen||fallback" [alt]="p.nombre" loading="lazy" decoding="async" class="h-20 w-16 shrink-0 rounded-lg bg-crema object-cover sm:h-24 sm:w-20">
+              <div class="min-w-0 flex-1"><p class="text-[11px] uppercase tracking-wide text-zinc-500">{{p.categoria}}</p><h4 class="mt-1 break-words text-sm font-bold text-zinc-900 sm:text-base">{{p.nombre}}</h4><p class="mt-1 text-xs text-zinc-500">{{p.variantes?.length||0}} variantes · Mínimo total: {{reposicion(p).minimo}}</p><span *ngIf="personalizados.has(p.idProducto)" class="mt-1 inline-block text-xs font-semibold text-[#795b4b]">Escenario personalizado</span></div>
+            </div>
+            <dl class="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4">
+              <div class="min-w-0 rounded-lg bg-zinc-50 p-2.5"><dt class="text-[11px] font-medium text-zinc-600">Stock actual</dt><dd class="mt-1 text-xl font-bold tabular-nums">{{stock(p)??'—'}}</dd><dd class="text-[11px] text-zinc-500">unidades</dd></div>
+              <div class="min-w-0 rounded-lg bg-crema p-2.5"><dt class="text-[11px] font-medium text-[#795b4b]">Demanda · 7 días</dt><dd class="mt-1 text-xl font-bold tabular-nums">{{demanda(p)===undefined?'—':(demanda(p) | number:'1.0-1')}}</dd><dd class="text-[11px] text-zinc-500">venta simulada</dd></div>
+              <div class="min-w-0 rounded-lg border border-zinc-200 p-2.5"><dt class="text-[11px] font-medium text-zinc-600">Stock proyectado</dt><dd class="mt-1 text-xl font-bold tabular-nums" [class.text-red-700]="(balance(p)??0)<0">{{balance(p)===null?'—':balance(p)}}</dd><dd class="text-[11px] text-zinc-500">{{textoBalance(p)}}</dd></div>
+              <div class="min-w-0 rounded-lg border border-zinc-200 p-2.5"><dt class="text-[11px] font-medium text-zinc-600">Reposición sugerida</dt><dd class="mt-1 text-xl font-bold tabular-nums" [class.text-amber-800]="(reposicion(p).cantidad??0)>0">{{reposicion(p).cantidad??'—'}}</dd><dd class="text-[11px] font-semibold" [class.text-red-700]="(reposicion(p).cantidad??0)>0">{{reposicion(p).estado}}</dd></div>
+            </dl>
+          </div>
+          <div *ngIf="demanda(p)!==undefined && stock(p)!==null && (stock(p)??0)>0" class="mt-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-zinc-600"><span>Consumo estimado del stock</span><span class="font-semibold">{{consumo(p) | number:'1.0-0'}} % <span *ngIf="(balance(p)??0)<0">· demanda supera stock</span></span></div>
+            <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-[#ece8e3]" role="progressbar" aria-label="Porcentaje del stock que podría consumirse" [attr.aria-valuenow]="consumo(p)" aria-valuemin="0" aria-valuemax="100"><div class="h-full rounded-full" [ngClass]="(balance(p)??0)<0?'bg-red-700':'bg-[#9f806e]'" [style.width.%]="consumo(p)"></div></div>
+          </div>
+          <div class="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-zinc-100 pt-3">
+            <div class="min-w-0 text-xs text-zinc-500"><span *ngIf="reposicion(p).alertas>0" class="mr-2 font-semibold text-amber-800">{{reposicion(p).alertas}} variantes en alerta real</span><span *ngIf="escenarioActivo(p) as e">Supuestos: S/ {{e.precio | number:'1.2-2'}} · {{e.descuento}} % descuento · {{e.visitas}} visitas/sem.</span><span *ngIf="!escenarios.has(p.idProducto)">Sin escenario ML para este producto</span></div>
+            <button type="button" (click)="abrir(p)" [disabled]="ocupado" [attr.aria-expanded]="producto?.idProducto===p.idProducto" class="min-h-11 rounded-lg border border-zinc-300 px-3 text-xs font-semibold disabled:opacity-50">{{producto?.idProducto===p.idProducto?'Ocultar detalle':escenarios.has(p.idProducto)?'Ver detalle y simular':'Ver detalle de stock'}}</button>
+          </div>
+          <div *ngIf="producto?.idProducto===p.idProducto" class="mt-3 space-y-4 rounded-xl border border-[#d6c2b8] bg-crema p-3 sm:p-4">
+            <div><h5 class="text-sm font-bold">Existencias por talla y color</h5><div class="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3"><div *ngFor="let v of p.variantes" class="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-white p-2.5 text-xs"><span>{{v.talla}} · {{v.color}}</span><span class="font-semibold" [class.text-amber-800]="v.stock<=(v.stockMinimo??0)">{{v.stock}} un. / mín. {{v.stockMinimo??0}}</span></div></div><p *ngIf="!p.variantes?.length" class="mt-2 text-xs text-zinc-600">No hay variantes disponibles.</p></div>
+            <div *ngIf="fuentePrueba&&escenarios.has(p.idProducto)" class="border-t border-[#d6c2b8] pt-3">
+              <h5 class="text-sm font-bold">Simular otro escenario semanal</h5><p class="mt-1 text-xs text-zinc-600">La proyección de esta misma ficha se actualizará sin modificar el precio ni el inventario.</p>
+              <div class="mt-3 grid gap-3 sm:grid-cols-3">
+                <label class="min-w-0 text-xs font-semibold">Precio supuesto (S/)<input type="number" min="0.01" max="10000" step="0.01" [(ngModel)]="precio" [disabled]="ocupado" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm"></label>
+                <label class="min-w-0 text-xs font-semibold">Descuento (%)<input type="number" min="0" max="100" [(ngModel)]="descuento" [disabled]="ocupado" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm"></label>
+                <label class="min-w-0 text-xs font-semibold">Visitas semanales<input type="number" min="0" max="100000" step="1" [(ngModel)]="visitas" [disabled]="ocupado" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 bg-white px-3 text-sm"></label>
+              </div>
+              <div class="mt-3 flex flex-wrap gap-2"><button type="button" (click)="calcular()" [disabled]="ocupado||cargando" class="min-h-11 rounded-lg bg-zinc-900 px-4 text-xs font-semibold text-white disabled:opacity-50">{{ocupado?'Calculando…':'Calcular proyección'}}</button><button type="button" (click)="restaurar(p)" [disabled]="ocupado" class="min-h-11 rounded-lg border border-zinc-300 bg-white px-3 text-xs font-semibold">Restaurar escenario original</button></div>
+              <p *ngIf="error" role="alert" class="nm-notice nm-notice--error mt-3">{{error}}</p><p *ngIf="personalizados.has(p.idProducto)" class="mt-3 text-xs font-semibold text-[#795b4b]">Se muestra el último escenario personalizado calculado. Al actualizar todas las predicciones se restablecen los escenarios originales.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+      <p *ngIf="!filtrados.length" class="mt-4 rounded-xl bg-zinc-50 p-5 text-center text-sm text-zinc-600">No hay productos que coincidan con los filtros.</p>
+    </ng-container>
+    <details class="mt-4 rounded-lg border border-zinc-200 p-3 text-xs text-zinc-600"><summary class="cursor-pointer font-semibold text-zinc-900">¿Cómo se calculan las proyecciones y la reposición?</summary><p class="mt-2">Stock proyectado = stock actual − demanda semanal redondeada hacia arriba. Un número negativo significa faltante, no stock físico negativo. Reposición sugerida = el mayor valor entre el déficit real de variantes y la demanda redondeada + suma de mínimos − stock actual (nunca menor a cero). Sin escenario ML solo se considera el déficit real por variante. La demanda no se distribuye por talla o color y las recomendaciones no generan compras automáticas.</p></details>
   </section>
-  <app-demanda-analisis *ngIf="!cargando"
-    [ejecucion]="ejecucion ?? undefined"
-    [products]="products"
-    [ejecutando]="cargando"
-    [fuenteDisponible]="fuentePrueba"
-    (actualizar)="cargar(true)"
-    (verInventario)="verInventario.emit()">
-  </app-demanda-analisis>
+  <details *ngIf="!cargando" class="min-w-0 rounded-2xl border border-zinc-200 bg-white p-3 sm:p-5"><summary class="cursor-pointer text-sm font-bold">Evaluación del modelo · MAE, R² y observado frente a estimado</summary><div class="mt-3"><app-demanda-analisis [soloMetricas]="true" [ejecucion]="ejecucion??undefined" [products]="products" [ejecutando]="cargando" [fuenteDisponible]="fuentePrueba" (actualizar)="cargar(true)" (verInventario)="verInventario.emit()"></app-demanda-analisis></div></details>
 </section>

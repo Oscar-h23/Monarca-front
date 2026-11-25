@@ -33,6 +33,7 @@ export class DemandaAnalisisComponent implements OnChanges {
   @Input() products: Producto[] = [];
   @Input() ejecutando = false;
   @Input() fuenteDisponible = false;
+  @Input() soloMetricas = false;
   @Output() actualizar = new EventEmitter<void>();
   @Output() verInventario = new EventEmitter<void>();
 
