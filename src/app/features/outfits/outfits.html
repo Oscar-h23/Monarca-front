@@ -47,11 +47,9 @@
       <a routerLink="/carrito" class="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 px-4 py-2 text-sm font-semibold">Ver mi bolsa</a>
     </div>
 
-    <div *ngIf="procesando()" role="status" class="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50 p-8 text-center text-sm text-zinc-600">
-      Consultando prendas y buscando combinaciones disponibles…
-    </div>
-    <div *ngIf="error()" role="alert" class="mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{{error()}}</div>
-    <div *ngIf="mensaje()" role="status" class="mt-5 rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-700">
+    <div *ngIf="procesando()" role="status" aria-busy="true" class="nm-loading mt-6 grid grid-cols-2 gap-3 md:grid-cols-3"><span class="sr-only">Buscando combinaciones de prendas</span><div *ngFor="let placeholder of [0,1,2,3]" aria-hidden="true" class="nm-skeleton-card space-y-3"><div class="nm-skeleton nm-skeleton-image"></div><div class="nm-skeleton nm-skeleton-line w-3/4"></div><div class="nm-skeleton nm-skeleton-line w-1/2"></div></div></div>
+    <div *ngIf="error()" role="alert" class="nm-notice nm-notice--error mt-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{{error()}}</div>
+    <div *ngIf="mensaje()" role="status" class="nm-notice nm-notice--info mt-5 rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-700">
       {{mensaje()}}
       <a *ngIf="mensaje().startsWith('¡Look')" routerLink="/carrito" class="ml-2 font-bold underline underline-offset-4">Ir a la bolsa</a>
     </div>
@@ -97,6 +95,6 @@
       </article>
     </div>
     <p *ngIf="!procesando() && looks().length && presupuesto!==presupuestoConsultado()"
-      class="mt-4 text-sm text-amber-800">El presupuesto cambió. Pulsa «Encontrar mi outfit» para recalcular los resultados.</p>
+      class="nm-notice nm-notice--warning mt-4 text-sm text-amber-800">El presupuesto cambió. Pulsa «Encontrar mi outfit» para recalcular los resultados.</p>
   </section>
 </main>

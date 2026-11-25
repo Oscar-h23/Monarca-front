@@ -8,11 +8,11 @@
   <h1 class="mt-2 text-3xl font-bold tracking-tight text-zinc-900">Demostración interactiva de Machine Learning</h1>
   <p class="mt-3 max-w-3xl text-sm leading-6 text-zinc-600">Esta página conecta el catálogo con los módulos del proyecto. Puedes ejecutar los algoritmos, interpretar sus resultados y navegar a productos reales sin registrar compras ficticias.</p>
  </div>
- <div class="mt-6 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm text-amber-950">
+ <div class="nm-notice nm-notice--warning mt-6 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm text-amber-950">
    <strong>Demostración académica:</strong> cuando el módulo está en «Prueba», los datos son sintéticos. Las métricas no representan precisión en clientes reales. Las fuentes se configuran en <a routerLink="/admin" class="font-bold underline">Administración → Machine Learning</a>.
  </div>
- <p *ngIf="cargando()" class="mt-5 text-sm text-zinc-500">Cargando información del catálogo y los modelos…</p>
- <p *ngIf="error()" role="alert" class="mt-5 rounded-lg bg-red-50 p-4 text-sm text-red-800">{{error()}}</p>
+ <div *ngIf="cargando()" role="status" aria-busy="true" class="nm-loading mt-5 grid gap-3 sm:grid-cols-2"><span class="sr-only">Cargando catálogo y modelos</span><div *ngFor="let placeholder of [0,1,2,3]" aria-hidden="true" class="nm-skeleton-card space-y-3"><div class="nm-skeleton nm-skeleton-line w-1/2"></div><div class="nm-skeleton nm-skeleton-title w-2/3"></div><div class="nm-skeleton nm-skeleton-line w-full"></div></div></div>
+ <p *ngIf="error()" role="alert" class="nm-notice nm-notice--error mt-5 rounded-lg bg-red-50 p-4 text-sm text-red-800">{{error()}}</p>
  <div class="mt-7 grid gap-5">
   <section class="rounded-2xl border border-zinc-200 p-5 sm:p-7" aria-label="Recomendación de tallas">
    <div class="flex flex-wrap items-center justify-between gap-2">
@@ -127,7 +127,7 @@
         class="min-h-11 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">Agregar outfit a la bolsa</button>
       <a routerLink="/carrito" class="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 px-4 py-2 text-sm font-semibold">Ver bolsa</a>
      </div>
-     <p *ngIf="mensajeOutfit()" role="status" class="mt-2 text-sm text-zinc-700">{{mensajeOutfit()}}</p>
+     <p *ngIf="mensajeOutfit()" role="status" class="nm-notice nm-notice--info mt-2 text-sm text-zinc-700">{{mensajeOutfit()}}</p>
      <p class="mt-2 text-xs text-zinc-500">La combinación es académica, pero la bolsa utiliza las variantes, precios y existencias actuales. Puedes revisar o quitar prendas antes de comprar.</p>
     </div>
    </div>

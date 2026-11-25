@@ -39,8 +39,8 @@
   </aside>
 
   <div class="min-w-0">
-   <p *ngIf="message()" class="mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">{{message()}}</p>
-   <p *ngIf="error()" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{error()}}</p>
+   <p *ngIf="message()" class="nm-notice nm-notice--success mb-5 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800" role="status">{{message()}}</p>
+   <p *ngIf="error()" class="nm-notice nm-notice--error mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{error()}}</p>
    <app-admin-dashboard *ngIf="tab()==='resumen'" [products]="products()"
      (verInventario)="tab.set('productos')" (abrirMl)="abrirMl()"></app-admin-dashboard>
    <app-generador-campanas *ngIf="tab()==='campanas'"></app-generador-campanas>
@@ -58,9 +58,9 @@
       <button type="button" (click)="cargarFuentesMl()" [disabled]="mlOcupado()"
         class="min-h-11 rounded-xl border border-zinc-300 px-4 py-2 text-sm font-semibold disabled:opacity-50">{{mlCargando()?'Cargando…':'Actualizar'}}</button>
      </div>
-     <p *ngIf="mlError()" role="alert" class="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-800">{{mlError()}}</p>
-     <p *ngIf="mlMensaje()" role="status" class="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800">{{mlMensaje()}}</p>
-     <p *ngIf="mlCargando() && !fuentesMl().length" class="mt-5 text-sm text-zinc-500">Consultando configuración…</p>
+     <p *ngIf="mlError()" role="alert" class="nm-notice nm-notice--error mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-800">{{mlError()}}</p>
+     <p *ngIf="mlMensaje()" role="status" class="nm-notice nm-notice--success mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800">{{mlMensaje()}}</p>
+     <div *ngIf="mlCargando() && !fuentesMl().length" role="status" aria-busy="true" class="nm-loading mt-5 grid gap-3 sm:grid-cols-2"><span class="sr-only">Cargando fuentes de Machine Learning</span><div *ngFor="let placeholder of [0,1,2,3]" aria-hidden="true" class="nm-skeleton-card space-y-3"><div class="nm-skeleton nm-skeleton-line w-1/2"></div><div class="nm-skeleton nm-skeleton-title w-2/3"></div><div class="nm-skeleton nm-skeleton-line w-full"></div></div></div>
      <div *ngIf="fuentesMl().length" class="mt-5 rounded-xl border border-[#d6c2b8] bg-crema p-4">
       <div class="flex flex-wrap items-start justify-between gap-3">
        <div><h3 class="text-sm font-bold text-zinc-900">Fuente general de datos</h3><p class="mt-1 text-xs text-zinc-600">Consulta la fuente activa y cámbiala para todos los módulos o individualmente.</p></div>
@@ -114,7 +114,7 @@
         <p class="text-sm text-zinc-700" *ngIf="fuente.datasetImplementado">
          <strong>{{fuente.registrosDisponibles}}</strong> registros · {{estadoDatasetMl(fuente)}}
         </p>
-        <p class="text-xs font-semibold text-amber-800" *ngIf="!fuente.datasetImplementado">Dataset no integrado para esta fuente</p>
+        <p class="nm-notice nm-notice--warning text-xs font-semibold text-amber-800" *ngIf="!fuente.datasetImplementado">Dataset no integrado para esta fuente</p>
        </div>
        <div class="mt-3 flex flex-wrap items-center gap-2">
         <button type="button" (click)="mlDetalle.set(mlDetalle()===fuente.modulo?null:fuente.modulo)" [attr.aria-expanded]="mlDetalle()===fuente.modulo" class="min-h-10 rounded-lg border border-zinc-300 px-3 py-2 text-xs font-semibold">{{mlDetalle()===fuente.modulo?'Ocultar detalle':'Ver configuración y resultados'}}</button>
@@ -131,7 +131,7 @@
          <p class="text-xs text-zinc-600" *ngIf="fuente.fuente==='PRUEBA'">
            Demostración con datos simulados; no representa compradores ni ventas observadas.
          </p>
-         <p class="text-xs text-amber-800" *ngIf="!fuente.datasetImplementado">
+         <p class="nm-notice nm-notice--warning text-xs text-amber-800" *ngIf="!fuente.datasetImplementado">
            Los registros reales necesarios aún no están disponibles con todas las variables requeridas.
          </p>
          <div *ngIf="fuente.modulo==='OUTFITS'" class="flex flex-wrap items-center gap-2">
@@ -172,7 +172,7 @@
                 <div><p class="text-xs text-zinc-500">R² prueba</p><strong>{{ejecucion.resultado.r2_prueba??'—'}}</strong></div>
               </div>
               <p class="text-xs text-zinc-600">Separación temporal: {{ejecucion.resultado.entrenamiento}} entrenamiento / {{ejecucion.resultado.prueba}} prueba.</p>
-              <p *ngIf="ejecucion.fuente==='PRUEBA'" class="text-xs text-amber-800">Las métricas de datos sintéticos no permiten asegurar demanda futura real.</p>
+              <p *ngIf="ejecucion.fuente==='PRUEBA'" class="nm-notice nm-notice--warning text-xs text-amber-800">Las métricas de datos sintéticos no permiten asegurar demanda futura real.</p>
             </ng-container>
             <ng-container *ngIf="ejecucion.modulo==='OUTFITS'">
               <p class="text-sm">{{ejecucion.resultado.factibles}} combinaciones dentro del presupuesto de S/ {{ejecucion.resultado.presupuesto_soles}}.</p>
@@ -207,7 +207,7 @@
           Volver a recomendaciones por reglas
          </button>
         </div>
-        <p class="mt-2 text-xs text-amber-800" *ngIf="fuente.registrosDisponibles<30">Se necesitan al menos 30 registros y cinco por cada clase para entrenar.</p>
+        <p class="nm-notice nm-notice--warning mt-2 text-xs text-amber-800" *ngIf="fuente.registrosDisponibles<30">Se necesitan al menos 30 registros y cinco por cada clase para entrenar.</p>
         <p class="mt-2 text-xs text-zinc-500">Entrenar solo genera un candidato. Debes activar el modelo que quieras utilizar; los datos sintéticos no demuestran precisión con personas reales.</p>
         <section class="mt-5 space-y-3" aria-label="Modelos de tallas entrenados">
           <h4 class="text-sm font-bold text-zinc-900">Versiones y métricas (todas las fuentes)</h4>
@@ -245,7 +245,7 @@
       </article>
      </div>
     </div>
-    <div class="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950">
+    <div class="nm-notice nm-notice--warning rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-950">
      <strong>Uso académico:</strong> los datos de prueba son sintéticos y no representan compras reales. Clustering, demanda y outfits usan datasets de demostración independientes; las estimaciones sintéticas no describen clientes reales.
     </div>
    </section>
@@ -261,14 +261,15 @@
      <button type="submit" class="min-h-12 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
        [disabled]="administradoresBusy() || !correoAdministrador.trim()">{{administradoresBusy()?'Procesando…':'Asignar administrador'}}</button>
     </form>
-    <p *ngIf="administradoresError()" role="alert" class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{administradoresError()}}</p>
-    <p *ngIf="administradoresMensaje()" role="status" class="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{{administradoresMensaje()}}</p>
+    <p *ngIf="administradoresError()" role="alert" class="nm-notice nm-notice--error mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{administradoresError()}}</p>
+    <p *ngIf="administradoresMensaje()" role="status" class="nm-notice nm-notice--success mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{{administradoresMensaje()}}</p>
     <div class="mt-7 border-t border-zinc-200 pt-5">
      <div class="flex flex-wrap items-center justify-between gap-3">
       <h3 class="font-semibold text-zinc-900">Cuentas administradoras activas</h3>
       <button type="button" (click)="cargarAdministradores()" [disabled]="administradoresBusy()" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium">Actualizar lista</button>
      </div>
-     <p *ngIf="!administradores().length" class="mt-4 text-sm text-zinc-500">No hay administradores para mostrar.</p>
+     <div *ngIf="administradoresBusy() && !administradores().length" role="status" aria-busy="true" class="nm-loading mt-4 grid gap-2"><span class="sr-only">Cargando administradores</span><div *ngFor="let placeholder of [0,1,2]" aria-hidden="true" class="nm-skeleton-card flex items-center gap-4"><div class="nm-skeleton h-20 w-16 shrink-0"></div><div class="min-w-0 flex-1 space-y-3"><div class="nm-skeleton nm-skeleton-line w-3/4"></div><div class="nm-skeleton nm-skeleton-line w-1/2"></div><div class="nm-skeleton nm-skeleton-line w-1/3"></div></div></div></div>
+     <p *ngIf="!administradoresBusy() && !administradores().length" class="mt-4 text-sm text-zinc-500">No hay administradores para mostrar.</p>
      <ul class="mt-4 divide-y divide-zinc-100">
       <li *ngFor="let admin of administradores()" class="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
        <span class="min-w-0 break-all font-semibold">{{admin.correo}}</span>
@@ -278,7 +279,8 @@
     </div>
    </section>
 
-   <section *ngIf="tab()==='productos'" class="space-y-5" aria-label="Inventario">
+   <div *ngIf="tab()==='productos' && pending()" role="status" aria-busy="true" class="nm-loading grid gap-3"><span class="sr-only">Cargando inventario</span><div *ngFor="let placeholder of [0,1,2,3]" aria-hidden="true" class="nm-skeleton-card flex items-center gap-4"><div class="nm-skeleton h-20 w-16 shrink-0"></div><div class="min-w-0 flex-1 space-y-3"><div class="nm-skeleton nm-skeleton-line w-3/4"></div><div class="nm-skeleton nm-skeleton-line w-1/2"></div><div class="nm-skeleton nm-skeleton-line w-1/3"></div></div></div></div>
+   <section *ngIf="tab()==='productos' && !pending()" class="space-y-5" aria-label="Inventario">
     <div class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
      <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div><h2 class="text-lg font-bold">Inventario de productos</h2><p class="mt-1 text-sm text-zinc-500">Busca, filtra, edita y controla las existencias por variante.</p></div>
@@ -355,7 +357,8 @@
     </nav>
    </section>
 
-   <section *ngIf="tab()==='pedidos'" class="space-y-5" aria-label="Gestión de pedidos">
+   <div *ngIf="tab()==='pedidos' && pending()" role="status" aria-busy="true" class="nm-loading grid gap-3"><span class="sr-only">Cargando pedidos</span><div *ngFor="let placeholder of [0,1,2,3]" aria-hidden="true" class="nm-skeleton-card flex items-center gap-4"><div class="nm-skeleton h-20 w-16 shrink-0"></div><div class="min-w-0 flex-1 space-y-3"><div class="nm-skeleton nm-skeleton-line w-3/4"></div><div class="nm-skeleton nm-skeleton-line w-1/2"></div><div class="nm-skeleton nm-skeleton-line w-1/3"></div></div></div></div>
+   <section *ngIf="tab()==='pedidos' && !pending()" class="space-y-5" aria-label="Gestión de pedidos">
     <div class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
      <h2 class="text-lg font-bold">Gestión de pedidos</h2>
      <p class="mt-1 text-sm text-zinc-500">Consulta, verifica comprobantes de pago y actualiza la entrega.</p>
@@ -450,8 +453,8 @@
       <button type="button" aria-label="Cerrar gestión" [disabled]="gestionBusy()" (click)="cerrarGestion()" class="rounded-lg border border-zinc-200 px-3 py-2 text-sm font-semibold">Cerrar ✕</button>
     </div>
 
-    <div *ngIf="gestionError()" role="alert" class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{gestionError()}}</div>
-    <div *ngIf="gestionMensaje()" role="status" class="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{{gestionMensaje()}}</div>
+    <div *ngIf="gestionError()" role="alert" class="nm-notice nm-notice--error mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{gestionError()}}</div>
+    <div *ngIf="gestionMensaje()" role="status" class="nm-notice nm-notice--success mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{{gestionMensaje()}}</div>
 
     <div class="mt-5 grid min-w-0 gap-4 sm:grid-cols-2 sm:gap-5">
       <section class="rounded-xl border border-zinc-200 p-5">
@@ -460,13 +463,13 @@
         <p class="mt-2 text-sm text-zinc-600" *ngIf="!pedido.evidenciaDisponible">El cliente todavía no ha enviado comprobante.</p>
         <p class="mt-2 text-sm">Método: <strong>{{pedido.metodoPago}}</strong></p>
         <p class="mt-2 text-xs text-zinc-500" *ngIf="pedido.evidenciaDisponible">Evidencia privada: solo administradores.</p>
-        <p class="mt-2 text-sm" *ngIf="imagenCargando()">Cargando evidencia…</p>
+        <div *ngIf="imagenCargando()" role="status" aria-busy="true" class="nm-loading mt-3"><span class="sr-only">Cargando evidencia de pago</span><div aria-hidden="true" class="nm-skeleton h-44 w-full"></div></div>
         <img *ngIf="imagenEvidencia()" [src]="imagenEvidencia()" alt="Evidencia de pago enviada por el cliente" class="mt-4 max-h-80 w-full rounded-lg border border-zinc-200 bg-zinc-50 object-contain">
         <div *ngIf="pedido.estadoPago==='RECHAZADO' && pedido.motivoRechazo" class="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">
           Motivo anterior: {{pedido.motivoRechazo}}
         </div>
 
-        <div *ngIf="puedeConfirmarPagoManual(pedido)" class="mt-5 rounded-lg border border-amber-300 bg-amber-50 p-4">
+        <div *ngIf="puedeConfirmarPagoManual(pedido)" class="nm-notice nm-notice--warning mt-5 rounded-lg border border-amber-300 bg-amber-50 p-4">
            <p class="text-sm font-bold text-amber-900">Confirmación manual del pago</p>
            <p class="mt-2 text-xs leading-relaxed text-amber-900">Si ya recibiste el pago, puedes confirmarlo sin exigir una fotografía del comprobante. El pedido se contará en las ventas del dashboard.</p>
            <button type="button" [disabled]="gestionBusy()" (click)="confirmarPagoManual()"
@@ -505,7 +508,7 @@
           class="mt-5 w-full rounded-lg border border-zinc-300 px-4 py-3 text-sm font-semibold hover:bg-zinc-50 disabled:opacity-50">
           Descargar boleta PDF de prueba
         </button>
-        <p class="mt-2 text-xs text-amber-800" *ngIf="pedido.boletaDisponible">Documento de simulación, sin validez tributaria y sin integración SUNAT.</p>
+        <p class="nm-notice nm-notice--warning mt-2 text-xs text-amber-800" *ngIf="pedido.boletaDisponible">Documento de simulación, sin validez tributaria y sin integración SUNAT.</p>
       </section>
     </div>
   </section>
@@ -618,7 +621,7 @@
      <p class="text-sm text-zinc-600">{{editingId()?newVariants.length+' nueva(s) talla(s) · '+newStockTotal()+' unidades nuevas':newVariants.length+' variante(s) · '+newStockTotal()+' unidades en total'}}</p>
     </div>
    </section>
-   <p *ngIf="error()" class="text-red-700 my-4" role="alert">{{error()}}</p>
+   <p *ngIf="error()" class="nm-notice nm-notice--error text-red-700 my-4" role="alert">{{error()}}</p>
    <div class="mt-7 grid grid-cols-2 gap-3 sm:flex sm:justify-end"><button type="button" class="min-h-11 rounded-lg border px-3 py-3 text-sm" (click)="closeEditor()" [disabled]="saving()||uploadStep()">Cancelar</button><button type="submit" class="btn-dark min-h-11 rounded-lg text-sm" [disabled]="saving()||uploadStep()">{{saving()?'Guardando…':'Guardar producto'}}</button></div>
   </form>
  </div>

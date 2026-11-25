@@ -27,7 +27,7 @@
    <label *ngIf="mode()==='registro'||mode()==='restablecer'" class="block text-sm font-semibold">Confirmar contraseña<input type="password" class="field mt-2" name="confirm" [(ngModel)]="confirmPassword" autocomplete="new-password" minlength="8" required></label>
    <button type="submit" class="btn-dark w-full" [disabled]="busy()||(mode()==='restablecer'&&!resetTokenValid())">{{busy()?'Procesando…':mode()==='login'?'Iniciar sesión':mode()==='registro'?'Crear mi cuenta':mode()==='recuperar'?'Enviar enlace':'Guardar nueva contraseña'}}</button>
   </form>
-  <p *ngIf="message()" class="mt-5 text-sm" role="status" [class.text-red-700]="isError()" [class.text-green-800]="!isError()">{{message()}}</p>
+  <p *ngIf="message()" class="nm-notice mt-5" [attr.role]="isError()?'alert':'status'" [class.nm-notice--error]="isError()" [class.nm-notice--success]="!isError()">{{message()}}</p>
   <div class="flex gap-5 flex-wrap mt-8 text-sm underline">
    <button type="button" *ngIf="mode()!=='login'" (click)="setMode('login')">Iniciar sesión</button>
    <button type="button" *ngIf="mode()!=='registro'" (click)="setMode('registro')">Crear cuenta</button>
