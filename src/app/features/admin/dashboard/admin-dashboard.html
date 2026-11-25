@@ -5,17 +5,22 @@
     <h2 class="text-lg font-bold text-zinc-900">Rendimiento de la tienda</h2>
     <p class="mt-1 text-sm text-zinc-500">Las ventas incluyen pagos aprobados con comprobante o confirmados manualmente por el administrador, agrupados por fecha del pedido (hora de Lima).</p>
    </div>
-   <div class="grid min-w-0 grid-cols-2 items-end gap-2 sm:flex sm:flex-wrap">
-    <div class="col-span-2 inline-flex w-full flex-wrap justify-center gap-1 rounded-lg bg-zinc-100 p-1 sm:w-auto sm:justify-start" role="group" aria-label="Periodo de ventas">
-     <button *ngFor="let n of [7,30,90]" type="button" (click)="usarPeriodo(n)"
-       class="rounded-md px-3 py-2 text-xs font-semibold" [class.bg-white]="periodo===n" [class.shadow-sm]="periodo===n">{{n}} días</button>
+   <div class="grid min-w-0 grid-cols-1 items-end gap-3 sm:grid-cols-2 xl:max-w-xl">
+    <div class="sm:col-span-2 flex flex-wrap gap-1 rounded-lg bg-zinc-100 p-1" role="group" aria-label="Periodo de ventas">
+      <button type="button" (click)="modo='mes'" [disabled]="busy" [class.bg-white]="modo==='mes'" [attr.aria-pressed]="modo==='mes'" class="flex-1 rounded-md px-3 py-2 text-sm font-semibold">Por mes</button>
+      <button type="button" (click)="modo='anio'" [disabled]="busy" [class.bg-white]="modo==='anio'" [attr.aria-pressed]="modo==='anio'" class="flex-1 rounded-md px-3 py-2 text-sm font-semibold">Por año</button>
+      <button type="button" (click)="modo='rango'" [disabled]="busy" [class.bg-white]="modo==='rango'" [attr.aria-pressed]="modo==='rango'" class="flex-1 rounded-md px-3 py-2 text-sm font-semibold">Personalizado</button>
     </div>
-    <label class="flex min-w-0 flex-col gap-1 text-xs font-semibold text-zinc-500">Desde
-     <input type="date" [(ngModel)]="desde" (ngModelChange)="periodo=0" class="min-h-11 w-full min-w-0 rounded-lg border border-zinc-300 px-2 py-2 text-sm text-zinc-900 sm:w-auto sm:px-3"></label>
-    <label class="flex min-w-0 flex-col gap-1 text-xs font-semibold text-zinc-500">Hasta
-     <input type="date" [(ngModel)]="hasta" (ngModelChange)="periodo=0" class="min-h-11 w-full min-w-0 rounded-lg border border-zinc-300 px-2 py-2 text-sm text-zinc-900 sm:w-auto sm:px-3"></label>
-    <button type="button" (click)="cargar()" [disabled]="busy"
-      class="col-span-2 min-h-11 rounded-lg bg-zinc-900 px-4 py-2 text-xs font-semibold text-white disabled:opacity-50 sm:col-span-1">{{busy?'Consultando…':'Aplicar filtros'}}</button>
+    <label *ngIf="modo==='mes'" class="text-xs font-semibold text-zinc-600">Mes
+      <input type="month" [(ngModel)]="mes" [max]="hoy.slice(0,7)" [disabled]="busy" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"></label>
+    <label *ngIf="modo==='anio'" class="text-xs font-semibold text-zinc-600">Año
+      <input type="number" [(ngModel)]="anio" min="2000" [max]="hoy.slice(0,4)" [disabled]="busy" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"></label>
+    <ng-container *ngIf="modo==='rango'">
+      <div class="sm:col-span-2 flex flex-wrap gap-2"><button *ngFor="let n of [7,30,90]" type="button" (click)="usarPeriodo(n)" [disabled]="busy" [class.bg-zinc-100]="periodo===n" class="rounded-lg border border-zinc-200 px-3 py-2 text-xs font-semibold">{{n}} días</button></div>
+      <label class="text-xs font-semibold text-zinc-600">Desde<input type="date" [(ngModel)]="desde" (ngModelChange)="periodo=0" [max]="hoy" [disabled]="busy" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"></label>
+      <label class="text-xs font-semibold text-zinc-600">Hasta<input type="date" [(ngModel)]="hasta" (ngModelChange)="periodo=0" [max]="hoy" [disabled]="busy" class="mt-1 min-h-11 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"></label>
+    </ng-container>
+    <button type="button" (click)="aplicarModo()" [disabled]="busy" class="sm:col-span-2 min-h-11 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{{busy?'Consultando…':'Aplicar filtros'}}</button>
    </div>
   </div>
   <div *ngIf="error" role="alert" class="mt-5 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{{error}}</div>
@@ -74,18 +79,27 @@
   </section>
   <div class="grid gap-5 2xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
    <section class="min-w-0 rounded-2xl border border-zinc-200 bg-white p-4 sm:p-6">
-    <div class="mb-4"><h3 class="font-bold">Evolución de ventas</h3><p class="mt-1 text-xs text-zinc-500">Importes cobrados de pedidos creados en el periodo · S/</p></div>
-    <div *ngIf="barras().length" class="admin-scroll" tabindex="0" aria-label="Gráfico desplazable de ventas"><div class="min-w-[560px]"><div class="flex h-56 items-end gap-1 border-b border-zinc-200 pb-1 sm:gap-2" role="img" aria-label="Gráfico de barras de ventas por fechas">
-     <div *ngFor="let b of barras()" class="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-2" [title]="b.etiqueta+': '+dinero(b.importe)+' · '+b.pedidos+' pedidos'">
-      <span class="text-[10px] font-semibold text-zinc-500" *ngIf="b.importe>0">{{dinero(b.importe)}}</span>
-      <div class="w-full max-w-12 rounded-t-md bg-zinc-800 transition-all hover:bg-zinc-600"
-        [style.height.%]="b.porcentaje" [style.min-height.px]="b.importe>0?5:0"></div>
-     </div>
+    <div class="mb-4 flex flex-wrap items-start justify-between gap-3"><div><h3 class="font-bold">Evolución de ventas</h3><p class="mt-1 text-xs text-zinc-500">{{r.desde | date:'dd/MM/yyyy':'UTC'}} – {{r.hasta | date:'dd/MM/yyyy':'UTC'}} · Importes de pedidos con pago confirmado · S/</p></div><label class="flex items-center gap-2 text-xs font-semibold"><input type="checkbox" [(ngModel)]="mostrarMl"> Mostrar estimación ML</label></div>
+    <div class="mb-3 flex flex-wrap gap-4 text-xs"><span class="flex items-center gap-2"><span class="h-1 w-6 rounded bg-blue-700"></span> Ventas reales</span><span *ngIf="mostrarMl" class="flex items-center gap-2"><span class="h-0 w-6 border-t-2 border-dashed border-rose-600"></span> Estimación por regresión</span></div>
+    <div *ngIf="puntos.length" class="admin-scroll" tabindex="0" aria-label="Gráfico de líneas desplazable">
+      <svg [attr.viewBox]="'0 0 '+anchoGrafico+' 244'" [style.min-width.px]="anchoGrafico" class="block w-full" role="img" aria-label="Evolución de ventas reales en azul y estimadas en rosa">
+        <g *ngFor="let t of [0,0.25,0.5,0.75,1]">
+          <line x1="68" [attr.x2]="anchoGrafico-26" [attr.y1]="y(t*maxGrafico)" [attr.y2]="y(t*maxGrafico)" stroke="#e4e4e7"/>
+          <text x="62" [attr.y]="y(t*maxGrafico)+4" text-anchor="end" font-size="10" fill="#71717a">{{t*maxGrafico | number:'1.0-0'}}</text>
+        </g>
+        <path [attr.d]="linea(false)" fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linejoin="round"/>
+        <path *ngIf="mostrarMl && hayMl" [attr.d]="linea(true)" fill="none" stroke="#e11d48" stroke-width="2.5" stroke-dasharray="6 4" stroke-linejoin="round"/>
+        <g *ngFor="let p of puntos; let i=index">
+          <circle [attr.cx]="x(i)" [attr.cy]="y(p.real)" r="3" fill="#1d4ed8"><title>{{p.etiqueta}} · Real: {{dinero(p.real)}}</title></circle>
+          <circle *ngIf="mostrarMl && p.estimado!==null" [attr.cx]="x(i)" [attr.cy]="y(p.estimado)" r="3" fill="#e11d48"><title>{{p.etiqueta}} · Estimado: {{dinero(p.estimado)}}</title></circle>
+          <text *ngIf="etiquetaEje(i)" [attr.x]="x(i)" y="216" text-anchor="middle" font-size="10" fill="#71717a">{{p.etiqueta}}</text>
+        </g>
+      </svg>
     </div>
-    <div class="mt-3 flex gap-1 sm:gap-2">
-      <span *ngFor="let b of barras()" class="min-w-0 flex-1 break-words text-center text-[10px] text-zinc-500 sm:text-[10px]" [title]="b.etiqueta">{{b.etiqueta}}</span>
-    </div>
-    </div></div>
+    <p *ngIf="mostrarMl && !hayMl" class="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">Aún no hay historial suficiente para estimar el periodo. Se requieren al menos 28 días desde la primera venta del historial de entrenamiento y 4 días con ventas confirmadas.</p>
+    <p *ngIf="historialError" class="mt-2 text-xs text-amber-800">No se pudo consultar el historial previo. Las estimaciones solo usan fechas anteriores disponibles del rango.</p>
+    <p *ngIf="mostrarMl && hayMl" class="mt-2 text-xs leading-relaxed text-zinc-500">Regresión lineal de importes diarios, ajustada con hasta 90 días anteriores a cada bloque. Es una reconstrucción retrospectiva con el estado de pago actual, no una predicción guardada en su fecha. Los tramos sin historial suficiente se omiten; hoy puede estar incompleto. Es un modelo distinto del de demanda por producto.</p>
+    <details *ngIf="puntos.length" class="mt-3 rounded-lg border border-zinc-200 p-3 text-xs"><summary class="cursor-pointer font-semibold">Ver valores del gráfico</summary><div class="mt-2 admin-scroll"><table class="w-full min-w-[360px] text-left"><thead><tr><th class="p-2">Periodo</th><th class="p-2">Real (S/)</th><th *ngIf="mostrarMl" class="p-2">Estimado (S/)</th></tr></thead><tbody><tr *ngFor="let p of puntos" class="border-t border-zinc-100"><td class="p-2">{{p.etiqueta}}</td><td class="p-2">{{p.real | number:'1.2-2'}}</td><td *ngIf="mostrarMl" class="p-2">{{p.estimado===null?'Sin datos':(p.estimado | number:'1.2-2')}}</td></tr></tbody></table></div></details>
     <p *ngIf="!r.kpis.pedidosConfirmados" class="mt-4 rounded-lg bg-zinc-50 p-3 text-xs text-zinc-500">No hay pagos confirmados en el periodo elegido.</p>
    </section>
    <section class="min-w-0 rounded-2xl border border-zinc-200 bg-white p-4 sm:p-6">
