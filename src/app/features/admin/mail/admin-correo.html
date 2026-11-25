@@ -55,7 +55,7 @@
     «Configuración completa» no garantiza la entrega: verifica el correo de prueba y el historial de Resend.
   </p>
  </div>
- <p *ngIf="cargando" role="status" class="mt-4 text-xs text-zinc-600">Consultando el estado de Spring Boot…</p>
- <p *ngIf="error" role="alert" class="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-800">{{error}}</p>
- <p *ngIf="mensaje" role="status" class="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">{{mensaje}}</p>
+ <div *ngIf="cargando && !estado" role="status" aria-busy="true" class="nm-loading mt-4 grid gap-3"><span class="sr-only">Consultando configuración del correo</span><div *ngFor="let placeholder of [0,1]" aria-hidden="true" class="nm-skeleton-card space-y-3"><div class="nm-skeleton nm-skeleton-line w-1/2"></div><div class="nm-skeleton nm-skeleton-title w-2/3"></div><div class="nm-skeleton nm-skeleton-line w-full"></div></div></div>
+ <p *ngIf="error" role="alert" class="nm-notice nm-notice--error mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-800">{{error}}</p>
+ <p *ngIf="mensaje" role="status" class="nm-notice nm-notice--success mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-900">{{mensaje}}</p>
 </section>

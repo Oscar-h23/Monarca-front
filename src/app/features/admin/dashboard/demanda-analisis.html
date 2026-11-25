@@ -126,11 +126,11 @@
             <p class="mt-2 text-2xl font-bold text-sky-950">{{respuesta.unidadesEscenario | number:'1.1-2'}} <span class="text-sm font-normal">unidades</span></p>
             <p class="mt-1 text-xs text-sky-800">Es un escenario matemático, no una venta futura confirmada.</p>
           </div>
-          <p *ngIf="mensaje" role="status" class="rounded-lg bg-emerald-50 p-3 text-xs text-emerald-800">{{mensaje}}</p>
-          <p *ngIf="error" role="alert" class="rounded-lg bg-red-50 p-3 text-xs text-red-800">{{error}}</p>
+          <p *ngIf="mensaje" role="status" class="nm-notice nm-notice--success rounded-lg bg-emerald-50 p-3 text-xs text-emerald-800">{{mensaje}}</p>
+          <p *ngIf="error" role="alert" class="nm-notice nm-notice--error rounded-lg bg-red-50 p-3 text-xs text-red-800">{{error}}</p>
         </div>
         <ng-template #noSimulador>
-          <p class="mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
+          <p class="nm-notice nm-notice--warning mt-4 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
             Este simulador solo está disponible con fuente PRUEBA y escenarios calculados.
           </p>
         </ng-template>
@@ -188,13 +188,13 @@
           No se guardaron escenarios por producto. Vuelve a ejecutar el análisis.
         </p>
       </ng-template>
-      <p *ngIf="tabla.length && !hayCorrespondencia" class="mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
+      <p *ngIf="tabla.length && !hayCorrespondencia" class="nm-notice nm-notice--warning mt-3 rounded-lg bg-amber-50 p-3 text-xs text-amber-900">
         Los IDs de productos de prueba no coinciden con el catálogo. Se muestran las estimaciones académicas,
         pero no se calculan brechas frente al stock real para evitar resultados engañosos.
       </p>
     </section>
 
-    <p class="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
+    <p class="nm-notice nm-notice--warning mt-4 rounded-lg bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
       <strong>Limitación:</strong> los datos de ventas y visitas empleados para evaluar el modelo son sintéticos;
       las visitas del escenario son hipotéticas. El MAE y R² no representan precisión comercial real.
       No utilizar estos resultados para reposición automática.

@@ -3,9 +3,9 @@
     <div class="min-w-0"><p class="text-xs font-semibold uppercase tracking-widest text-zinc-500">Automatización · Machine Learning</p><h2 class="mt-1 text-xl font-bold text-zinc-900">Entrenamiento automático</h2><p class="mt-2 text-sm text-zinc-600">Deja que el sistema revise nuevas valoraciones de talla y entrene cuando haya suficientes datos reales. No necesitas mantener abierta esta página.</p></div>
     <button type="button" (click)="cargar()" [disabled]="cargando||guardando" class="min-h-11 rounded-lg border border-zinc-300 px-4 py-2 text-sm font-semibold disabled:opacity-50">{{cargando?'Consultando…':'Actualizar estado'}}</button>
   </div>
-  <p *ngIf="error" role="alert" class="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{error}}</p>
-  <p *ngIf="mensaje" role="status" class="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{{mensaje}}</p>
-  <p *ngIf="cargando&&!config" role="status" class="mt-4 text-sm text-zinc-500">Cargando programación…</p>
+  <p *ngIf="error" role="alert" class="nm-notice nm-notice--error mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{error}}</p>
+  <p *ngIf="mensaje" role="status" class="nm-notice nm-notice--success mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-800">{{mensaje}}</p>
+  <div *ngIf="cargando&&!config" role="status" aria-busy="true" class="nm-loading mt-4 grid gap-3 sm:grid-cols-3"><span class="sr-only">Cargando programación automática</span><div *ngFor="let placeholder of [0,1,2]" aria-hidden="true" class="nm-skeleton-card space-y-3"><div class="nm-skeleton nm-skeleton-line w-1/2"></div><div class="nm-skeleton nm-skeleton-title w-2/3"></div><div class="nm-skeleton nm-skeleton-line w-full"></div></div></div>
   <ng-container *ngIf="config as c">
     <div class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       <article class="rounded-xl border border-zinc-200 bg-zinc-50 p-3"><p class="text-xs text-zinc-600">Estado actual</p><p class="mt-1 font-bold">{{c.enCurso?'Entrenando…':c.habilitado?'Automático activado':'Desactivado'}}</p><p class="mt-1 text-xs text-zinc-500">{{c.habilitado?frecuenciaTexto:'Sin revisiones programadas'}}</p></article>
