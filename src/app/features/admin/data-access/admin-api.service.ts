@@ -128,6 +128,11 @@ export class AdminApi {
   private readonly http = inject(HttpClient);
   private readonly api = inject(Api);
 
+  simularDemandaProducto(datos: {idProducto:number;precioSoles:number;descuentoPorcentaje:number;visitasSemana:number}): Promise<{resultado:{idProducto:number;unidadesEscenario:number}}> {
+    return firstValueFrom(this.http.post<{resultado:{idProducto:number;unidadesEscenario:number}}>(
+      this.api.base+'/admin/ml/demanda/simular',datos,{headers:this.api.headers()}));
+  }
+
   fuentesMl():Promise<FuenteMlInfo[]> {
     return firstValueFrom(this.http.get<FuenteMlInfo[]>(
       this.api.base+'/admin/ml/fuentes',{headers:this.api.headers()}));
