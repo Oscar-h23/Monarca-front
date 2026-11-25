@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { ConfirmDialogService } from '../../../shared/confirm-dialog.service';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -12,6 +13,7 @@ import { AdminApi, AjustesMlAutomatico, ConfigMlAutomatico, EventoMlAutomatico }
 })
 export class MlAutomaticoComponent implements OnInit {
   private api=inject(AdminApi);
+  private readonly dialogs=inject(ConfirmDialogService);
   config:ConfigMlAutomatico|null=null;
   ajustes:AjustesMlAutomatico={habilitado:false,horas:168,hora:3,minNuevos:10};
   historial:EventoMlAutomatico[]=[];
@@ -43,7 +45,7 @@ export class MlAutomaticoComponent implements OnInit {
   }
   async cargar(){
     if(this.cargando||this.guardando)return;
-    if(this.cambios&&!window.confirm('¿Descartar los cambios sin guardar y consultar la configuración actual?'))return;
+    if(this.cambios&&!(await this.dialogs.confirm('¿Descartar los cambios sin guardar y consultar la configuración actual?',{title:'Cambios sin guardar',accept:'Descartar cambios'})))return;
     this.cargando=true;this.error='';this.mensaje='';
     try{const r=await this.api.estadoMlAutomatico();this.aplicar(r.config);this.historial=r.historial;}
     catch(e){this.error=this.fallo(e);}

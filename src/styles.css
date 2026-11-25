@@ -81,3 +81,26 @@ img, video { max-width:100%; }
 .nm-skeleton-chart { height:13rem; }
 .nm-loading { min-width:0; }
 @media(prefers-reduced-motion:reduce){ .nm-skeleton { animation:none; } }
+
+/* Shared confirmation dialog: native modal semantics, branded presentation. */
+.nm-confirm-dialog {
+  position:fixed; inset:0; margin:auto; padding:0;
+  width:min(30rem,calc(100% - 2rem)); max-width:none;
+  max-height:calc(100dvh - 2rem); overflow:auto; overscroll-behavior:contain;
+  background:white; color:#18181b; border:1px solid #d6c2b8;
+  border-radius:1rem; box-shadow:0 24px 80px #18181b33;
+}
+.nm-confirm-dialog::backdrop { background:#18181b80; }
+.nm-confirm-body { padding:1.5rem; }
+.nm-confirm-brand { margin:.9rem 0 .35rem; color:#795b4b; font-size:.7rem; text-transform:uppercase; letter-spacing:.16em; font-weight:700; }
+.nm-confirm-icon { display:grid; place-items:center; width:2.75rem; height:2.75rem; border-radius:50%; background:#faf7f2; color:#795b4b; }
+.nm-confirm-icon svg { width:1.5rem; height:1.5rem; }
+.nm-confirm-icon-danger { color:#a33d42; background:#fdf5f4; }
+.nm-confirm-body h2 { margin:0; font-size:1.25rem; line-height:1.35; font-weight:700; }
+#nm-confirm-message { margin:.75rem 0 0; color:#52525b; font-size:.9rem; line-height:1.65; white-space:pre-line; overflow-wrap:anywhere; }
+.nm-confirm-actions { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.6rem; margin-top:1.5rem; }
+.nm-confirm-actions button { min-height:44px; padding:.65rem 1rem; border-radius:.65rem; font-size:.875rem; font-weight:600; }
+.nm-confirm-cancel { border:1px solid #d4d4d8; background:white; color:#27272a; }
+.nm-confirm-accept { background:#18181b; color:white; border:1px solid #18181b; }
+.nm-confirm-danger { background:#a33d42; border-color:#a33d42; }
+@media(max-width:420px){ .nm-confirm-body{padding:1.2rem} .nm-confirm-actions{display:grid;grid-template-columns:1fr 1fr} .nm-confirm-actions button{min-width:0;overflow-wrap:anywhere} }

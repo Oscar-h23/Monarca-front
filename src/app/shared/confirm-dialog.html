@@ -1,0 +1,14 @@
+<dialog #modal class="nm-confirm-dialog" aria-labelledby="nm-confirm-title" aria-describedby="nm-confirm-message" (cancel)="cancel($event)">
+  <div class="nm-confirm-body">
+    <div class="nm-confirm-icon" [class.nm-confirm-icon-danger]="service.request()?.danger" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5M12 16h.01"/></svg>
+    </div>
+    <p class="nm-confirm-brand">Nayeli’s Moda</p>
+    <h2 id="nm-confirm-title">{{service.request()?.title}}</h2>
+    <p id="nm-confirm-message">{{service.request()?.message}}</p>
+    <div class="nm-confirm-actions">
+      <button type="button" class="nm-confirm-cancel" autofocus (click)="respond(false)">{{service.request()?.cancel}}</button>
+      <button type="button" class="nm-confirm-accept" [class.nm-confirm-danger]="service.request()?.danger" (click)="respond(true)">{{service.request()?.accept}}</button>
+    </div>
+  </div>
+</dialog>

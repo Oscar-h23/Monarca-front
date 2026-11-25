@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { ConfirmDialogService } from '../../shared/confirm-dialog.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -31,6 +32,7 @@ function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): Pr
 })
 export class AdminPage implements OnInit, OnDestroy {
   private adminApi=inject(AdminApi);
+  private readonly dialogs=inject(ConfirmDialogService);
   api=inject(Api);
   router=inject(Router);
   session=inject(SessionService);
@@ -70,7 +72,7 @@ export class AdminPage implements OnInit, OnDestroy {
     if(this.moduloEjecutando()||this.mlOcupado())return;
     const info=this.fuentesMl().find(x=>x.modulo===modulo);
     if(!info||!info.datasetImplementado||!info.registrosDisponibles)return;
-    if(!window.confirm('Ejecutar '+this.nombresModuloMl[modulo]+' usando '+(info.fuente==='PRUEBA'?info.registrosDisponibles+' registros SINTÉTICOS':'datos reales disponibles')+'? Los resultados son orientativos.'))return;
+    if(!(await this.dialogs.confirm('Ejecutar '+this.nombresModuloMl[modulo]+' usando '+(info.fuente==='PRUEBA'?info.registrosDisponibles+' registros SINTÉTICOS':'datos reales disponibles')+'? Los resultados son orientativos.',{title:'Ejecutar modelo',accept:'Ejecutar'})))return;
     this.moduloEjecutando.set(modulo);this.mlError.set('');this.mlMensaje.set('');
     try{
       const resultado=await this.adminApi.ejecutarModuloMl(modulo,modulo==='OUTFITS'?this.presupuestoOutfits:undefined);
@@ -109,7 +111,7 @@ export class AdminPage implements OnInit, OnDestroy {
     const aviso=fuente==='PRUEBA'
       ? 'Cambiarás todos los módulos visibles a datos sintéticos. Las recomendaciones que consultan esta fuente pueden cambiar. No entrenará ni activará modelos automáticamente.'
       : 'Cambiarás todos los módulos visibles a datos reales. Demanda y segmentación no disponen aún de dataset real integrado; no podrán ejecutarse. Los modelos de talla ya activos no se desactivarán automáticamente.';
-    if(!window.confirm(aviso+' ¿Continuar?'))return;
+    if(!(await this.dialogs.confirm(aviso,{title:'Cambiar fuente general de datos',accept:'Cambiar fuente'})))return;
     this.mlCambioGlobal.set(true);this.mlError.set('');this.mlMensaje.set('');
     let guardados=0;const fallidos:string[]=[];
     try{
@@ -146,7 +148,7 @@ export class AdminPage implements OnInit, OnDestroy {
     const aviso=fuente==='PRUEBA'
       ? 'Activarás datos SINTÉTICOS de prueba para '+this.nombresModuloMl[modulo]+'. No son compras reales ni acreditan precisión del modelo. ¿Continuar?'
       : 'Volverás a los datos REALES para '+this.nombresModuloMl[modulo]+'. ¿Continuar?';
-    if(!window.confirm(aviso))return;
+    if(!(await this.dialogs.confirm(aviso,{title:'Cambiar fuente del módulo',accept:'Cambiar fuente'})))return;
     this.mlGuardando.set(modulo);this.mlError.set('');this.mlMensaje.set('');
     try{
       const nuevo=await this.adminApi.configurarFuenteMl(modulo,fuente);
@@ -174,7 +176,7 @@ export class AdminPage implements OnInit, OnDestroy {
     if(this.mlOcupado())return;
     const fuente=this.fuentesMl().find(x=>x.modulo==='TALLAS');
     if(!fuente)return;
-    if(!window.confirm('Entrenarás un modelo con '+(fuente.fuente==='PRUEBA'?'DATOS SINTÉTICOS':'DATOS REALES')+'. El entrenamiento no activa automáticamente el resultado. ¿Continuar?'))return;
+    if(!(await this.dialogs.confirm('Entrenarás un modelo con '+(fuente.fuente==='PRUEBA'?'DATOS SINTÉTICOS':'DATOS REALES')+'. El entrenamiento no activa automáticamente el resultado.',{title:'Entrenar modelo de tallas',accept:'Entrenar'})))return;
     this.mlEntrenando.set(true);this.mlError.set('');this.mlMensaje.set('');
     try{
       const modelo=await this.adminApi.entrenarTallasMl();
@@ -191,7 +193,7 @@ export class AdminPage implements OnInit, OnDestroy {
       ? 'ATENCIÓN: fue entrenado con datos sintéticos. Las recomendaciones para clientes serán experimentales y no están validadas con compradores reales.'
       : 'El entrenamiento con valoraciones reales no garantiza precisión hasta realizar una evaluación externa.')+
       ' Puedes desactivarlo para regresar a las reglas.';
-    if(!window.confirm(aviso))return;
+    if(!(await this.dialogs.confirm(aviso,{title:'Activar modelo de tallas',accept:'Activar modelo'})))return;
     this.mlAccionModelo.set(true);this.mlError.set('');this.mlMensaje.set('');
     try{
       await this.adminApi.activarModeloTallasMl(id);
@@ -202,7 +204,7 @@ export class AdminPage implements OnInit, OnDestroy {
   }
   async desactivarModeloTallas():Promise<void>{
     if(this.mlOcupado())return;
-    if(!window.confirm('¿Desactivar ML supervisado y volver al sistema de reglas?'))return;
+    if(!(await this.dialogs.confirm('¿Desactivar ML supervisado y volver al sistema de reglas?',{title:'Desactivar modelo',accept:'Desactivar'})))return;
     this.mlAccionModelo.set(true);this.mlError.set('');this.mlMensaje.set('');
     try{
       await this.adminApi.desactivarModeloTallasMl();
@@ -235,7 +237,7 @@ export class AdminPage implements OnInit, OnDestroy {
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)){
       this.administradoresError.set('Ingresa un correo válido.');return;
     }
-    if(!window.confirm('¿Confirmas que deseas dar acceso administrativo completo a '+correo+'?'))return;
+    if(!(await this.dialogs.confirm('¿Confirmas que deseas dar acceso administrativo completo a '+correo+'?',{title:'Asignar administrador',accept:'Asignar acceso'})))return;
     this.administradoresBusy.set(true);
     this.administradoresError.set('');
     this.administradoresMensaje.set('');
@@ -376,7 +378,7 @@ export class AdminPage implements OnInit, OnDestroy {
   async confirmarPagoManual(){
     const pedido=this.gestionPedido();
     if(!pedido || !this.puedeConfirmarPagoManual(pedido) || this.gestionBusy())return;
-    if(!window.confirm('Confirma que recibiste el pago por otro medio. Se registrará como venta confirmada aunque el cliente no haya adjuntado una imagen. ¿Confirmar el pago recibido?'))return;
+    if(!(await this.dialogs.confirm('Confirma que recibiste el pago por otro medio. Se registrará como venta confirmada aunque el cliente no haya adjuntado una imagen.',{title:'Confirmar pago manual',accept:'Confirmar pago'})))return;
     this.gestionBusy.set(true);this.gestionError.set('');this.gestionMensaje.set('');
     try{
       await this.adminApi.confirmarPagoManual(pedido.idPedido);
@@ -420,7 +422,7 @@ export class AdminPage implements OnInit, OnDestroy {
       this.gestionError.set('Indica el motivo del rechazo (máximo 300 caracteres).');return;
     }
     if(accion==='APROBAR' &&
-       !window.confirm('¿Ya verificaste que el abono fue recibido realmente? La aprobación habilita la boleta PDF de prueba.'))return;
+       !(await this.dialogs.confirm('¿Ya verificaste que el abono fue recibido realmente? La aprobación habilita la boleta PDF de prueba.',{title:'Aprobar pago',accept:'Aprobar pago'})))return;
     this.gestionBusy.set(true);this.gestionError.set('');this.gestionMensaje.set('');
     try{
       await this.adminApi.revisarPago(pedido.idPedido,accion,
@@ -439,7 +441,7 @@ export class AdminPage implements OnInit, OnDestroy {
     if(!pedido || this.gestionBusy())return;
     if(estado==='CANCELADO'){
       if(!this.puedeCancelar(pedido))return;
-      if(!window.confirm('Cancelar el pedido devolverá al inventario sus unidades. Esta acción no podrá deshacerse. ¿Continuar?'))return;
+      if(!(await this.dialogs.confirm('Cancelar el pedido devolverá al inventario sus unidades. Esta acción no podrá deshacerse.',{title:'Cancelar pedido',accept:'Cancelar pedido',cancel:'Volver',danger:true})))return;
     } else if(this.proximoEstado(pedido)!==estado)return;
     this.gestionBusy.set(true);this.gestionError.set('');this.gestionMensaje.set('');
     try{
@@ -704,7 +706,7 @@ export class AdminPage implements OnInit, OnDestroy {
     finally{this.saving.set(false);this.uploadStep.set(false);}
   }
   async remove(p:Producto){
-    if(!confirm('¿Eliminar definitivamente '+p.nombre+'?'))return;
+    if(!(await this.dialogs.confirm('¿Eliminar definitivamente '+p.nombre+'?',{title:'Eliminar producto',accept:'Eliminar',danger:true})))return;
     this.error.set('');this.message.set('');
     try{
       await this.adminApi.deleteProduct(p.idProducto);
