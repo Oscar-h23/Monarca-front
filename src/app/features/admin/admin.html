@@ -42,7 +42,7 @@
    <p *ngIf="error()" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{error()}}</p>
    <app-admin-dashboard *ngIf="tab()==='resumen'" [products]="products()"
      (verInventario)="tab.set('productos')" (abrirMl)="abrirMl()"></app-admin-dashboard>
-   <app-prediccion-ventas *ngIf="tab()==='prediccion'" [products]="products()"></app-prediccion-ventas>
+   <app-prediccion-ventas *ngIf="tab()==='prediccion'" [products]="products()" (verInventario)="tab.set('productos')"></app-prediccion-ventas>
    <app-admin-payments *ngIf="tab()==='pagos'"></app-admin-payments>
 
    <section *ngIf="tab()==='ml'" class="space-y-5" aria-label="Configuración de Machine Learning">

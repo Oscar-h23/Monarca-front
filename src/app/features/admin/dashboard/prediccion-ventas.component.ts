@@ -1,17 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DemandaAnalisisComponent } from './demanda-analisis.component';
 import { Producto } from '../../../core/models/shop.models';
 import { AdminApi, EscenarioProductoDemanda, EjecucionAcademica } from '../data-access/admin-api.service';
 
 @Component({
   selector: 'app-prediccion-ventas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DemandaAnalisisComponent],
   templateUrl: './prediccion-ventas.html'
 })
 export class PrediccionVentasComponent implements OnInit {
   @Input() products: Producto[] = [];
+  @Output() verInventario = new EventEmitter<void>();
   private api = inject(AdminApi);
   buscar = '';
   producto: Producto | null = null;

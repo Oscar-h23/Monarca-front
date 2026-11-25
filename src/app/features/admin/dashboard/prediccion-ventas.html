@@ -30,4 +30,12 @@
       <p *ngIf="!filtrados.length" class="p-4 text-sm text-zinc-500">No hay productos que coincidan.</p>
     </div>
   </section>
+  <app-demanda-analisis
+    [ejecucion]="ejecucion ?? undefined"
+    [products]="products"
+    [ejecutando]="cargando"
+    [fuenteDisponible]="fuentePrueba"
+    (actualizar)="cargar(true)"
+    (verInventario)="verInventario.emit()">
+  </app-demanda-analisis>
 </section>

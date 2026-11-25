@@ -3,7 +3,6 @@ import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular
 import { FormsModule } from '@angular/forms';
 import { Producto } from '../../../core/models/shop.models';
 import { AdminApi, PeriodoVentas, EjecucionAcademica, FuenteMlInfo } from '../data-access/admin-api.service';
-import { DemandaAnalisisComponent } from './demanda-analisis.component';
 
 type Barra = { etiqueta:string; importe:number; pedidos:number; porcentaje:number };
 const COLORES = ['#18181b','#9f806e','#64748b','#9274b1','#b5a084','#6b8f84'];
@@ -16,7 +15,7 @@ function fechaLima(haceDias=0): string {
 @Component({
   standalone:true,
   selector:'app-admin-dashboard',
-  imports:[CommonModule,FormsModule,DemandaAnalisisComponent],
+  imports:[CommonModule,FormsModule],
   templateUrl:'./admin-dashboard.html'
 })
 export class AdminDashboardComponent implements OnInit {
@@ -27,14 +26,14 @@ export class AdminDashboardComponent implements OnInit {
   mlResultados:EjecucionAcademica[]=[];
   mlFuentes:FuenteMlInfo[]=[];
   mlBusy=false;
-  mlAccion:'CLUSTERING'|'DEMANDA'|null=null;
+  mlAccion:'CLUSTERING'|null=null;
   mlError='';
   mlMensaje='';
 
-  fuenteModulo(modulo:'CLUSTERING'|'DEMANDA'):FuenteMlInfo|undefined {
+  fuenteModulo(modulo:'CLUSTERING'):FuenteMlInfo|undefined {
     return this.mlFuentes.find(x=>x.modulo===modulo);
   }
-  resultadoMl(modulo:'CLUSTERING'|'DEMANDA'):EjecucionAcademica|undefined {
+  resultadoMl(modulo:'CLUSTERING'):EjecucionAcademica|undefined {
     return this.mlResultados.find(x=>x.modulo===modulo);
   }
   segmentosAccion():Array<{
@@ -57,22 +56,6 @@ export class AdminDashboardComponent implements OnInit {
               compras,gasto,recencia};
     }).sort((a,b)=>b.clientes-a.clientes);
   }
-  escenariosStock():Array<{idProducto:number;nombre:string;imagen:string;stock:number;
-    unidadesEscenario:number;visitasSupuestas:number;diferencia:number}>{
-    const escenarios=this.resultadoMl('DEMANDA')?.resultado.escenarios_producto||[];
-    return escenarios.flatMap(e=>{
-      const p=this.products.find(p=>p.idProducto===e.idProducto);
-      if(!p)return [];
-      const stock=(p.variantes||[]).reduce((total,v)=>total+Math.max(0,v.stock),0);
-      const supuesto=Number(e.unidadesEscenario);
-      if(!Number.isFinite(supuesto)||supuesto<0)return [];
-      return [{
-        idProducto:p.idProducto,nombre:p.nombre,imagen:p.imagen||'',
-        stock,unidadesEscenario:supuesto,visitasSupuestas:Number(e.visitasSupuestas),
-        diferencia:Math.max(0,Math.ceil(supuesto)-stock)
-      }];
-    }).sort((a,b)=>b.diferencia-a.diferencia||b.unidadesEscenario-a.unidadesEscenario).slice(0,8);
-  }
   async cargarMl(){
     this.mlBusy=true;this.mlError='';
     try {
@@ -85,7 +68,7 @@ export class AdminDashboardComponent implements OnInit {
       this.mlError='No fue posible consultar los análisis de IA. Comprueba los permisos de administrador.';
     } finally {this.mlBusy=false;}
   }
-  async ejecutarMl(modulo:'CLUSTERING'|'DEMANDA') {
+  async ejecutarMl(modulo:'CLUSTERING') {
     if(this.mlAccion || this.mlBusy)return;
     const fuente=this.fuenteModulo(modulo);
     if(!fuente?.datasetImplementado||!fuente.registrosDisponibles){
@@ -96,7 +79,7 @@ export class AdminDashboardComponent implements OnInit {
     try{
       const ejecucion=await this.api.ejecutarModuloMl(modulo);
       this.mlResultados=[ejecucion,...this.mlResultados.filter(x=>x.modulo!==modulo)];
-      this.mlMensaje=modulo==='CLUSTERING'?'Segmentos actualizados.':'Escenarios de demanda actualizados.';
+      this.mlMensaje='Segmentos actualizados.';
     } catch {
       this.mlError='El análisis no pudo completarse. Comprueba la fuente y vuelve a intentarlo.';
     } finally {this.mlAccion=null;}
