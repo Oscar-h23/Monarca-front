@@ -11,7 +11,7 @@ import { AdminApi, AdministradorCuenta, Pedido, ProductForm, ProductVariantForm,
 import { PrediccionVentasComponent } from './dashboard/prediccion-ventas.component';
 import { AdminDashboardComponent } from './dashboard/admin-dashboard.page';
 import { AdminPaymentsComponent } from './payments/admin-payments.page';
-import { CampanasDemoComponent } from './campanas-demo/campanas-demo.component';
+import { GeneradorCampanasComponent } from './campanas-demo/generador-campanas.component';
 
 function blankForm(): ProductForm {
   return {idVariante:null,nombre:'',categoria:'Tops',descripcion:'',marca:'Nayeli’s moda',talla:'ÚNICA',
@@ -25,7 +25,7 @@ function blankVariant(price = 0, color = '', colorHex = '', stockMinimo = 0): Pr
 
 @Component({
   standalone:true, selector:'app-admin',
-  imports:[CommonModule,FormsModule,RouterLink,AdminDashboardComponent,AdminPaymentsComponent,CampanasDemoComponent,PrediccionVentasComponent],
+  imports:[CommonModule,FormsModule,RouterLink,AdminDashboardComponent,AdminPaymentsComponent,GeneradorCampanasComponent,PrediccionVentasComponent],
   templateUrl:'./admin.html'
 })
 export class AdminPage implements OnInit, OnDestroy {
@@ -48,7 +48,7 @@ export class AdminPage implements OnInit, OnDestroy {
     CONFIRMADO:'EN_PREPARACION', EN_PREPARACION:'EN_CAMINO', EN_CAMINO:'FINALIZADO'
   };
   search=signal('');
-  tab=signal<'resumen'|'productos'|'pedidos'|'pagos'|'administradores'|'ml'|'prediccion'>('resumen');
+  tab=signal<'resumen'|'productos'|'pedidos'|'pagos'|'administradores'|'ml'|'prediccion'|'campanas'>('resumen');
   fuentesMl=signal<FuenteMlInfo[]>([]);
   mlCargando=signal(false);
   mlGuardando=signal<ModuloMl|null>(null);

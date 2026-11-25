@@ -1,0 +1,34 @@
+<section class="space-y-5" aria-label="Generador de campañas">
+  <header class="rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
+    <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">Marketing · Machine Learning</p>
+    <h2 class="mt-2 text-2xl font-bold text-zinc-900">Generador de campañas</h2>
+    <p class="mt-2 text-sm text-zinc-600">Identifica grupos de clientes por frecuencia de compra, gasto y tiempo desde su última compra. Diseña campañas y evalúa escenarios sin enviar correos.</p>
+    <p class="mt-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-900">Modo de prueba: los perfiles son sintéticos, las campañas son borradores locales y las tasas de respuesta son hipótesis. No se contacta a clientes reales.</p>
+    <div class="mt-4 flex flex-wrap gap-2">
+      <button type="button" (click)="cargar(true)" [disabled]="cargando || fuente?.fuente!=='PRUEBA'" class="min-h-11 rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{{cargando?'Procesando…':'Actualizar segmentos'}}</button>
+      <button type="button" *ngIf="!cargando && fuente?.fuente!=='PRUEBA'" (click)="cargar(true,true)" class="min-h-11 rounded-xl border border-zinc-300 px-4 py-2 text-sm font-semibold">Activar datos de prueba</button>
+    </div>
+    <p *ngIf="error" role="alert" class="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{{error}}</p>
+    <p *ngIf="mensaje" role="status" class="mt-3 text-sm text-zinc-600">{{mensaje}}</p>
+    <p *ngIf="cargando" role="status" class="mt-3 text-sm text-zinc-500">Consultando Monarca-ML…</p>
+  </header>
+  <ng-container *ngIf="ejecucion as e">
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4"><p class="text-xs text-zinc-500">Perfiles segmentados</p><p class="mt-2 text-2xl font-bold">{{perfiles}}</p><p class="mt-1 text-xs text-zinc-500">{{segmentos.length}} segmentos K-Means</p></div>
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4"><p class="text-xs text-zinc-500">Compras promedio</p><p class="mt-2 text-2xl font-bold">{{compras | number:'1.1-1'}}</p><p class="mt-1 text-xs text-zinc-500">Media ponderada por perfiles</p></div>
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4"><p class="text-xs text-zinc-500">Gasto promedio</p><p class="mt-2 text-2xl font-bold">S/ {{gasto | number:'1.2-2'}}</p><p class="mt-1 text-xs text-zinc-500">Por perfil simulado</p></div>
+      <div class="rounded-2xl border border-zinc-200 bg-white p-4"><p class="text-xs text-zinc-500">Días sin compra</p><p class="mt-2 text-2xl font-bold">{{recencia | number:'1.0-0'}}</p><p class="mt-1 text-xs text-zinc-500">{{prioridades}} grupos con prioridad alta por reglas</p></div>
+    </div>
+    <section class="rounded-2xl border border-zinc-200 bg-white p-5" aria-label="Evaluación de segmentación">
+      <h3 class="text-lg font-bold">Evaluación del modelo</h3>
+      <p class="mt-1 text-xs text-zinc-500">Aprendizaje no supervisado · Ejecución #{{e.idEjecucion}} · {{e.registros}} registros · {{e.fecha | date:'dd/MM/yyyy HH:mm'}}</p>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <article class="rounded-xl bg-zinc-50 p-4"><h4 class="font-semibold">K-Means</h4><p class="mt-2 text-sm">{{kmeans?.grupos ?? '—'}} grupos · Silhouette: <strong>{{kmeans?.silhouette == null ? 'No calculable' : (kmeans?.silhouette | number:'1.3-3')}}</strong></p><p class="mt-2 text-xs text-zinc-600">Agrupa perfiles similares y proporciona los segmentos utilizados para las sugerencias de campañas.</p></article>
+        <article class="rounded-xl bg-zinc-50 p-4"><h4 class="font-semibold">DBSCAN</h4><p class="mt-2 text-sm">{{dbscan?.grupos ?? '—'}} grupos · Silhouette: <strong>{{dbscan?.silhouette == null ? 'No calculable' : (dbscan?.silhouette | number:'1.3-3')}}</strong></p><p class="mt-1 text-sm">Perfiles atípicos: {{dbscan?.ruido ?? '—'}}</p><p class="mt-2 text-xs text-zinc-600">Detecta grupos por densidad y posibles perfiles atípicos. Se muestra como comparación experimental.</p></article>
+      </div>
+      <p class="mt-3 text-xs text-zinc-600">Silhouette mide la separación y cohesión de los grupos (de −1 a 1); un valor mayor suele indicar grupos mejor diferenciados. No mide conversiones ni éxito comercial.</p>
+    </section>
+    <app-campanas-demo [ejecucion]="e"></app-campanas-demo>
+  </ng-container>
+  <p *ngIf="!ejecucion && !cargando && !error" class="rounded-2xl border border-zinc-200 bg-white p-5 text-sm text-zinc-600">Activa los datos de prueba para obtener segmentos y generar campañas de demostración.</p>
+</section>

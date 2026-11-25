@@ -29,6 +29,7 @@
     <button type="button" (click)="abrirMl()" [class.bg-zinc-900]="tab()==='ml'" [class.text-white]="tab()==='ml'"
       class="min-h-11 shrink-0 snap-start rounded-xl px-3 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-zinc-100 min-[375px]:text-sm sm:px-4 lg:w-full">Machine Learning</button>
     <button type="button" (click)="tab.set('prediccion')" [class.bg-zinc-900]="tab()==='prediccion'" [class.text-white]="tab()==='prediccion'" class="min-h-11 shrink-0 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-zinc-100 lg:w-full">Predicción de ventas</button>
+    <button type="button" (click)="tab.set('campanas')" [class.bg-zinc-900]="tab()==='campanas'" [class.text-white]="tab()==='campanas'" class="min-h-11 shrink-0 rounded-xl px-3 py-3 text-left text-sm font-semibold hover:bg-zinc-100 lg:w-full">Generador de campañas</button>
    </nav>
    <div class="mt-5 hidden rounded-2xl border border-zinc-200 bg-zinc-50 p-5 lg:block">
     <p class="text-xs font-bold text-zinc-700">Existencias totales</p>
@@ -42,6 +43,7 @@
    <p *ngIf="error()" class="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">{{error()}}</p>
    <app-admin-dashboard *ngIf="tab()==='resumen'" [products]="products()"
      (verInventario)="tab.set('productos')" (abrirMl)="abrirMl()"></app-admin-dashboard>
+   <app-generador-campanas *ngIf="tab()==='campanas'"></app-generador-campanas>
    <app-prediccion-ventas *ngIf="tab()==='prediccion'" [products]="products()" (verInventario)="tab.set('productos')"></app-prediccion-ventas>
    <app-admin-payments *ngIf="tab()==='pagos'"></app-admin-payments>
 
@@ -136,7 +138,7 @@
                </div>
               </div>
             </ng-container>
-            <app-campanas-demo *ngIf="ejecucion.modulo==='CLUSTERING'" [ejecucion]="ejecucion"></app-campanas-demo>
+
             <ng-container *ngIf="ejecucion.modulo==='DEMANDA'">
               <div class="grid gap-3 text-sm sm:grid-cols-3">
                 <div><p class="text-xs text-zinc-500">MAE (unidades)</p><strong>{{ejecucion.resultado.mae_unidades??'—'}}</strong></div>

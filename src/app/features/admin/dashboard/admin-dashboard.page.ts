@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Producto } from '../../../core/models/shop.models';
-import { AdminApi, PeriodoVentas, EjecucionAcademica, FuenteMlInfo } from '../data-access/admin-api.service';
+import { AdminApi, PeriodoVentas } from '../data-access/admin-api.service';
 
 type Barra = { etiqueta:string; importe:number; pedidos:number; porcentaje:number };
 const COLORES = ['#18181b','#9f806e','#64748b','#9274b1','#b5a084','#6b8f84'];
@@ -23,68 +23,6 @@ export class AdminDashboardComponent implements OnInit {
   @Input() products:Producto[]=[];
   @Output() verInventario=new EventEmitter<void>();
   @Output() abrirMl=new EventEmitter<void>();
-  mlResultados:EjecucionAcademica[]=[];
-  mlFuentes:FuenteMlInfo[]=[];
-  mlBusy=false;
-  mlAccion:'CLUSTERING'|null=null;
-  mlError='';
-  mlMensaje='';
-
-  fuenteModulo(modulo:'CLUSTERING'):FuenteMlInfo|undefined {
-    return this.mlFuentes.find(x=>x.modulo===modulo);
-  }
-  resultadoMl(modulo:'CLUSTERING'):EjecucionAcademica|undefined {
-    return this.mlResultados.find(x=>x.modulo===modulo);
-  }
-  segmentosAccion():Array<{
-    segmento:number;clientes:number;nombre:string;accion:string;
-    compras:number;gasto:number;recencia:number
-  }> {
-    const resultado=this.resultadoMl('CLUSTERING');
-    return (resultado?.resultado.segmentos||[]).map(s=>{
-      const compras=s.compras_promedio||0;
-      const gasto=s.gasto_promedio_soles||0;
-      const recencia=s.dias_desde_ultima_compra_promedio||0;
-      const nombre=recencia>=160?'Clientes por recuperar':
-        compras>=8?'Compradores frecuentes':
-        gasto>=500?'Mayor gasto estimado':'Compradores ocasionales';
-      const accion=recencia>=160?'Explorar una campaña de reactivación':
-        compras>=8?'Considerar ventajas de fidelidad':
-        gasto>=500?'Preparar una propuesta de looks premium':
-        'Probar recomendaciones de prendas complementarias';
-      return {segmento:s.segmento,clientes:s.clientes,nombre,accion,
-              compras,gasto,recencia};
-    }).sort((a,b)=>b.clientes-a.clientes);
-  }
-  async cargarMl(){
-    this.mlBusy=true;this.mlError='';
-    try {
-      const [resultados,fuentes]=await Promise.all([
-        this.api.resultadosModulosMl(),this.api.fuentesMl()
-      ]);
-      this.mlResultados=resultados;
-      this.mlFuentes=fuentes;
-    } catch {
-      this.mlError='No fue posible consultar los análisis de IA. Comprueba los permisos de administrador.';
-    } finally {this.mlBusy=false;}
-  }
-  async ejecutarMl(modulo:'CLUSTERING') {
-    if(this.mlAccion || this.mlBusy)return;
-    const fuente=this.fuenteModulo(modulo);
-    if(!fuente?.datasetImplementado||!fuente.registrosDisponibles){
-      this.mlError='La fuente seleccionada no dispone de registros suficientes. Revisa Machine Learning.';
-      return;
-    }
-    this.mlAccion=modulo;this.mlError='';this.mlMensaje='';
-    try{
-      const ejecucion=await this.api.ejecutarModuloMl(modulo);
-      this.mlResultados=[ejecucion,...this.mlResultados.filter(x=>x.modulo!==modulo)];
-      this.mlMensaje='Segmentos actualizados.';
-    } catch {
-      this.mlError='El análisis no pudo completarse. Comprueba la fuente y vuelve a intentarlo.';
-    } finally {this.mlAccion=null;}
-  }
-
   desde=fechaLima(29);
   hasta=fechaLima();
   periodo=30;
@@ -93,7 +31,7 @@ export class AdminDashboardComponent implements OnInit {
   reporte:PeriodoVentas|null=null;
   readonly colores=COLORES;
 
-  ngOnInit(){void this.cargar();void this.cargarMl();}
+  ngOnInit(){void this.cargar();}
   usarPeriodo(dias:number){
     this.periodo=dias;
     this.desde=fechaLima(dias-1);
