@@ -52,18 +52,35 @@
      <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
        <p class="text-xs font-semibold uppercase tracking-[.18em] text-zinc-500">Administración · Inteligencia artificial</p>
-       <h2 class="mt-2 text-xl font-bold text-zinc-900">Fuente de datos para ML</h2>
-       <a routerLink="/demo-ml" class="mt-3 inline-flex min-h-11 items-center rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white">Abrir laboratorio interactivo para la presentación</a>
-       <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600">Elige si cada dataset utiliza valoraciones reales o ejemplos de prueba. No modifica pedidos, inventario ni valoraciones reales.</p>
+       <h2 class="mt-2 text-xl font-bold text-zinc-900">Centro de Machine Learning</h2>
+       <a routerLink="/demo-ml" class="mt-3 inline-flex min-h-11 items-center rounded-xl bg-zinc-900 px-4 py-2 text-sm font-semibold text-white">Abrir laboratorio interactivo</a>
+       <p class="mt-2 max-w-2xl text-sm leading-relaxed text-zinc-600">Configura las fuentes de datos, consulta su disponibilidad y ejecuta los modelos desde un solo lugar. Cambiar la fuente no modifica pedidos ni inventario, ni entrena o activa automáticamente modelos.</p>
       </div>
-      <button type="button" (click)="cargarFuentesMl()" [disabled]="mlCargando()||mlGuardando()!==null"
+      <button type="button" (click)="cargarFuentesMl()" [disabled]="mlOcupado()"
         class="min-h-11 rounded-xl border border-zinc-300 px-4 py-2 text-sm font-semibold disabled:opacity-50">{{mlCargando()?'Cargando…':'Actualizar'}}</button>
      </div>
      <p *ngIf="mlError()" role="alert" class="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-800">{{mlError()}}</p>
      <p *ngIf="mlMensaje()" role="status" class="mt-4 rounded-xl bg-green-50 p-3 text-sm text-green-800">{{mlMensaje()}}</p>
      <p *ngIf="mlCargando() && !fuentesMl().length" class="mt-5 text-sm text-zinc-500">Consultando configuración…</p>
-     <div class="mt-6 grid gap-4">
-      <article *ngFor="let fuente of fuentesMl()" class="rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
+     <div *ngIf="fuentesMl().length" class="mt-5 rounded-xl border border-[#d6c2b8] bg-crema p-4">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+       <div><h3 class="text-sm font-bold text-zinc-900">Fuente general de datos</h3><p class="mt-1 text-xs text-zinc-600">Aplica una fuente a todos los módulos visibles o configúralos por separado.</p></div>
+       <span class="rounded-full border border-[#d6c2b8] bg-white px-3 py-1 text-xs font-semibold">{{modoGeneralMl()==='MIXTO'?'Configuración mixta':modoGeneralMl()==='REALES'?'Datos reales':'Datos de prueba'}}</span>
+      </div>
+      <div class="mt-3 grid gap-2 sm:grid-cols-2">
+       <button type="button" (click)="cambiarTodasFuentesMl('REALES')" [disabled]="mlOcupado()||modoGeneralMl()==='REALES'" [attr.aria-pressed]="modoGeneralMl()==='REALES'" [ngClass]="modoGeneralMl()==='REALES'?'bg-zinc-900 text-white border-zinc-900':'bg-white text-zinc-900 border-zinc-200'" class="min-w-0 rounded-xl border p-3 text-left disabled:cursor-default">
+        <span class="block text-sm font-bold">Datos reales</span><span class="mt-1 block text-xs">{{contarFuenteMl('REALES')}} de {{fuentesMl().length}} módulos · Registros de Supabase</span>
+       </button>
+       <button type="button" (click)="cambiarTodasFuentesMl('PRUEBA')" [disabled]="mlOcupado()||modoGeneralMl()==='PRUEBA'" [attr.aria-pressed]="modoGeneralMl()==='PRUEBA'" [ngClass]="modoGeneralMl()==='PRUEBA'?'bg-zinc-900 text-white border-zinc-900':'bg-white text-zinc-900 border-zinc-200'" class="min-w-0 rounded-xl border p-3 text-left disabled:cursor-default">
+        <span class="block text-sm font-bold">Datos de prueba</span><span class="mt-1 block text-xs">{{contarFuenteMl('PRUEBA')}} de {{fuentesMl().length}} módulos · Datos sintéticos</span>
+       </button>
+      </div>
+      <p *ngIf="mlCambioGlobal()" role="status" class="mt-3 text-sm font-semibold text-zinc-700">Guardando fuentes de datos…</p>
+      <p class="mt-3 text-xs leading-relaxed text-zinc-600">Demanda y segmentación aún no tienen un dataset real integrado. Seleccionar Reales no crea registros ni garantiza que el modelo pueda ejecutarse.</p>
+     </div>
+     <div *ngIf="fuentesMl().length" class="mt-5 flex flex-wrap items-center justify-between gap-2"><h3 class="text-sm font-bold">Configuración por módulo</h3><span class="text-xs text-zinc-500">Abre el detalle para entrenar o consultar métricas.</span></div>
+     <div class="mt-3 grid gap-3">
+      <article *ngFor="let fuente of fuentesMl()" class="min-w-0 rounded-xl border border-zinc-200 bg-white p-4">
        <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="min-w-0">
          <h3 class="text-base font-bold text-zinc-900">{{nombresModuloMl[fuente.modulo]}}</h3>
@@ -79,24 +96,30 @@
         </span>
        </div>
        <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="inline-flex rounded-xl border border-zinc-200 bg-white p-1" role="group"
+        <div class="inline-flex max-w-full flex-wrap rounded-xl border border-zinc-200 bg-zinc-50 p-1" role="group"
              [attr.aria-label]="'Fuente de datos para '+nombresModuloMl[fuente.modulo]">
          <button type="button" (click)="cambiarFuenteMl(fuente.modulo,'REALES')"
           [attr.aria-pressed]="fuente.fuente==='REALES'"
-          [disabled]="mlGuardando()!==null || mlCargando()"
+          [disabled]="mlOcupado()"
           [class.bg-zinc-900]="fuente.fuente==='REALES'" [class.text-white]="fuente.fuente==='REALES'"
           class="min-h-11 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50">Reales</button>
          <button type="button" (click)="cambiarFuenteMl(fuente.modulo,'PRUEBA')"
           [attr.aria-pressed]="fuente.fuente==='PRUEBA'"
-          [disabled]="mlGuardando()!==null || mlCargando()"
+          [disabled]="mlOcupado()"
           [class.bg-zinc-900]="fuente.fuente==='PRUEBA'" [class.text-white]="fuente.fuente==='PRUEBA'"
           class="min-h-11 rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50">Prueba</button>
         </div>
         <p class="text-sm text-zinc-700" *ngIf="fuente.datasetImplementado">
-         <strong>{{fuente.registrosDisponibles}}</strong> ejemplos disponibles
+         <strong>{{fuente.registrosDisponibles}}</strong> registros · {{estadoDatasetMl(fuente)}}
         </p>
-        <p class="text-xs font-semibold text-amber-800" *ngIf="!fuente.datasetImplementado">Dataset pendiente de integrar</p>
+        <p class="text-xs font-semibold text-amber-800" *ngIf="!fuente.datasetImplementado">Dataset no integrado para esta fuente</p>
        </div>
+       <div class="mt-3 flex flex-wrap items-center gap-2">
+        <button type="button" (click)="mlDetalle.set(mlDetalle()===fuente.modulo?null:fuente.modulo)" [attr.aria-expanded]="mlDetalle()===fuente.modulo" class="min-h-10 rounded-lg border border-zinc-300 px-3 py-2 text-xs font-semibold">{{mlDetalle()===fuente.modulo?'Ocultar detalle':'Ver configuración y resultados'}}</button>
+        <button *ngIf="fuente.modulo==='DEMANDA'" type="button" (click)="tab.set('prediccion')" class="min-h-10 rounded-lg border border-zinc-300 px-3 py-2 text-xs font-semibold">Ir a Predicción de ventas</button>
+        <button *ngIf="fuente.modulo==='CLUSTERING'" type="button" (click)="tab.set('campanas')" class="min-h-10 rounded-lg border border-zinc-300 px-3 py-2 text-xs font-semibold">Ir a Generador de campañas</button>
+       </div>
+       <ng-container *ngIf="mlDetalle()===fuente.modulo">
        <div *ngIf="fuente.modulo==='COCOMPRA'" class="mt-4 border-t border-zinc-200 pt-4">
         <p class="text-xs leading-relaxed text-zinc-600">Compara productos comprados juntos mediante reglas de asociación (soporte, confianza y lift). Las 100 cestas de prueba son simuladas. Las recomendaciones aparecen también en las fichas de productos, claramente etiquetadas.</p>
         <a routerLink="/demo-ml" class="mt-3 inline-flex min-h-11 items-center rounded-xl border border-zinc-900 px-4 py-2 text-sm font-semibold">Probar prendas complementarias</a>
@@ -115,10 +138,11 @@
              [(ngModel)]="presupuestoOutfits" class="w-32 min-h-11 rounded-lg border border-zinc-300 px-3 py-2 text-sm"/>
          </div>
          <button type="button" (click)="ejecutarAcademico(fuente.modulo==='CLUSTERING'?'CLUSTERING':fuente.modulo==='DEMANDA'?'DEMANDA':'OUTFITS')"
-           [disabled]="!fuente.datasetImplementado||fuente.registrosDisponibles===0||moduloEjecutando()!==null||mlCargando()||mlGuardando()!==null||(fuente.modulo==='OUTFITS'&&(!presupuestoOutfits||presupuestoOutfits<20||presupuestoOutfits>2000))"
+           [disabled]="!fuente.datasetImplementado||fuente.registrosDisponibles===0||mlOcupado()||(fuente.modulo==='OUTFITS'&&(!presupuestoOutfits||presupuestoOutfits<20||presupuestoOutfits>2000))"
            class="min-h-11 rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-40">
            {{moduloEjecutando()===fuente.modulo?'Procesando…':fuente.modulo==='CLUSTERING'?'Ejecutar K-Means y DBSCAN':fuente.modulo==='DEMANDA'?'Entrenar regresión lineal':'Buscar outfits con Hill Climbing y A*'}}
          </button>
+         <p *ngIf="!resultadoAcademico(fuente.modulo)" class="text-xs text-zinc-500">No hay una última ejecución disponible para la fuente seleccionada. Ejecuta el módulo si el dataset está disponible.</p>
          <div *ngIf="resultadoAcademico(fuente.modulo) as ejecucion" class="rounded-xl border border-zinc-200 bg-white p-4 space-y-3">
             <div class="flex flex-wrap justify-between gap-2">
               <strong class="text-sm">Última ejecución #{{ejecucion.idEjecucion}}</strong>
@@ -133,7 +157,7 @@
               </div>
               <div class="grid gap-2 sm:grid-cols-2">
                <div *ngFor="let segmento of ejecucion.resultado.segmentos" class="rounded-lg bg-zinc-50 p-3 text-xs">
-                 <strong>Segmento {{segmento.segmento}}</strong> · {{segmento.clientes}} clientes simulados
+                 <strong>Segmento {{segmento.segmento}}</strong> · {{segmento.clientes}} {{ejecucion.fuente==='PRUEBA'?'perfiles simulados':'clientes'}}
                  <p class="mt-1">Compras promedio: {{segmento.compras_promedio}} · Gasto promedio: S/ {{segmento.gasto_promedio_soles|number:'1.2-2'}}</p>
                </div>
               </div>
@@ -146,7 +170,7 @@
                 <div><p class="text-xs text-zinc-500">R² prueba</p><strong>{{ejecucion.resultado.r2_prueba??'—'}}</strong></div>
               </div>
               <p class="text-xs text-zinc-600">Separación temporal: {{ejecucion.resultado.entrenamiento}} entrenamiento / {{ejecucion.resultado.prueba}} prueba.</p>
-              <p class="text-xs text-amber-800">Las métricas de datos sintéticos no permiten asegurar demanda futura real.</p>
+              <p *ngIf="ejecucion.fuente==='PRUEBA'" class="text-xs text-amber-800">Las métricas de datos sintéticos no permiten asegurar demanda futura real.</p>
             </ng-container>
             <ng-container *ngIf="ejecucion.modulo==='OUTFITS'">
               <p class="text-sm">{{ejecucion.resultado.factibles}} combinaciones dentro del presupuesto de S/ {{ejecucion.resultado.presupuesto_soles}}.</p>
@@ -167,16 +191,16 @@
           </div>
        </div>
        <div *ngIf="fuente.modulo==='TALLAS'" class="mt-4 border-t border-zinc-200 pt-4">
-        <button type="button" (click)="descargarDatasetTallas()" [disabled]="mlDescargando()||mlGuardando()!==null"
+        <button type="button" (click)="descargarDatasetTallas()" [disabled]="mlOcupado()||!fuente.datasetImplementado||fuente.registrosDisponibles===0"
          class="min-h-11 rounded-xl border border-zinc-900 bg-white px-4 py-2 text-sm font-semibold text-zinc-900 hover:bg-zinc-100 disabled:opacity-50">
          {{mlDescargando()?'Descargando…':'Descargar CSV de la fuente seleccionada'}}
         </button>
         <div class="mt-4 flex flex-wrap gap-3">
-         <button type="button" (click)="entrenarModeloTallas()" [disabled]="mlEntrenando()||mlAccionModelo()||mlCargando()||mlGuardando()!==null||fuente.registrosDisponibles<30"
+         <button type="button" (click)="entrenarModeloTallas()" [disabled]="mlOcupado()||fuente.registrosDisponibles<30"
           class="min-h-11 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white disabled:opacity-40">
           {{mlEntrenando()?'Entrenando modelo…':'Entrenar modelo'}}
          </button>
-         <button type="button" (click)="desactivarModeloTallas()" [disabled]="mlAccionModelo()||mlEntrenando()||!modelosTallasMl().length"
+         <button type="button" (click)="desactivarModeloTallas()" [disabled]="mlOcupado()||!modelosTallasMl().length"
           class="min-h-11 rounded-xl border border-zinc-300 bg-white px-5 py-3 text-sm font-semibold disabled:opacity-40">
           Volver a recomendaciones por reglas
          </button>
@@ -184,7 +208,8 @@
         <p class="mt-2 text-xs text-amber-800" *ngIf="fuente.registrosDisponibles<30">Se necesitan al menos 30 registros y cinco por cada clase para entrenar.</p>
         <p class="mt-2 text-xs text-zinc-500">Entrenar solo genera un candidato. Debes activar el modelo que quieras utilizar; los datos sintéticos no demuestran precisión con personas reales.</p>
         <section class="mt-5 space-y-3" aria-label="Modelos de tallas entrenados">
-          <h4 class="text-sm font-bold text-zinc-900">Versiones y métricas</h4>
+          <h4 class="text-sm font-bold text-zinc-900">Versiones y métricas (todas las fuentes)</h4>
+          <p class="text-xs text-zinc-600">La fuente de entrenamiento y la versión activa para recomendar tallas son configuraciones independientes.</p>
           <p *ngIf="!modelosTallasMl().length" class="text-sm text-zinc-500">Todavía no hay modelos supervisados guardados.</p>
           <article *ngFor="let modelo of modelosTallasMl()" class="rounded-xl border border-zinc-200 bg-white p-4">
            <div class="flex flex-wrap items-center justify-between gap-3">
@@ -207,13 +232,14 @@
              </ng-container>
             </div>
            </div>
-           <button type="button" *ngIf="!modelo.activo" (click)="activarModeloTallas(modelo.idModelo)" [disabled]="mlAccionModelo()||mlEntrenando()"
+           <button type="button" *ngIf="!modelo.activo" (click)="activarModeloTallas(modelo.idModelo)" [disabled]="mlOcupado()"
             class="mt-4 min-h-11 rounded-xl border border-zinc-900 px-4 py-2 text-sm font-semibold disabled:opacity-40">
             Activar versión experimental
            </button>
           </article>
         </section>
        </div>
+       </ng-container>
       </article>
      </div>
     </div>

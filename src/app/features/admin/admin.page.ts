@@ -52,6 +52,8 @@ export class AdminPage implements OnInit, OnDestroy {
   fuentesMl=signal<FuenteMlInfo[]>([]);
   mlCargando=signal(false);
   mlGuardando=signal<ModuloMl|null>(null);
+  mlCambioGlobal=signal(false);
+  mlDetalle=signal<ModuloMl|null>(null);
   mlDescargando=signal(false);
   mlEntrenando=signal(false);
   mlAccionModelo=signal(false);
@@ -60,13 +62,14 @@ export class AdminPage implements OnInit, OnDestroy {
   moduloEjecutando=signal<ModuloMl|null>(null);
   presupuestoOutfits=180;
   resultadoAcademico(modulo:ModuloMl):EjecucionAcademica|undefined {
-    return this.ejecucionesAcademicas().find(x=>x.modulo===modulo);
+    const fuente=this.fuentesMl().find(x=>x.modulo===modulo)?.fuente;
+    return this.ejecucionesAcademicas().find(x=>x.modulo===modulo&&x.fuente===fuente);
   }
   async ejecutarAcademico(modulo:'CLUSTERING'|'DEMANDA'|'OUTFITS'):Promise<void>{
-    if(this.moduloEjecutando()||this.mlCargando())return;
+    if(this.moduloEjecutando()||this.mlOcupado())return;
     const info=this.fuentesMl().find(x=>x.modulo===modulo);
     if(!info||!info.datasetImplementado||!info.registrosDisponibles)return;
-    if(!window.confirm('Ejecutar '+this.nombresModuloMl[modulo]+' usando '+(info.fuente==='PRUEBA'?'100 registros SINTÉTICOS':'datos reales disponibles')+'? Los resultados son orientativos.'))return;
+    if(!window.confirm('Ejecutar '+this.nombresModuloMl[modulo]+' usando '+(info.fuente==='PRUEBA'?info.registrosDisponibles+' registros SINTÉTICOS':'datos reales disponibles')+'? Los resultados son orientativos.'))return;
     this.moduloEjecutando.set(modulo);this.mlError.set('');this.mlMensaje.set('');
     try{
       const resultado=await this.adminApi.ejecutarModuloMl(modulo,modulo==='OUTFITS'?this.presupuestoOutfits:undefined);
@@ -81,12 +84,51 @@ export class AdminPage implements OnInit, OnDestroy {
     TALLAS:'Recomendación de tallas',OUTFITS:'Búsqueda de outfits por presupuesto',PATRONES:'Análisis de patrones (heredado)',CLUSTERING:'Segmentación de clientes',DEMANDA:'Predicción de demanda',COCOMPRA:'Prendas que se compran juntas'
   };
 
+  mlOcupado():boolean {
+    return this.mlCargando()||this.mlGuardando()!==null||this.mlCambioGlobal()||this.mlDescargando()||this.mlEntrenando()||this.mlAccionModelo()||this.moduloEjecutando()!==null;
+  }
+  modoGeneralMl():FuenteMl|'MIXTO'|'SIN_DATOS' {
+    const fuentes=this.fuentesMl();
+    if(!fuentes.length)return 'SIN_DATOS';
+    return fuentes.every(x=>x.fuente==='REALES')?'REALES':fuentes.every(x=>x.fuente==='PRUEBA')?'PRUEBA':'MIXTO';
+  }
+  contarFuenteMl(fuente:FuenteMl):number {
+    return this.fuentesMl().filter(x=>x.fuente===fuente).length;
+  }
+  estadoDatasetMl(info:FuenteMlInfo):string {
+    if(!info.datasetImplementado)return 'Dataset no integrado';
+    if(!info.registrosDisponibles)return 'Sin registros';
+    if(info.modulo==='TALLAS'&&info.registrosDisponibles<30)return 'Muestra insuficiente';
+    return 'Registros disponibles';
+  }
+  async cambiarTodasFuentesMl(fuente:FuenteMl):Promise<void> {
+    if(this.mlOcupado())return;
+    const pendientes=this.fuentesMl().filter(x=>x.fuente!==fuente);
+    if(!pendientes.length)return;
+    const aviso=fuente==='PRUEBA'
+      ? 'Cambiarás todos los módulos visibles a datos sintéticos. Las recomendaciones que consultan esta fuente pueden cambiar. No entrenará ni activará modelos automáticamente.'
+      : 'Cambiarás todos los módulos visibles a datos reales. Demanda y segmentación no disponen aún de dataset real integrado; no podrán ejecutarse. Los modelos de talla ya activos no se desactivarán automáticamente.';
+    if(!window.confirm(aviso+' ¿Continuar?'))return;
+    this.mlCambioGlobal.set(true);this.mlError.set('');this.mlMensaje.set('');
+    let guardados=0;const fallidos:string[]=[];
+    try{
+      for(const info of pendientes){
+        try{
+          const nuevo=await this.adminApi.configurarFuenteMl(info.modulo,fuente);
+          this.fuentesMl.update(xs=>xs.map(x=>x.modulo===info.modulo?nuevo:x));
+          guardados++;
+        }catch{fallidos.push(this.nombresModuloMl[info.modulo]);}
+      }
+      if(fallidos.length)this.mlError.set('Cambio parcial: '+guardados+' de '+pendientes.length+' módulos actualizados. No se pudieron guardar: '+fallidos.join(', ')+'. Actualiza la configuración para verificar.');
+      else this.mlMensaje.set('Fuente '+(fuente==='PRUEBA'?'de prueba':'real')+' guardada en todos los módulos visibles. No se ejecutaron ni activaron modelos.');
+    }finally{this.mlCambioGlobal.set(false);}
+  }
   abrirMl():void{
     this.tab.set('ml');
     void this.cargarFuentesMl();
   }
   async cargarFuentesMl():Promise<void>{
-    if(this.mlCargando())return;
+    if(this.mlOcupado())return;
     this.mlCargando.set(true);
     this.mlError.set('');
     try{
@@ -97,7 +139,7 @@ export class AdminPage implements OnInit, OnDestroy {
     finally{this.mlCargando.set(false);}
   }
   async cambiarFuenteMl(modulo:ModuloMl,fuente:FuenteMl):Promise<void>{
-    if(this.mlGuardando()||this.mlCargando())return;
+    if(this.mlOcupado())return;
     const actual=this.fuentesMl().find(x=>x.modulo===modulo);
     if(actual?.fuente===fuente)return;
     const aviso=fuente==='PRUEBA'
@@ -113,7 +155,7 @@ export class AdminPage implements OnInit, OnDestroy {
     finally{this.mlGuardando.set(null);}
   }
   async descargarDatasetTallas():Promise<void>{
-    if(this.mlDescargando())return;
+    if(this.mlOcupado())return;
     this.mlDescargando.set(true);this.mlError.set('');
     try{
       const archivo=await this.adminApi.exportarDatasetTallas();
@@ -128,7 +170,7 @@ export class AdminPage implements OnInit, OnDestroy {
   }
 
   async entrenarModeloTallas():Promise<void>{
-    if(this.mlEntrenando()||this.mlAccionModelo())return;
+    if(this.mlOcupado())return;
     const fuente=this.fuentesMl().find(x=>x.modulo==='TALLAS');
     if(!fuente)return;
     if(!window.confirm('Entrenarás un modelo con '+(fuente.fuente==='PRUEBA'?'DATOS SINTÉTICOS':'DATOS REALES')+'. El entrenamiento no activa automáticamente el resultado. ¿Continuar?'))return;
@@ -158,7 +200,7 @@ export class AdminPage implements OnInit, OnDestroy {
     finally{this.mlAccionModelo.set(false);}
   }
   async desactivarModeloTallas():Promise<void>{
-    if(this.mlAccionModelo()||this.mlEntrenando())return;
+    if(this.mlOcupado())return;
     if(!window.confirm('¿Desactivar ML supervisado y volver al sistema de reglas?'))return;
     this.mlAccionModelo.set(true);this.mlError.set('');this.mlMensaje.set('');
     try{
